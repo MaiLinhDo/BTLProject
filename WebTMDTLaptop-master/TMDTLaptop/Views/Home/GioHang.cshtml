@@ -1,0 +1,237 @@
+﻿
+@{
+    ViewBag.Title = "GioHang";
+    Layout = "~/Views/Shared/_LayoutHome.cshtml";
+}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<style>
+    .breadcrumb-area {
+        background-image: url('@Url.Content("~/assets/images/banner/banner3.jpg")'); /* Đường dẫn tới hình ảnh */
+    }
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        justify-content: center; /* Căn giữa theo chiều ngang */
+        gap: 5px; /* Tạo khoảng cách giữa nút và ô input */
+    }
+
+        .quantity-controls button {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ddd;
+            background-color: #f8f8f8;
+            cursor: pointer;
+        }
+
+        .quantity-controls input {
+            width: 50px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+</style>
+<div class="breadcrumb-area">
+    <div class="container">
+        <div class="breadcrumb-content">
+            <h2>Giỏ hàng</h2>
+            <ul>
+                <li><a href="@Url.Action("Index","Home")">Trang chủ</a></li>
+                <li class="active">Giỏ hàng</li>
+            </ul>
+        </div>
+    </div>
+</div>
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @ViewBag.ErrorMessage
+    </div>
+}
+
+<!-- Uren's Breadcrumb Area End Here -->
+<div class="uren-cart-area">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="table-content table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Xóa</th>
+                                <th>Hình ảnh</th>
+                                <th>Sản phẩm</th>
+                                <th>Giá</th>
+                                <th>Số lượng</th>
+                                <th>Tổng tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (ViewBag.Cart != null)
+                            {
+                                foreach (var item in ViewBag.Cart)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a href="javascript:void(0)" class="remove-item" data-id="@item.MaSanPham">
+                                                <i class="fa fa-trash" title="Remove"></i>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <img style="width:60px" src="@Url.Content($"~/assets/images/product/{item.MaSanPham}/{item.HinhAnh}")" alt="@item.TenSanPham">
+                                        </td>
+                                        <td>@item.TenSanPham</td>
+                                        <td><span class="amount">@String.Format("{0:N0}", item.Gia) đ</span></td>
+                                        <td class="quantity">
+                                            <div class="quantity-controls">
+                                                <button class="decrease-qty" data-id="@item.MaSanPham">-</button>
+                                                <input class="cart-plus-minus-box" value="@item.SoLuong" type="number" min="1" data-id="@item.MaSanPham">
+                                                <button class="increase-qty" data-id="@item.MaSanPham">+</button>
+                                            </div>
+                                        </td>
+                                        <td class="product-subtotal">
+                                            <span class="amount">@String.Format("{0:N0}", item.Gia * item.SoLuong) đ</span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6">Giỏ hàng của bạn hiện tại đang trống.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="coupon-all">
+                    <div class="coupon">
+                        <input id="coupon_code" class="input-text" name="coupon_code" placeholder="Mã giảm giá" type="text">
+                        <button type="button" class="button" id="apply_coupon">Áp dụng</button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-5 ml-auto">
+                        <form id="checkoutForm" action="@Url.Action("DatHang", "Home")" method="post">
+                            <div class="cart-page-total">
+                                <h2>Thành tiền</h2>
+                                <ul>
+                                    <li>Tổng tiền <span id="tongTien">@String.Format("{0:N0}", ViewBag.TongTien) đ</span></li>
+                                </ul>
+                                <div class="form-group">
+                                    <label for="paymentMethod">Phương thức thanh toán:</label>
+                                    <select id="paymentMethod" name="paymentMethod" class="form-control">
+                                        <option value="COD">Thanh toán khi nhận hàng (COD)</option>
+                                        <option value="VNPAY">Thanh toán online</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Tiến hành đặt hàng</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('.increase-qty').click(function () {
+            var input = $(this).siblings('.cart-plus-minus-box');
+            var quantity = parseInt(input.val()) + 1;
+            input.val(quantity).trigger('change');
+        });
+
+        $('.decrease-qty').click(function () {
+            var input = $(this).siblings('.cart-plus-minus-box');
+            var quantity = parseInt(input.val()) - 1;
+            if (quantity > 0) {
+                input.val(quantity).trigger('change');
+            }
+        });
+        // Cập nhật số lượng sản phẩm
+        $('.cart-plus-minus-box').on('change', function () {
+            var input = $(this);
+            var quantity = input.val();
+            var productId = input.data('id');
+
+            $.ajax({
+                url: '@Url.Action("CapNhatGioHang", "Home")',
+                type: 'POST',
+                data: { productId: productId, quantity: quantity },
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        location.reload();
+                    } else {
+                        alert('Có lỗi xảy ra, vui lòng thử lại!');
+                    }
+                },
+                error: function () {
+                    alert('Có lỗi xảy ra, vui lòng thử lại!');
+                }
+            });
+        });
+
+        // Xóa sản phẩm khỏi giỏ hàng
+        $('.remove-item').on('click', function () {
+            var productId = $(this).data('id');
+            if (confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?")) {
+                $.ajax({
+                    url: '@Url.Action("XoaGioHang", "Home")',
+                    type: 'POST',
+                    data: { id: productId },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Không thể xóa sản phẩm. Vui lòng thử lại!');
+                        }
+                    },
+                    error: function () {
+                        alert('Có lỗi xảy ra, vui lòng thử lại!');
+                    }
+                });
+            }
+        });
+
+        // Áp dụng mã giảm giá
+        $('#apply_coupon').on('click', function () {
+            var couponCode = $('#coupon_code').val().trim();
+
+            if (couponCode === "") {
+                alert("Vui lòng nhập mã giảm giá!");
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("ApplyCoupon", "Home")',
+                type: 'POST',
+                data: { coupon: couponCode },
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        location.reload();
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function () {
+                    alert("Đã có lỗi xảy ra. Vui lòng thử lại.");
+                }
+            });
+        });
+
+
+
+    });
+</script>
+
+
