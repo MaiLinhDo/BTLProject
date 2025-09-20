@@ -1,0 +1,252 @@
+﻿
+@{
+    ViewBag.Title = "Chat";
+    Layout = "~/Views/Shared/_LayoutHome.cshtml"; // Điều chỉnh theo layout của bạn
+ 
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat với AI</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+       .chat-box {
+        background-color: white;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        border-radius: 10px;
+        position: relative;
+    }
+    .message {
+        padding: 12px 15px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        max-width: 80%;
+        word-wrap: break-word;
+        position: relative;
+        opacity: 0;
+        animation: fadeIn 0.5s forwards;
+    }
+    .customer-message {
+        background-color: #e1f7d5;
+        align-self: flex-start;
+        margin-right: auto;
+    }
+    .employee-message {
+        background-color: #d1e7ff;
+        align-self: flex-end;
+        margin-left: auto;
+    }
+    .typing-text {
+        display: inline;
+    }
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    #message {
+        resize: none;
+        border-radius: 8px;
+    }
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+        /* New loading animation styles */
+        .loading-dots {
+            display: inline-block;
+            position: relative;
+            width: 80px;
+            height: 20px;
+        }
+        .loading-dots div {
+            position: absolute;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: #007bff;
+            animation: loading-dots 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        }
+        .loading-dots div:nth-child(1) {
+            left: 8px;
+            animation-delay: -0.24s;
+        }
+        .loading-dots div:nth-child(2) {
+            left: 8px;
+            animation-delay: -0.12s;
+        }
+        .loading-dots div:nth-child(3) {
+            left: 32px;
+        }
+        @@keyframes loading-dots {
+            0% {
+                top: 6px;
+                height: 8px;
+                opacity: 0.7;
+            }
+            50% {
+                top: 2px;
+                height: 16px;
+                opacity: 1;
+            }
+            100% {
+                top: 6px;
+                height: 8px;
+                opacity: 0.7;
+            }
+        }
+
+        /* Pulse animation for waiting state */
+        @@keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+        }
+        .waiting-indicator {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h2 class="text-center">Chat với AI</h2>
+        <div class="chat-box p-3 border rounded" id="chatBox" style="height: 400px; overflow-y: scroll; background-color: #f9f9f9;"></div>
+
+        <!-- New waiting indicator -->
+        <div id="waitingIndicator" class="waiting-indicator">
+            <div class="loading-dots">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+            Đang chờ phản hồi từ AI...
+        </div>
+
+        <form id="chatForm" class="mt-3">
+            <div class="form-group">
+                <textarea id="message" class="form-control" rows="3" placeholder="Nhập tin nhắn..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary mt-2">Gửi</button>
+        </form>
+    </div>
+    <script>
+        function formatMessageText(message) {
+            return message.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>").replace(/\n/g, '<br>');
+        }
+
+        function appendMessage(sender, message, isUser) {
+            let className = isUser ? 'customer-message' : 'employee-message';
+            let formattedMessage = formatMessageText(message);
+            $('#chatBox').append(`<div class="message ${className}"><strong>${sender}:</strong> ${formattedMessage}</div>`);
+            $('#chatBox').scrollTop($('#chatBox')[0].scrollHeight);
+        }
+
+        $(document).ready(function () {
+            $('#chatForm').submit(function (e) {
+                e.preventDefault();
+                let message = $('#message').val().trim();
+                if (!message) return;
+
+                // Append user message
+                appendMessage("<?php echo $username; ?>", message, true);
+                $('#message').val('');
+
+                // Show waiting indicator
+                $('#waitingIndicator').show();
+
+                $.ajax({
+                    url: 'http://localhost:5000/api/chat',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ mess: message }),
+                    success: function (data) {
+                        // Hide waiting indicator
+                        $('#waitingIndicator').hide();
+
+                        // Animate AI response
+                        animateResponse("AI", data.response);
+                    },
+                    error: function () {
+                        // Hide waiting indicator
+                        $('#waitingIndicator').hide();
+
+                        appendMessage("AI", "Xin lỗi, có lỗi xảy ra!", false);
+                    }
+                });
+            });
+
+            function animateResponse(sender, message) {
+                // Tạo một phần tử mới để hiển thị tin nhắn
+                let $messageDiv = $(`<div class="message employee-message"><strong>${sender}:</strong> <span class="typing-text"></span></div>`);
+                $('#chatBox').append($messageDiv);
+                $('#chatBox').scrollTop($('#chatBox')[0].scrollHeight);
+
+                // Xử lý định dạng tin nhắn
+                let formattedMessage = formatMessageText(message);
+
+                // Tách tin nhắn thành các từ và dòng
+                let words = formattedMessage.split(/\s+/);
+                let currentWordIndex = 0;
+
+                function showNextWord() {
+                    if (currentWordIndex < words.length) {
+                        let $typingText = $messageDiv.find('.typing-text');
+                        let currentText = $typingText.html() || '';
+
+                        // Kiểm tra nếu là thẻ <br>
+                        if (words[currentWordIndex] === '<br>') {
+                            currentText += '<br>';
+                        } else {
+                            // Thêm từ mới và khoảng trắng
+                            currentText += (currentText && words[currentWordIndex] !== '<br>' ? ' ' : '') + words[currentWordIndex];
+                        }
+
+                        $typingText.html(currentText);
+
+                        // Cuộn xuống dưới cùng
+                        $('#chatBox').scrollTop($('#chatBox')[0].scrollHeight);
+
+                        currentWordIndex++;
+
+                        // Thời gian giữa các từ (có thể điều chỉnh)
+                        setTimeout(showNextWord, 10);
+                    } else {
+                        // Sau khi hiển thị xong, đảm bảo đúng định dạng
+                        let $typingText = $messageDiv.find('.typing-text');
+                        $typingText.html(formattedMessage);
+                    }
+                }
+
+                // Bắt đầu hiệu ứng
+                showNextWord();
+            }
+        });
+    </script>
+</body>
+</html>
