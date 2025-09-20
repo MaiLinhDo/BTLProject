@@ -1,0 +1,467 @@
+
+@{
+    ViewBag.Title = "HoSo";
+    Layout = "~/Views/Shared/_LayoutHome.cshtml";
+    var errorMessage = ViewBag.ErrorMessage as string;
+}
+
+
+
+<div class="breadcrumb-area">
+    <div class="container">
+        <div class="breadcrumb-content">
+            <h2>Hồ sơ</h2>
+            <ul>
+                <li><a href="@Url.Action("Index","Home")">Trang chủ</a></li>
+                <li class="active">Hồ sơ</li>
+            </ul>
+        </div>
+    </div>z
+</div>
+<style>
+    .breadcrumb-area {
+        background-image: url('@Url.Content("~/assets/images/banner/banner3.jpg")'); /* Đường dẫn tới hình ảnh */
+    }
+</style>
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @errorMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <script>
+        alert('@Html.Raw(TempData["SuccessMessage"])');
+    </script>
+}
+<main class="page-content">
+
+    <div class="account-page-area">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-3">
+                    <ul class="nav myaccount-tab-trigger" id="account-page-tab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="account-dashboard-tab" data-toggle="tab" href="#account-dashboard" role="tab" aria-controls="account-dashboard" aria-selected="true">Bảng điều khiển</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="account-orders-tab" data-toggle="tab" href="#account-orders" role="tab" aria-controls="account-orders" aria-selected="false">Đơn hàng</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="account-address-tab" data-toggle="tab" href="#account-address" role="tab" aria-controls="account-address" aria-selected="false">Địa chỉ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="account-details-tab" data-toggle="tab" href="#account-details" role="tab" aria-controls="account-details" aria-selected="false">Thông tin tài khoản</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="account-logout-tab" href="@Url.Action("DangXuat","Home")" role="tab" aria-selected="false">Đăng xuất</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-lg-9">
+                    <div class="tab-content myaccount-tab-content" id="account-page-tab-content">
+                        <div class="tab-pane fade show active" id="account-dashboard" role="tabpanel" aria-labelledby="account-dashboard-tab">
+                            <div class="myaccount-dashboard">
+                                <p>
+                                    Xin chào <b>@Model.HoTen</b> (không phải @Model.HoTen? <a href="@Url.Action("DangXuat","Home")">Đăng xuất</a>)
+                                </p>
+                                <p>
+                                    Từ bảng điều khiển tài khoản của bạn, bạn có thể xem các đơn hàng gần đây, quản lý địa chỉ giao hàng và thanh toán, và <a href="javascript:void(0)">chỉnh sửa mật khẩu và thông tin tài khoản của bạn</a>.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="account-orders" role="tabpanel" aria-labelledby="account-orders-tab">
+                            <div class="myaccount-orders">
+                                <h4 class="small-title">ĐƠN HÀNG CỦA TÔI</h4>
+                                @if (ViewBag.Orders != null && ((List<TMDTLaptop.Models.Class.DonHang>)ViewBag.Orders).Any())
+                                {
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-hover">
+                                            <tbody>
+                                                <tr>
+                                                    <th>ĐƠN HÀNG</th>
+                                                    <th>NGÀY</th>
+                                                    <th>TRẠNG THÁI</th>
+                                                    <th>TỔNG</th>
+                                                    <th></th>
+                                                </tr>
+                                                @foreach (var order in ViewBag.Orders as List<TMDTLaptop.Models.Class.DonHang>)
+                                                {
+                                                    <tr>
+                                                        <td><a class="account-order-id" href="@Url.Action("ChiTietDonHang", "Home", new { id = order.MaDonHang })">#@order.MaDonHang</a></td>
+                                                        <td>@order.NgayDatHang.Value.ToString("dd/MM/yyyy")</td>
+                                                        <td>@order.TrangThai</td>
+                                                        <td>@order.TongTien.Value.ToString("N0") đ</td>
+                                                        <td>
+                                                            <a href="@Url.Action("ChiTietDonHang", "Home", new { id = order.MaDonHang })" class="uren-btn uren-btn_dark uren-btn_sm"><span>Xem</span></a>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <p>Không có đơn hàng nào cả.</p>
+                                }
+                            </div>
+                        </div>
+
+
+                        <div class="tab-pane fade" id="account-address" role="tabpanel" aria-labelledby="account-address-tab">
+                            <div class="myaccount-address">
+                                <p>Các địa chỉ sau sẽ được sử dụng trên trang thanh toán theo mặc định.</p>
+                                <div class="row">
+                                    <div class="col">
+                                        <h4 class="small-title">ĐỊA CHỈ THANH TOÁN</h4>
+                                        <address>
+                                            @Model.DiaChi
+                                        </address>
+                                    </div>
+                                    <div class="col">
+                                        <h4 class="small-title">ĐỊA CHỈ GIAO HÀNG</h4>
+                                        <address>
+                                            @Model.DiaChi
+                                        </address>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="account-details" role="tabpanel" aria-labelledby="account-details-tab" onsubmit="return validateForm()">
+                            <div class="myaccount-details">
+                                <form action="@Url.Action("HoSo", "Home")" method="post" class="uren-form">
+
+                                    <div class="uren-form-inner">
+                                        <div class="single-input single-input-half">
+                                            <label for="account-details-firstname">Họ và Tên*</label>
+                                            <input type="text" id="account-details-firstname" name="tenKhachHang" value="@Model.HoTen" required>
+                                        </div>
+                                        <div class="single-input single-input-half">
+                                            <label for="account-details-lastname">Số điện thoại*</label>
+                                            <input type="text" id="account-details-lastname" name="soDienThoai" value="@Model.SoDienThoai" required>
+                                        </div>
+                                        <div class="single-input">
+                                            <label>Địa chỉ*</label>
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label>Tỉnh/Thành phố*</label>
+                                                    <select id="province" class="form-control" onchange="loadDistricts()" required>
+                                                        <option value="">Chọn Tỉnh/Thành phố</option>
+                                                        <!-- Tỉnh/thành phố sẽ được điền bởi JavaScript -->
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label>Quận/Huyện*</label>
+                                                    <select id="district" class="form-control" disabled onchange="loadWards()" required>
+                                                        <option value="">Chọn Quận/Huyện</option>
+                                                        <!-- Quận/huyện sẽ được điền bởi JavaScript -->
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label>Phường/Xã*</label>
+                                                    <select id="ward" class="form-control" disabled required>
+                                                        <option value="">Chọn Phường/Xã</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-12 mb-3">
+                                                    <label>Địa chỉ chi tiết*</label>
+                                                    <input type="text" id="addressDetail" class="form-control" placeholder="Số nhà, tên đường" value="" required>
+                                                </div>
+                                            </div>
+                                            <!-- Trường ẩn để lưu địa chỉ đầy đủ -->
+                                            <input type="hidden" id="fullAddress" name="diaChi">
+                                        </div>
+                                        <div class="single-input">
+                                            <label for="account-details-oldpass">Mật khẩu hiện tại (để trống nếu không thay đổi)</label>
+                                            <input type="password" id="account-details-oldpass" name="matKhauHienTai">
+                                        </div>
+                                        <div class="single-input">
+                                            <label for="account-details-newpass">Mật khẩu mới (để trống nếu không thay đổi)</label>
+                                            <input type="password" id="account-details-newpass" name="matKhauMoi">
+                                        </div>
+                                        <div class="single-input">
+                                            <label for="account-details-confpass">Xác nhận mật khẩu mới</label>
+                                            <input type="password" id="account-details-confpass" name="xacNhanMatKhauMoi">
+                                        </div>
+                                        <div class="single-input">
+                                            <button class="uren-btn uren-btn_dark" type="submit">
+                                                <span>
+                                                    LƯU
+                                                    THAY ĐỔI
+                                                </span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+<script>
+    // Biến lưu trữ dữ liệu tỉnh/thành phố và quận/huyện
+    let provinces = [];
+    let districts = [];
+    let wards = [];
+    let currentAddress = @Html.Raw(Json.Encode(Model.DiaChi));
+
+    console.log(currentAddress);
+    // Gọi API để lấy danh sách tỉnh/thành phố khi trang được tải
+    document.addEventListener('DOMContentLoaded', function () {
+        parseExistingAddress();
+        loadProvinces();
+
+        // Thêm sự kiện submit form để cập nhật trường địa chỉ đầy đủ
+        document.querySelector('.uren-form').addEventListener('submit', function(e) {
+            updateFullAddress();
+        });
+
+        // Thêm sự kiện input cho trường địa chỉ chi tiết
+        document.getElementById('addressDetail').addEventListener('input', function() {
+            updateFullAddress();
+        });
+
+        // Phân tích địa chỉ hiện tại để điền vào các trường
+        parseExistingAddress();
+    });
+
+    // Phân tích địa chỉ hiện tại
+    function parseExistingAddress() {
+        if (!currentAddress) return;
+
+        // Giả sử địa chỉ có định dạng: "Địa chỉ chi tiết, Quận/Huyện, Tỉnh/Thành phố"
+        const addressParts = currentAddress.split(',');
+
+        if (addressParts.length >= 4) {
+            // Địa chỉ chi tiết là phần đầu tiên
+            document.getElementById('addressDetail').value = addressParts[0].trim();
+        }
+        else document.getElementById('addressDetail').value = "";
+        // Các phần còn lại sẽ được điền sau khi API đã tải xong
+    }
+
+    // Hàm lấy danh sách tỉnh/thành phố từ API
+    function loadProvinces() {
+        fetch('https://provinces.open-api.vn/api/p/')
+            .then(response => response.json())
+            .then(data => {
+                provinces = data;
+                const provinceSelect = document.getElementById('province');
+
+                // Xóa tất cả các option hiện tại
+                provinceSelect.innerHTML = '<option value="">Chọn Tỉnh/Thành phố</option>';
+
+                // Thêm các option tỉnh/thành phố
+                provinces.forEach(province => {
+                    const option = document.createElement('option');
+                    option.value = province.code;
+                    option.textContent = province.name;
+                    provinceSelect.appendChild(option);
+                });
+
+                // Nếu có địa chỉ hiện tại, thử tìm và chọn tỉnh/thành phố
+                if (currentAddress) {
+                    const addressParts = currentAddress.split(',');
+                    if (addressParts.length >= 3) {
+                        const provinceName = addressParts[addressParts.length - 1].trim();
+                        const foundProvince = provinces.find(p => p.name == provinceName);
+                        if (foundProvince) {
+                            provinceSelect.value = foundProvince.code;
+                        //    updateFullAddress();
+                            // Tải danh sách quận/huyện và thử chọn
+                            loadDistricts().then(() => {
+                                if (addressParts.length >= 2) {
+                                    const districtName = addressParts[addressParts.length - 2].trim();
+                                    const districtSelect = document.getElementById('district');
+                                    const foundDistrict = districts.find(d => d.name == districtName);
+                                    if (foundDistrict) {
+                                        districtSelect.value = foundDistrict.code;
+                            //            updateFullAddress();
+                                        // Tự động chọn nếu trong địa chỉ có sẵn phường/xã
+                                        loadWards().then(() => {
+                                            if (addressParts.length >= 1) {
+                                                const wardName = addressParts[addressParts.length - 3].trim();
+                                                const wardSelect = document.getElementById('ward');
+                                                const foundWard = wards.find(d => d.name == wardName);
+                                                if (foundWard) {
+                                                    wardSelect.value = foundWard.code;
+                                                    updateFullAddress();
+                                                }
+                                            }
+                                        
+                                        });
+                                    }
+                                }
+                            });
+                           
+                        }
+                        
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi tải danh sách tỉnh/thành phố:', error);
+                alert('Không thể tải danh sách tỉnh/thành phố. Vui lòng thử lại sau.');
+            });
+    }
+
+    // Hàm lấy danh sách quận/huyện theo tỉnh/thành phố từ API
+    function loadDistricts() {
+        const provinceCode = document.getElementById('province').value;
+        const districtSelect = document.getElementById('district');
+
+        // Reset quận/huyện
+        districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+
+        if (!provinceCode) {
+            districtSelect.disabled = true;
+            updateFullAddress();
+            return; // Trả về Promise đã resolve để có thể chain
+        }
+
+        return fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`)
+            .then(response => response.json())
+            .then(data => {
+                districts = data.districts;
+
+                // Thêm các option quận/huyện
+                districts.forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district.code;
+                    option.textContent = district.name;
+                    districtSelect.appendChild(option);
+                });
+
+                districtSelect.disabled = false;
+                updateFullAddress();
+                return Promise.resolve(); // Trả về Promise đã resolve để có thể chain
+            })
+            .catch(error => {
+                console.error('Lỗi khi tải danh sách quận/huyện:', error);
+                alert('Không thể tải danh sách quận/huyện. Vui lòng thử lại sau.');
+                return Promise.reject(error); // Trả về Promise đã reject để có thể chain
+            });
+    }
+    // Hàm lấy danh sách phường/xã theo quận/huyện
+    function loadWards() {
+        const districtCode = document.getElementById('district').value;
+        const wardSelect = document.getElementById('ward');
+
+        // Reset phường/xã
+        wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+
+        if (!districtCode) {
+            wardSelect.disabled = true;
+            updateFullAddress();
+            return;
+        }
+
+       return fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`)
+            .then(response => response.json())
+            .then(data => {
+                wards = data.wards;
+
+                wards.forEach(ward => {
+                    const option = document.createElement('option');
+                    option.value = ward.code;
+                    option.textContent = ward.name;
+                    wardSelect.appendChild(option);
+                });
+
+                wardSelect.disabled = false;
+
+               
+
+                updateFullAddress();
+                return Promise.resolve(); // Trả về Promise đã resolve để có thể chain
+            })
+            .catch(error => {
+                console.error('Lỗi khi tải danh sách phường/xã:', error);
+                alert('Không thể tải danh sách phường/xã. Vui lòng thử lại sau.');
+                return Promise.reject(error);
+            });
+
+        // Khi thay đổi phường/xã cũng cập nhật địa chỉ
+        //wardSelect.addEventListener('change', updateFullAddress);
+    }
+    // Cập nhật trường địa chỉ đầy đủ
+    function updateFullAddress() {
+        const provinceSelect = document.getElementById('province');
+        const districtSelect = document.getElementById('district');
+        const addressDetail = document.getElementById('addressDetail').value.trim();
+        const fullAddressInput = document.getElementById('fullAddress');
+        const wardSelect = document.getElementById('ward');
+        let fullAddress = '';
+
+        // Thêm địa chỉ chi tiết
+        if (addressDetail) {
+            fullAddress += addressDetail;
+        }
+        if (wardSelect.value) {
+            const selectedWard = wards.find(d => d.code == wardSelect.value);
+            if (fullAddress && selectedWard) fullAddress += ', ';
+            if (selectedWard) fullAddress += selectedWard.name;
+        }
+        // Thêm quận/huyện
+        if (districtSelect.value) {
+            const selectedDistrict = districts.find(d => d.code == districtSelect.value);
+            if (selectedDistrict && fullAddress) {
+                fullAddress += ', ';
+            }
+            if (selectedDistrict) {
+                fullAddress += selectedDistrict.name;
+            }
+        }
+
+        // Thêm tỉnh/thành phố
+        if (provinceSelect.value) {
+            const selectedProvince = provinces.find(p => p.code == provinceSelect.value);
+            if (selectedProvince && fullAddress) {
+                fullAddress += ', ';
+            }
+            if (selectedProvince) {
+                fullAddress += selectedProvince.name;
+            }
+        }
+
+        
+        // Cập nhật trường ẩn
+        fullAddressInput.value = fullAddress;
+    }
+</script>
+<script>
+    function validateForm() {
+
+    var tenKhachHang = document.getElementById("account-details-firstname").value.trim();
+    var soDienThoai = document.getElementById("account-details-lastname").value.trim();
+    var diaChi = document.getElementById("account-details-email").value.trim();
+    var matKhauHienTai = document.getElementById("account-details-oldpass").value.trim();
+    var matKhauMoi = document.getElementById("account-details-newpass").value.trim();
+    var xacNhanMatKhauMoi = document.getElementById("account-details-confpass").value.trim();
+
+
+    if (!tenKhachHang || !soDienThoai || !diaChi) {
+        alert("Vui lòng điền vào tất cả các trường bắt buộc!");
+    return false;
+    }
+
+    if (matKhauMoi !== "" && matKhauMoi !== xacNhanMatKhauMoi) {
+        alert("Mật khẩu xác nhận không khớp!");
+    return false;
+    }
+
+
+    return true;
+}
+</script>
+
