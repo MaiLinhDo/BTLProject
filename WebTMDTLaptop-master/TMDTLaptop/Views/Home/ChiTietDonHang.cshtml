@@ -1267,108 +1267,108 @@ page {
 <script>
 
 
-document.addEventListener('DOMContentLoaded', function () {
-    // Animate elements on scroll
-    const animateOnScroll = () => {
-        const elements = document.querySelectorAll('.order-item-row, .mobile-item-card, .meta-item');
+    document.addEventListener('DOMContentLoaded', function () {
+        // Animate elements on scroll
+        const animateOnScroll = () => {
+            const elements = document.querySelectorAll('.order-item-row, .mobile-item-card, .meta-item');
 
-        elements.forEach((element, index) => {
-            const elementTop = element.getBoundingClientRect().top;
-            const elementVisible = 150;
+            elements.forEach((element, index) => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 150;
 
-            if (elementTop < window.innerHeight - elementVisible) {
-                setTimeout(() => {
-                    element.style.opacity = '1';
-                    element.style.transform = 'translateY(0)';
-                }, index * 100);
-            }
+                if (elementTop < window.innerHeight - elementVisible) {
+                    setTimeout(() => {
+                        element.style.opacity = '1';
+                        element.style.transform = 'translateY(0)';
+                    }, index * 100);
+                }
+            });
+        };
+
+        // Initialize animation styles
+        document.querySelectorAll('.order-item-row, .mobile-item-card, .meta-item').forEach(element => {
+            element.style.opacity = '0';
+            element.style.transform = 'translateY(20px)';
+            element.style.transition = 'all 0.6s ease';
         });
-    };
 
-    // Initialize animation styles
-    document.querySelectorAll('.order-item-row, .mobile-item-card, .meta-item').forEach(element => {
-        element.style.opacity = '0';
-        element.style.transform = 'translateY(20px)';
-        element.style.transition = 'all 0.6s ease';
-    });
+        // Run animation
+        window.addEventListener('scroll', animateOnScroll);
+        animateOnScroll();
 
-    // Run animation
-    window.addEventListener('scroll', animateOnScroll);
-    animateOnScroll();
-
-    // Add smooth transitions for table rows
-    document.querySelectorAll('.order-item-row').forEach((row, index) => {
-        row.style.animationDelay = `${index * 0.1}s`;
-        row.classList.add('animate__animated', 'animate__fadeInLeft');
-    });
-
-    // Set print time on page load
-    const printTimeEl = document.getElementById('print-time');
-    if (printTimeEl) {
-        const now = new Date();
-        printTimeEl.textContent = now.toLocaleString('vi-VN');
-    }
-});
-
-
-document.addEventListener('DOMContentLoaded', function () {
-    // Animate elements on scroll
-    const animateOnScroll = () => {
-        const elements = document.querySelectorAll('.order-item-row, .mobile-item-card, .meta-item');
-
-        elements.forEach((element, index) => {
-            const elementTop = element.getBoundingClientRect().top;
-            const elementVisible = 150;
-
-            if (elementTop < window.innerHeight - elementVisible) {
-                setTimeout(() => {
-                    element.style.opacity = '1';
-                    element.style.transform = 'translateY(0)';
-                }, index * 100);
-            }
+        // Add smooth transitions for table rows
+        document.querySelectorAll('.order-item-row').forEach((row, index) => {
+            row.style.animationDelay = `${index * 0.1}s`;
+            row.classList.add('animate__animated', 'animate__fadeInLeft');
         });
-    };
 
-    // Initialize animation styles
-    document.querySelectorAll('.order-item-row, .mobile-item-card, .meta-item').forEach(element => {
-        element.style.opacity = '0';
-        element.style.transform = 'translateY(20px)';
-        element.style.transition = 'all 0.6s ease';
+        // Set print time on page load
+        const printTimeEl = document.getElementById('print-time');
+        if (printTimeEl) {
+            const now = new Date();
+            printTimeEl.textContent = now.toLocaleString('vi-VN');
+        }
     });
 
-    // Run animation
-    window.addEventListener('scroll', animateOnScroll);
-    animateOnScroll(); // Run on load
 
-    // Add smooth transitions for table rows
-    document.querySelectorAll('.order-item-row').forEach((row, index) => {
-        row.style.animationDelay = `${index * 0.1}s`;
-        row.classList.add('animate__animated', 'animate__fadeInLeft');
+    document.addEventListener('DOMContentLoaded', function () {
+        // Animate elements on scroll
+        const animateOnScroll = () => {
+            const elements = document.querySelectorAll('.order-item-row, .mobile-item-card, .meta-item');
+
+            elements.forEach((element, index) => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 150;
+
+                if (elementTop < window.innerHeight - elementVisible) {
+                    setTimeout(() => {
+                        element.style.opacity = '1';
+                        element.style.transform = 'translateY(0)';
+                    }, index * 100);
+                }
+            });
+        };
+
+        // Initialize animation styles
+        document.querySelectorAll('.order-item-row, .mobile-item-card, .meta-item').forEach(element => {
+            element.style.opacity = '0';
+            element.style.transform = 'translateY(20px)';
+            element.style.transition = 'all 0.6s ease';
+        });
+
+        // Run animation
+        window.addEventListener('scroll', animateOnScroll);
+        animateOnScroll(); // Run on load
+
+        // Add smooth transitions for table rows
+        document.querySelectorAll('.order-item-row').forEach((row, index) => {
+            row.style.animationDelay = `${index * 0.1}s`;
+            row.classList.add('animate__animated', 'animate__fadeInLeft');
+        });
+
+        // Set print time on page load
+        const printTimeEl = document.getElementById('print-time');
+        if (printTimeEl) {
+            const now = new Date();
+            printTimeEl.textContent = now.toLocaleString('vi-VN');
+        }
     });
 
-    // Set print time on page load
-    const printTimeEl = document.getElementById('print-time');
-    if (printTimeEl) {
-        const now = new Date();
-        printTimeEl.textContent = now.toLocaleString('vi-VN');
-    }
-});
+    // Toast notification for successful actions
+    function showSuccessToast(message) {
+        // Create toast container if it doesn't exist
+        let toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            document.body.appendChild(toastContainer);
+        }
 
-// Toast notification for successful actions
-function showSuccessToast(message) {
-    // Create toast container if it doesn't exist
-    let toastContainer = document.getElementById('toast-container');
-    if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.id = 'toast-container';
-        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
-        toastContainer.style.zIndex = '9999';
-        document.body.appendChild(toastContainer);
-    }
-
-    // Create toast
-    const toastId = 'toast-' + Date.now();
-    const toastHtml = `
+        // Create toast
+        const toastId = 'toast-' + Date.now();
+        const toastHtml = `
         <div class="toast" id="${toastId}" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">
                 <i class="fas fa-check-circle text-success me-2"></i>
@@ -1379,14 +1379,14 @@ function showSuccessToast(message) {
         </div>
     `;
 
-    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
 
-    const toastElement = document.getElementById(toastId);
-    const toast = new bootstrap.Toast(toastElement);
-    toast.show();
+        const toastElement = document.getElementById(toastId);
+        const toast = new bootstrap.Toast(toastElement);
+        toast.show();
 
-    toastElement.addEventListener('hidden.bs.toast', function () {
-        this.remove();
-    });
-}
+        toastElement.addEventListener('hidden.bs.toast', function () {
+            this.remove();
+        });
+    }
 </script>
