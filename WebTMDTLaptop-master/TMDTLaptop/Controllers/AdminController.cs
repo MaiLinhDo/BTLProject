@@ -849,7 +849,133 @@ namespace TMDTLaptop.Controllers
                 }
             }
         }
+        public async Task<ActionResult> QuanLyDonHang(int page = 1, int pageSize = 5, string searchTerm = null, string status = null)
+        {
+            //  if (!check()) return RedirectToAction("Loi404", "Admin");QuanLyTonKho
 
+            using (var client = new HttpClient())
+            {
+                //    var quyen = Convert.ToInt32(Session["quyen"]);
+
+                var postData = new
+                {
+                    page,
+                    pageSize,
+                    searchTerm,
+                    status
+                    //       quyen
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://127.0.0.1:5000/api/get_orders", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = (int)Math.Ceiling((double)data.total / pageSize);
+                ViewBag.SearchTerm = searchTerm;
+                ViewBag.Status = status;
+                return View(data.orders);
+            }
+        }
+
+        public async Task<ActionResult> DuyetDonHang(int id)
+        {
+            using (var client = new HttpClient())
+            {
+                var postData = new
+                {
+                    MaDonHang = id,
+                    TrangThai = "Đã Duyệt"
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+
+                // Sử dụng PutAsync thay vì PostAsync
+                var response = await client.PutAsync("http://127.0.0.1:5000/api/update_order_status", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                if ((bool)data.success)
+                    return RedirectToAction("QuanLyDonHang");
+                else
+                    return HttpNotFound();
+            }
+
+        }
+
+        public async Task<ActionResult> HuyDonHang(int id)
+        {
+            using (var client = new HttpClient())
+            {
+                var postData = new
+                {
+                    order_id = id
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://127.0.0.1:5000/api/cancel_order", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                if ((bool)data.success)
+                    return RedirectToAction("QuanLyDonHang");
+                else
+                    return HttpNotFound();
+            }
+        }
+
+        public async Task<ActionResult> ChiTietDonHang(int id)
+        {
+            //  if (!check()) return RedirectToAction("Loi404", "Admin");
+
+            using (var client = new HttpClient())
+            {
+                var postData = new { orderId = id };
+                var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+
+                var response = await client.PostAsync("http://127.0.0.1:5000/api/get_order_detail", content);
+                var result = await response.Content.ReadAsStringAsync();
+
+                dynamic responseData = JsonConvert.DeserializeObject(result);
+
+                bool success = Convert.ToBoolean(responseData.success);
+                if (!success)
+                {
+                    return HttpNotFound();
+                }
+
+                ViewBag.Order = responseData.order;
+                ViewBag.Details = responseData.details;
+                ViewBag.GiamGia = responseData.giamGia;
+                ViewBag.Code = responseData.code;
+
+                return View();
+            }
+
+        }
+        // 1. Cập nhật trạng thái đơn hàng theo luồng mới
+        public async Task<ActionResult> CapNhatTrangThaiDonHang(int id, string trangThai)
+        {
+            using (var client = new HttpClient())
+            {
+                var postData = new
+                {
+                    MaDonHang = id,
+                    TrangThai = trangThai
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+                var response = await client.PutAsync("http://127.0.0.1:5000/api/update_order_status_new", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                if ((bool)data.success)
+                    return Json(new { success = true, message = "Cập nhật thành công" });
+                else
+                    return Json(new { success = false, message = data.message });
+            }
+        }
 
     }
 }
