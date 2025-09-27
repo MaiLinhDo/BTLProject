@@ -415,7 +415,440 @@ namespace TMDTLaptop.Controllers
             return View(model);
         }
 
+        public async Task<ActionResult> QuanLyDanhMuc(int page = 1, int pageSize = 5, string searchTerm = null)
+        {
+            using (var client = new HttpClient())
+            {
+                var url = $"http://127.0.0.1:5000/api/danhmuc?page={page}&pageSize={pageSize}&search={searchTerm}";
+                var response = await client.GetAsync(url);
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    ViewBag.Message = "Có lỗi khi kết nối đến API.";
+                    return View();
+                }
+
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                if (data != null && data.success == true)
+                {
+                    ViewBag.CurrentPage = page;
+                    ViewBag.TotalPages = (int)Math.Ceiling((double)data.total / pageSize);
+                    ViewBag.SearchTerm = searchTerm; // Giữ từ khóa tìm kiếm
+
+                    if (data.categories != null)
+                    {
+                        return View(data.categories);
+                    }
+                    else
+                    {
+                        ViewBag.Message = "Không có danh mục sản phẩm nào.";
+                        return View();
+                    }
+                }
+                else
+                {
+                    ViewBag.Message = data != null ? data.message : "Không thể lấy dữ liệu từ API.";
+                    return View();
+                }
+            }
+        }
+
+
+
+
+        public ActionResult ThemDanhMuc()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> ThemDanhMuc(DanhMucSanPham model)
+        {
+            if (string.IsNullOrWhiteSpace(model.TenDanhMuc))
+            {
+                ModelState.AddModelError("TenDanhMuc", "Tên danh mục không được để trống.");
+                return View(model);
+            }
+
+            using (var client = new HttpClient())
+            {
+                var checkNameUrl = $"http://127.0.0.1:5000/api/danhmuc";
+                var checkResponse = await client.GetAsync($"{checkNameUrl}?search={model.TenDanhMuc}");
+                var checkResult = await checkResponse.Content.ReadAsStringAsync();
+                dynamic checkData = JsonConvert.DeserializeObject(checkResult);
+
+                bool success = Convert.ToBoolean(checkData.success);
+                if (success && checkData.categories.Count > 0)
+                {
+                    ModelState.AddModelError("TenDanhMuc", "Tên danh mục này đã tồn tại.");
+                    return View(model);
+                }
+            }
+
+            using (var client = new HttpClient())
+            {
+                var data = new { TenDanhMuc = model.TenDanhMuc };
+                var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://127.0.0.1:5000/api/danhmuc", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic responseData = JsonConvert.DeserializeObject(result);
+
+                bool responseSuccess = Convert.ToBoolean(responseData.success);
+                if (responseSuccess)
+                {
+                    return RedirectToAction("QuanLyDanhMuc");
+                }
+                else
+                {
+                    ModelState.AddModelError("", responseData.message);
+                    return View(model);
+                }
+            }
+        }
+
+
+        public async Task<ActionResult> SuaDanhMuc(int id)
+        {
+            using (var client = new HttpClient())
+            {
+                var url = $"http://127.0.0.1:5000/api/get_danhmuc_by_id/{id}";
+                var response = await client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonConvert.DeserializeObject<dynamic>(result);
+
+                    if (apiResponse.success == true && apiResponse.category != null)
+                    {
+                        var danhMuc = JsonConvert.DeserializeObject<DanhMucSanPham>(apiResponse.category.ToString());
+                        return View(danhMuc);
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", apiResponse.message.ToString());
+                        return View();
+                    }
+                }
+                else
+                {
+                    var errorResponse = await response.Content.ReadAsStringAsync();
+                    var errorData = JsonConvert.DeserializeObject<dynamic>(errorResponse);
+                    ModelState.AddModelError("", errorData.message.ToString());
+                    return View();
+                }
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> SuaDanhMuc(DanhMucSanPham model)
+        {
+            if (string.IsNullOrWhiteSpace(model.TenDanhMuc))
+            {
+                ModelState.AddModelError("TenDanhMuc", "Tên danh mục không được để trống.");
+                return View(model);
+            }
+
+            using (var client = new HttpClient())
+            {
+                var checkNameUrl = $"http://127.0.0.1:5000/api/danhmuc";
+                var checkResponse = await client.GetAsync($"{checkNameUrl}?search={model.TenDanhMuc}");
+                var checkResult = await checkResponse.Content.ReadAsStringAsync();
+                dynamic checkData = JsonConvert.DeserializeObject(checkResult);
+
+                bool success = Convert.ToBoolean(checkData.success);
+                if (success && checkData.categories.Count > 0)
+                {
+                    ModelState.AddModelError("TenDanhMuc", "Tên danh mục này đã tồn tại.");
+                    return View(model);
+                }
+            }
+
+            using (var client = new HttpClient())
+            {
+                var data = new { MaDanhMuc = model.MaDanhMuc, TenDanhMuc = model.TenDanhMuc };
+                var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+                var response = await client.PutAsync("http://127.0.0.1:5000/api/danhmuc", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic responseData = JsonConvert.DeserializeObject(result);
+
+                bool responseSuccess = Convert.ToBoolean(responseData.success);
+                if (responseSuccess)
+                {
+                    return RedirectToAction("QuanLyDanhMuc");
+                }
+                else
+                {
+                    ModelState.AddModelError("", responseData.message);
+                    return View(model);
+                }
+            }
+        }
+
+
+        public async Task<ActionResult> CapNhatTrangThai(int id)
+        {
+            using (var client = new HttpClient())
+            {
+                var response = await client.PutAsync($"http://127.0.0.1:5000/api/danhmuc/{id}/toggle", null);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                bool success = Convert.ToBoolean(data.success);
+                if (success)
+                {
+                    return RedirectToAction("QuanLyDanhMuc");
+                }
+                else
+                {
+                    ViewBag.Message = data.message.ToString();
+                    return RedirectToAction("QuanLyDanhMuc");
+                }
+            }
+        }
+
+        // Quản lý hãng sản phẩm
+        public async Task<ActionResult> QuanLyHang(int page = 1, int pageSize = 5, string searchTerm = null)
+        {
+            //  if (!check()) { return RedirectToAction("Loi404", "Admin"); }
+
+            using (var client = new HttpClient())
+            {
+                // Gọi API để lấy danh sách danh mục
+                var url = $"http://127.0.0.1:5000/api/hang?page={page}&pageSize={pageSize}&search={searchTerm}";
+                var response = await client.GetAsync(url);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    // Kiểm tra nếu có lỗi khi gọi API
+                    ViewBag.Message = "Có lỗi khi kết nối đến API.";
+                    return View();
+                }
+
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                // Kiểm tra success và đảm bảo có dữ liệu trả về
+                if (data != null && data.success != null && data.success == true)
+                {
+                    ViewBag.CurrentPage = page;
+                    ViewBag.TotalPages = data.total != null ? (int)Math.Ceiling((double)data.total / pageSize) : 0;
+                    ViewBag.SearchTerm = searchTerm; // Giữ từ khóa tìm kiếm
+
+                    // Kiểm tra nếu danh sách danh mục tồn tại
+                    if (data.categories != null)
+                    {
+                        // Chuyển đổi JArray thành IEnumerable<HangSanPham>
+                        var categories = data.categories.ToObject<List<HangSanPham>>();
+                        return View(data.categories);
+                    }
+                    else
+                    {
+                        ViewBag.Message = "Không có danh mục sản phẩm nào.";
+                        return View();
+                    }
+                }
+                else
+                {
+                    // Nếu API trả về không thành công, hiển thị thông báo lỗi
+                    ViewBag.Message = data != null ? data.message : "Không thể lấy dữ liệu từ API.";
+                    return View();
+                }
+            }
+        }
+
+
+
+        public ActionResult ThemHang()
+        {
+            //   if (!check()) { return RedirectToAction("Loi404", "Admin"); }
+            return View();
+        }
+        [HttpPost]
+        public async Task<ActionResult> ThemHang(HangSanPham model)
+        {
+            if (string.IsNullOrWhiteSpace(model.TenHang))
+            {
+                ModelState.AddModelError("TenHang", "Tên không được để trống.");
+                return View(model);
+            }
+
+            // Kiểm tra tên danh mục trùng từ API
+            using (var client = new HttpClient())
+            {
+                var checkNameUrl = $"http://127.0.0.1:5000/api/hang";
+                var checkResponse = await client.GetAsync($"{checkNameUrl}?search={model.TenHang}");
+                var checkResult = await checkResponse.Content.ReadAsStringAsync();
+                dynamic checkData = JsonConvert.DeserializeObject(checkResult);
+
+                // Chuyển đổi checkData.success thành bool
+                bool success = Convert.ToBoolean(checkData.success);
+
+                if (success && checkData.categories.Count > 0)
+                {
+                    ModelState.AddModelError("TenHang", "Tên này đã tồn tại.");
+                    return View(model);
+                }
+            }
+
+            // Thêm danh mục mới qua API
+            using (var client = new HttpClient())
+            {
+                var data = new
+                {
+                    TenHang = model.TenHang
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://127.0.0.1:5000/api/hang", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic responseData = JsonConvert.DeserializeObject(result);
+
+                bool responseSuccess = Convert.ToBoolean(responseData.success);
+
+                if (responseSuccess)
+                {
+                    return RedirectToAction("QuanLyHang");
+                }
+                else
+                {
+                    ModelState.AddModelError("", responseData.message);
+                    return View(model);
+                }
+            }
+        }
+
+
+
+        public async Task<ActionResult> SuaHang(int id)
+        {
+            using (var client = new HttpClient())
+            {
+                var url = $"http://127.0.0.1:5000/api/get_category_by_id/{id}"; // API lấy chi tiết sản phẩm theo ID
+                var response = await client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Đọc kết quả từ response và chuyển thành đối tượng dynamic
+                    var result = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonConvert.DeserializeObject<dynamic>(result);
+
+                    // Kiểm tra nếu thành công và có category
+                    if (apiResponse.success == true && apiResponse.category != null)
+                    {
+                        // Chuyển category thành đối tượng HangSanPham
+                        var danhMuc = JsonConvert.DeserializeObject<HangSanPham>(apiResponse.category.ToString());
+
+                        if (danhMuc == null)
+                        {
+                            return HttpNotFound();
+                        }
+
+                        return View(danhMuc);
+                    }
+                    else
+                    {
+                        // Trường hợp API trả về lỗi hoặc không tìm thấy danh mục
+                        ModelState.AddModelError("", apiResponse.message.ToString());
+                        return View();
+                    }
+                }
+                else
+                {
+                    // Xử lý lỗi khi API trả về lỗi
+                    var errorResponse = await response.Content.ReadAsStringAsync();
+                    var errorData = JsonConvert.DeserializeObject<dynamic>(errorResponse);
+                    ModelState.AddModelError("", errorData.message.ToString());
+                    return View();
+                }
+            }
+        }
+
+
+
+        [HttpPost]
+        public async Task<ActionResult> SuaHang(HangSanPham model)
+        {
+            if (string.IsNullOrWhiteSpace(model.TenHang))
+            {
+                ModelState.AddModelError("TenHang", "Tên không được để trống.");
+                return View(model);
+            }
+
+            // Kiểm tra tên danh mục trùng từ API
+            using (var client = new HttpClient())
+            {
+                var checkNameUrl = $"http://127.0.0.1:5000/api/hang";
+                var checkResponse = await client.GetAsync($"{checkNameUrl}?search={model.TenHang}");
+                var checkResult = await checkResponse.Content.ReadAsStringAsync();
+                dynamic checkData = JsonConvert.DeserializeObject(checkResult);
+
+                // Chuyển đổi checkData.success thành bool
+                bool success = Convert.ToBoolean(checkData.success);
+
+                if (success && checkData.categories.Count > 0)
+                {
+                    ModelState.AddModelError("TenDanhMuc", "Tên này đã tồn tại.");
+                    return View(model);
+                }
+            }
+
+            // Cập nhật danh mục qua API
+            using (var client = new HttpClient())
+            {
+                var data = new
+                {
+                    MaHang = model.MaHang,
+                    TenHang = model.TenHang
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+                var response = await client.PutAsync("http://127.0.0.1:5000/api/hang", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic responseData = JsonConvert.DeserializeObject(result);
+
+                // Chuyển đổi responseData.success thành bool
+                bool responseSuccess = Convert.ToBoolean(responseData.success);
+
+                if (responseSuccess)
+                {
+                    return RedirectToAction("QuanLyHang");
+                }
+                else
+                {
+                    ModelState.AddModelError("", responseData.message);
+                    return View(model);
+                }
+            }
+        }
+
+
+
+        public async Task<ActionResult> CapNhatTrangThaiHang(int id)
+        {
+            using (var client = new HttpClient())
+            {
+                // Gọi API để thay đổi trạng thái
+                var response = await client.PutAsync($"http://127.0.0.1:5000/api/hang/{id}/toggle", null);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                // Chuyển đổi checkData.success thành bool nếu không phải kiểu bool
+                bool success = Convert.ToBoolean(data.success);
+
+                if (success)
+                {
+                    return RedirectToAction("QuanLyHang");
+                }
+                else
+                {
+                    ViewBag.Message = data.message.ToString();
+                    return RedirectToAction("QuanLyHang");
+                }
+            }
+        }
 
 
     }
