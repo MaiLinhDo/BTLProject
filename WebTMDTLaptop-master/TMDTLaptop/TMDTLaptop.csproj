@@ -343,11 +343,47 @@
     <Content Include="Views\Shared\_LayoutAdmin.cshtml" />
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
+    <Content Include="Views\Admin\ChiTietDonHang.cshtml" />
+    <Content Include="Views\Admin\ChiTietPhieuNhapKho.cshtml" />
+    <Content Include="Views\Admin\DoiMatKhau.cshtml" />
+    <Content Include="Views\Admin\Index.cshtml" />
+    <Content Include="Views\Admin\Loi404.cshtml" />
+    <Content Include="Views\Admin\QuanLyBanner.cshtml" />
+    <Content Include="Views\Admin\QuanLyDanhMuc.cshtml" />
+    <Content Include="Views\Admin\QuanLyDonHang.cshtml" />
+    <Content Include="Views\Admin\QuanLyHang.cshtml" />
+    <Content Include="Views\Admin\QuanLyKhachHang.cshtml" />
+    <Content Include="Views\Admin\QuanLyPhieuNhapKho.cshtml" />
+    <Content Include="Views\Admin\QuanLySanPham.cshtml" />
+    <Content Include="Views\Admin\QuanLyTonKho.cshtml" />
+    <Content Include="Views\Admin\QuanLyVoucher.cshtml" />
+    <Content Include="Views\Admin\SuaBanner.cshtml" />
+    <Content Include="Views\Admin\SuaDanhMuc.cshtml" />
+    <Content Include="Views\Admin\SuaHang.cshtml" />
+    <Content Include="Views\Admin\SuaSanPham.cshtml" />
+    <Content Include="Views\Admin\SuaVoucher.cshtml" />
+    <Content Include="Views\Admin\ThemBanner.cshtml" />
+    <Content Include="Views\Admin\ThemDanhMuc.cshtml" />
+    <Content Include="Views\Admin\ThemHang.cshtml" />
+    <Content Include="Views\Admin\ThemPhieuNhapKho.cshtml" />
+    <Content Include="Views\Admin\ThemSanPham.cshtml" />
+    <Content Include="Views\Admin\ThemVoucher.cshtml" />
+    <Content Include="Views\Admin\ThongTinCaNhan.cshtml" />
+    <Content Include="Views\Home\About.cshtml" />
+    <Content Include="Views\Home\Chat.cshtml" />
+    <Content Include="Views\Home\ChiTietDonHang.cshtml" />
+    <Content Include="Views\Home\ChiTietSanPham.cshtml" />
+    <Content Include="Views\Home\Contact.cshtml" />
+    <Content Include="Views\Home\CuaHang.cshtml" />
+    <Content Include="Views\Home\DangKy.cshtml" />
+    <Content Include="Views\Home\DangNhap.cshtml" />
+    <Content Include="Views\Home\Error.cshtml" />
+    <Content Include="Views\Home\GioHang.cshtml" />
+    <Content Include="Views\Home\HoSo.cshtml" />
+    <Content Include="Views\Home\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Views\Admin\" />
-    <Folder Include="Views\Home\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
