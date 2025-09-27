@@ -1,204 +1,488 @@
-
 @{
     ViewBag.Title = "HoSo";
     Layout = "~/Views/Shared/_LayoutHome.cshtml";
     var errorMessage = ViewBag.ErrorMessage as string;
 }
 
-
-
-<div class="breadcrumb-area">
-    <div class="container">
-        <div class="breadcrumb-content">
-            <h2>Hồ sơ</h2>
-            <ul>
-                <li><a href="@Url.Action("Index","Home")">Trang chủ</a></li>
-                <li class="active">Hồ sơ</li>
-            </ul>
-        </div>
-    </div>z
-</div>
-<style>
-    .breadcrumb-area {
-        background-image: url('@Url.Content("~/assets/images/banner/banner3.jpg")'); /* Đường dẫn tới hình ảnh */
-    }
-</style>
+<!-- Success/Error Messages -->
 @if (!string.IsNullOrEmpty(errorMessage))
 {
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <div class="alert alert-danger alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3"
+         style="z-index: 9999; max-width: 500px;" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
         @errorMessage
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
+
 @if (TempData["SuccessMessage"] != null)
 {
-    <script>
-        alert('@Html.Raw(TempData["SuccessMessage"])');
-    </script>
+    <div class="alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3"
+         style="z-index: 9999; max-width: 500px;" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        @Html.Raw(TempData["SuccessMessage"])
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 }
-<main class="page-content">
 
-    <div class="account-page-area">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-3">
-                    <ul class="nav myaccount-tab-trigger" id="account-page-tab" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" id="account-dashboard-tab" data-toggle="tab" href="#account-dashboard" role="tab" aria-controls="account-dashboard" aria-selected="true">Bảng điều khiển</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="account-orders-tab" data-toggle="tab" href="#account-orders" role="tab" aria-controls="account-orders" aria-selected="false">Đơn hàng</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="account-address-tab" data-toggle="tab" href="#account-address" role="tab" aria-controls="account-address" aria-selected="false">Địa chỉ</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="account-details-tab" data-toggle="tab" href="#account-details" role="tab" aria-controls="account-details" aria-selected="false">Thông tin tài khoản</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="account-logout-tab" href="@Url.Action("DangXuat","Home")" role="tab" aria-selected="false">Đăng xuất</a>
-                        </li>
-                    </ul>
+<!-- Breadcrumb Section -->
+<section class="breadcrumb-section position-relative overflow-hidden">
+    <div class="breadcrumb-bg"></div>
+    <div class="breadcrumb-overlay"></div>
+    <div class="container position-relative">
+        <div class="row">
+            <div class="col-12">
+                <div class="breadcrumb-content text-white text-center">
+                    <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInUp">
+                        <i class="fas fa-user-circle me-2"></i>Hồ sơ cá nhân
+                    </h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center mb-0 animate__animated animate__fadeInUp animate__delay-1s">
+                            <li class="breadcrumb-item">
+                                <a href="@Url.Action("Index","Home")" class="text-white-50 text-decoration-none">
+                                    <i class="fas fa-home me-1"></i>Trang chủ
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active text-white" aria-current="page">
+                                Hồ sơ
+                            </li>
+                        </ol>
+                    </nav>
                 </div>
-                <div class="col-lg-9">
-                    <div class="tab-content myaccount-tab-content" id="account-page-tab-content">
-                        <div class="tab-pane fade show active" id="account-dashboard" role="tabpanel" aria-labelledby="account-dashboard-tab">
-                            <div class="myaccount-dashboard">
-                                <p>
-                                    Xin chào <b>@Model.HoTen</b> (không phải @Model.HoTen? <a href="@Url.Action("DangXuat","Home")">Đăng xuất</a>)
-                                </p>
-                                <p>
-                                    Từ bảng điều khiển tài khoản của bạn, bạn có thể xem các đơn hàng gần đây, quản lý địa chỉ giao hàng và thanh toán, và <a href="javascript:void(0)">chỉnh sửa mật khẩu và thông tin tài khoản của bạn</a>.
-                                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Profile Section -->
+<section class="profile-section py-5">
+    <div class="container-fluid">
+        <div class="row g-4">
+            <!-- Sidebar -->
+            <div class="col-lg-3">
+                <div class="profile-sidebar card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <!-- User Avatar -->
+                        <div class="user-avatar text-center mb-4">
+                            <div class="avatar-circle bg-primary text-white d-inline-flex align-items-center justify-content-center rounded-circle mb-3">
+                                <i class="fas fa-user fa-2x"></i>
                             </div>
-                        </div>
-                        <div class="tab-pane fade" id="account-orders" role="tabpanel" aria-labelledby="account-orders-tab">
-                            <div class="myaccount-orders">
-                                <h4 class="small-title">ĐƠN HÀNG CỦA TÔI</h4>
-                                @if (ViewBag.Orders != null && ((List<TMDTLaptop.Models.Class.DonHang>)ViewBag.Orders).Any())
-                                {
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered table-hover">
-                                            <tbody>
-                                                <tr>
-                                                    <th>ĐƠN HÀNG</th>
-                                                    <th>NGÀY</th>
-                                                    <th>TRẠNG THÁI</th>
-                                                    <th>TỔNG</th>
-                                                    <th></th>
-                                                </tr>
-                                                @foreach (var order in ViewBag.Orders as List<TMDTLaptop.Models.Class.DonHang>)
-                                                {
-                                                    <tr>
-                                                        <td><a class="account-order-id" href="@Url.Action("ChiTietDonHang", "Home", new { id = order.MaDonHang })">#@order.MaDonHang</a></td>
-                                                        <td>@order.NgayDatHang.Value.ToString("dd/MM/yyyy")</td>
-                                                        <td>@order.TrangThai</td>
-                                                        <td>@order.TongTien.Value.ToString("N0") đ</td>
-                                                        <td>
-                                                            <a href="@Url.Action("ChiTietDonHang", "Home", new { id = order.MaDonHang })" class="uren-btn uren-btn_dark uren-btn_sm"><span>Xem</span></a>
-                                                        </td>
-                                                    </tr>
-                                                }
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <p>Không có đơn hàng nào cả.</p>
-                                }
-                            </div>
+                            <h5 class="fw-bold text-dark mb-1">@Model.HoTen</h5>
+                            <p class="text-muted small">Khách hàng thân thiết</p>
                         </div>
 
+                        <!-- Navigation Menu -->
+                        <div class="profile-nav">
+                            <ul class="nav nav-pills flex-column" id="profile-tab" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active d-flex align-items-center"
+                                       id="dashboard-tab" data-bs-toggle="pill" href="#dashboard"
+                                       role="tab" aria-controls="dashboard" aria-selected="true">
+                                        <i class="fas fa-tachometer-alt me-2"></i>
+                                        Bảng điều khiển
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link d-flex align-items-center" href="@Url.Action("DonHangCuaToi","Home")">
+                                        <i class="fas fa-shopping-bag me-2"></i>
+                                        Đơn hàng của tôi
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link d-flex align-items-center"
+                                       id="address-tab" data-bs-toggle="pill" href="#address"
+                                       role="tab" aria-controls="address" aria-selected="false">
+                                        <i class="fas fa-map-marker-alt me-2"></i>
+                                        Địa chỉ
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link d-flex align-items-center"
+                                       id="account-tab" data-bs-toggle="pill" href="#account"
+                                       role="tab" aria-controls="account" aria-selected="false">
+                                        <i class="fas fa-user-edit me-2"></i>
+                                        Thông tin tài khoản
+                                    </a>
+                                </li>
+                                <li class="nav-item mt-3">
+                                    <a class="nav-link text-danger d-flex align-items-center"
+                                       href="@Url.Action("DangXuat","Home")">
+                                        <i class="fas fa-sign-out-alt me-2"></i>
+                                        Đăng xuất
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                        <div class="tab-pane fade" id="account-address" role="tabpanel" aria-labelledby="account-address-tab">
-                            <div class="myaccount-address">
-                                <p>Các địa chỉ sau sẽ được sử dụng trên trang thanh toán theo mặc định.</p>
-                                <div class="row">
-                                    <div class="col">
-                                        <h4 class="small-title">ĐỊA CHỈ THANH TOÁN</h4>
-                                        <address>
-                                            @Model.DiaChi
-                                        </address>
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                <div class="tab-content profile-content" id="profile-tabContent">
+                    <!-- Dashboard Tab -->
+                    <div class="tab-pane fade show active" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+                        <div class="dashboard-content">
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <h4 class="mb-0 fw-bold">
+                                        <i class="fas fa-home me-2"></i>
+                                        Chào mừng trở lại!
+                                    </h4>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="welcome-message">
+                                        <h5 class="mb-3">Xin chào <strong class="text-primary">@Model.HoTen</strong>!</h5>
+                                        <p class="text-muted mb-4">
+                                            Không phải @Model.HoTen?
+                                            <a href="@Url.Action("DangXuat","Home")" class="text-primary text-decoration-none fw-bold">Đăng xuất</a>
+                                        </p>
+                                        <p class="mb-4">
+                                            Từ bảng điều khiển tài khoản của bạn, bạn có thể quản lý thông tin cá nhân,
+                                            xem lịch sử đơn hàng và cập nhật địa chỉ giao hàng.
+                                        </p>
                                     </div>
-                                    <div class="col">
-                                        <h4 class="small-title">ĐỊA CHỈ GIAO HÀNG</h4>
-                                        <address>
-                                            @Model.DiaChi
-                                        </address>
+
+                                    <!-- Quick Actions -->
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="quick-action-card card bg-light border-0 h-100">
+                                                <div class="card-body text-center p-4">
+                                                    <i class="fas fa-shopping-bag fa-2x text-primary mb-3"></i>
+                                                    <h6 class="fw-bold mb-2">Đơn hàng</h6>
+                                                    <p class="text-muted small mb-3">Xem và theo dõi đơn hàng</p>
+                                                    <a href="@Url.Action("DonHangCuaToi","Home")" class="btn btn-primary btn-sm">
+                                                        Xem đơn hàng
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="quick-action-card card bg-light border-0 h-100">
+                                                <div class="card-body text-center p-4">
+                                                    <i class="fas fa-user-edit fa-2x text-success mb-3"></i>
+                                                    <h6 class="fw-bold mb-2">Cập nhật hồ sơ</h6>
+                                                    <p class="text-muted small mb-3">Chỉnh sửa thông tin cá nhân</p>
+                                                    <button class="btn btn-success btn-sm" onclick="switchTab('account-tab')">
+                                                        Chỉnh sửa
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Features Info -->
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0 fw-bold">
+                                        <i class="fas fa-star me-2"></i>
+                                        Tính năng dành cho bạn
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-4">
+                                        <div class="col-md-4">
+                                            <div class="feature-item d-flex align-items-start">
+                                                <div class="feature-icon bg-success text-white rounded-circle me-3">
+                                                    <i class="fas fa-star"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="fw-bold mb-1">Đánh giá sản phẩm</h6>
+                                                    <small class="text-muted">Chia sẻ trải nghiệm sau khi mua hàng</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="feature-item d-flex align-items-start">
+                                                <div class="feature-icon bg-warning text-white rounded-circle me-3">
+                                                    <i class="fas fa-sync-alt"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="fw-bold mb-1">Đổi/trả hàng</h6>
+                                                    <small class="text-muted">Hỗ trợ đổi trả trong 7 ngày</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="feature-item d-flex align-items-start">
+                                                <div class="feature-icon bg-info text-white rounded-circle me-3">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="fw-bold mb-1">Xác nhận nhận hàng</h6>
+                                                    <small class="text-muted">Xác nhận trực tiếp trên website</small>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="tab-pane fade" id="account-details" role="tabpanel" aria-labelledby="account-details-tab" onsubmit="return validateForm()">
-                            <div class="myaccount-details">
-                                <form action="@Url.Action("HoSo", "Home")" method="post" class="uren-form">
+                    </div>
 
-                                    <div class="uren-form-inner">
-                                        <div class="single-input single-input-half">
-                                            <label for="account-details-firstname">Họ và Tên*</label>
-                                            <input type="text" id="account-details-firstname" name="tenKhachHang" value="@Model.HoTen" required>
-                                        </div>
-                                        <div class="single-input single-input-half">
-                                            <label for="account-details-lastname">Số điện thoại*</label>
-                                            <input type="text" id="account-details-lastname" name="soDienThoai" value="@Model.SoDienThoai" required>
-                                        </div>
-                                        <div class="single-input">
-                                            <label>Địa chỉ*</label>
-                                            <div class="row">
-                                                <div class="col-md-4 mb-3">
-                                                    <label>Tỉnh/Thành phố*</label>
-                                                    <select id="province" class="form-control" onchange="loadDistricts()" required>
-                                                        <option value="">Chọn Tỉnh/Thành phố</option>
-                                                        <!-- Tỉnh/thành phố sẽ được điền bởi JavaScript -->
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-4 mb-3">
-                                                    <label>Quận/Huyện*</label>
-                                                    <select id="district" class="form-control" disabled onchange="loadWards()" required>
-                                                        <option value="">Chọn Quận/Huyện</option>
-                                                        <!-- Quận/huyện sẽ được điền bởi JavaScript -->
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-4 mb-3">
-                                                    <label>Phường/Xã*</label>
-                                                    <select id="ward" class="form-control" disabled required>
-                                                        <option value="">Chọn Phường/Xã</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-12 mb-3">
-                                                    <label>Địa chỉ chi tiết*</label>
-                                                    <input type="text" id="addressDetail" class="form-control" placeholder="Số nhà, tên đường" value="" required>
+                    <!-- Address Tab -->
+                    <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
+                        <div class="address-content">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-warning text-dark">
+                                    <h4 class="mb-0 fw-bold">
+                                        <i class="fas fa-map-marker-alt me-2"></i>
+                                        Địa chỉ của tôi
+                                    </h4>
+                                </div>
+                                <div class="card-body p-4">
+                                    <p class="text-muted mb-4">
+                                        Địa chỉ sau sẽ được sử dụng làm địa chỉ mặc định cho việc giao hàng và thanh toán.
+                                    </p>
+
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <div class="address-card card bg-light border-0 h-100">
+                                                <div class="card-body p-4">
+                                                    <h6 class="fw-bold text-primary mb-3">
+                                                        <i class="fas fa-credit-card me-2"></i>
+                                                        Địa chỉ thanh toán
+                                                    </h6>
+                                                    <address class="text-muted mb-0">
+                                                        @if (!string.IsNullOrEmpty(Model.DiaChi))
+                                                        {
+                                                            @Model.DiaChi
+                                                        }
+                                                        else
+                                                        {
+                                                            <em>Chưa có địa chỉ</em>
+                                                        }
+                                                    </address>
                                                 </div>
                                             </div>
-                                            <!-- Trường ẩn để lưu địa chỉ đầy đủ -->
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="address-card card bg-light border-0 h-100">
+                                                <div class="card-body p-4">
+                                                    <h6 class="fw-bold text-success mb-3">
+                                                        <i class="fas fa-truck me-2"></i>
+                                                        Địa chỉ giao hàng
+                                                    </h6>
+                                                    <address class="text-muted mb-0">
+                                                        @if (!string.IsNullOrEmpty(Model.DiaChi))
+                                                        {
+                                                            @Model.DiaChi
+                                                        }
+                                                        else
+                                                        {
+                                                            <em>Chưa có địa chỉ</em>
+                                                        }
+                                                    </address>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="text-center mt-4">
+                                        <button class="btn btn-primary" onclick="switchTab('account-tab')">
+                                            <i class="fas fa-edit me-2"></i>
+                                            Cập nhật địa chỉ
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Details Tab -->
+                    <div class="tab-pane fade" id="account" role="tabpanel" aria-labelledby="account-tab">
+                        <div class="account-details">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-success text-white">
+                                    <h4 class="mb-0 fw-bold">
+                                        <i class="fas fa-user-edit me-2"></i>
+                                        Chỉnh sửa thông tin tài khoản
+                                    </h4>
+                                </div>
+                                <div class="card-body p-5">
+                                    <form action="@Url.Action("HoSo", "Home")" method="post" id="profileForm" novalidate>
+                                        <!-- Personal Information -->
+                                        <div class="form-section mb-5">
+                                            <h5 class="section-title text-primary mb-4">
+                                                <i class="fas fa-user me-2"></i>
+                                                Thông tin cá nhân
+                                            </h5>
+
+                                            <div class="row g-3">
+                                                <!-- Full Name -->
+                                                <div class="col-md-6">
+                                                    <div class="form-floating">
+                                                        <input type="text" class="form-control" id="tenKhachHang"
+                                                               name="tenKhachHang" placeholder="Nhập họ và tên"
+                                                               value="@Model.HoTen" required>
+                                                        <label for="tenKhachHang">
+                                                            <i class="fas fa-id-card me-2 text-primary"></i>Họ và tên
+                                                            <span class="text-danger">*</span>
+                                                        </label>
+                                                        <div class="invalid-feedback">
+                                                            Vui lòng nhập họ và tên.
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Phone -->
+                                                <div class="col-md-6">
+                                                    <div class="form-floating">
+                                                        <input type="tel" class="form-control" id="soDienThoai"
+                                                               name="soDienThoai" placeholder="Nhập số điện thoại"
+                                                               value="@Model.SoDienThoai" required>
+                                                        <label for="soDienThoai">
+                                                            <i class="fas fa-phone me-2 text-primary"></i>Số điện thoại
+                                                            <span class="text-danger">*</span>
+                                                        </label>
+                                                        <div class="invalid-feedback">
+                                                            Vui lòng nhập số điện thoại.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Address Information -->
+                                        <div class="form-section mb-5">
+                                            <h5 class="section-title text-primary mb-4">
+                                                <i class="fas fa-map-marker-alt me-2"></i>
+                                                Địa chỉ
+                                            </h5>
+
+                                            <div class="row g-3 mb-3">
+                                                <!-- Province -->
+                                                <div class="col-md-4">
+                                                    <div class="form-floating">
+                                                        <select class="form-select" id="province" onchange="loadDistricts()" required>
+                                                            <option value="">Chọn...</option>
+                                                        </select>
+                                                        <label for="province">
+                                                            <i class="fas fa-map me-2 text-primary"></i>Tỉnh/Thành phố
+                                                            <span class="text-danger">*</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                <!-- District -->
+                                                <div class="col-md-4">
+                                                    <div class="form-floating">
+                                                        <select class="form-select" id="district" disabled onchange="loadWards()" required>
+                                                            <option value="">Chọn...</option>
+                                                        </select>
+                                                        <label for="district">
+                                                            <i class="fas fa-building me-2 text-primary"></i>Quận/Huyện
+                                                            <span class="text-danger">*</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Ward -->
+                                                <div class="col-md-4">
+                                                    <div class="form-floating">
+                                                        <select class="form-select" id="ward" disabled onchange="updateFullAddress()" required>
+                                                            <option value="">Chọn...</option>
+                                                        </select>
+                                                        <label for="ward">
+                                                            <i class="fas fa-home me-2 text-primary"></i>Phường/Xã
+                                                            <span class="text-danger">*</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Address Detail -->
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="addressDetail"
+                                                       placeholder="Số nhà, tên đường" required>
+                                                <label for="addressDetail">
+                                                    <i class="fas fa-road me-2 text-primary"></i>Địa chỉ chi tiết
+                                                    <span class="text-danger">*</span>
+                                                </label>
+                                                <div class="form-text">
+                                                    <i class="fas fa-info-circle me-1"></i>
+                                                    Ví dụ: 123 Đường ABC, Khu phố 1
+                                                </div>
+                                            </div>
+
+                                            <!-- Address Preview -->
+                                            <div class="address-preview card bg-light">
+                                                <div class="card-body p-3">
+                                                    <h6 class="card-title mb-2">
+                                                        <i class="fas fa-eye me-2 text-info"></i>
+                                                        Xem trước địa chỉ:
+                                                    </h6>
+                                                    <p class="card-text" id="addressPreview">
+                                                        <em class="text-muted">Địa chỉ sẽ hiển thị tại đây...</em>
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Hidden field for full address -->
                                             <input type="hidden" id="fullAddress" name="diaChi">
                                         </div>
-                                        <div class="single-input">
-                                            <label for="account-details-oldpass">Mật khẩu hiện tại (để trống nếu không thay đổi)</label>
-                                            <input type="password" id="account-details-oldpass" name="matKhauHienTai">
+
+                                        <!-- Password Section -->
+                                        <div class="form-section mb-5">
+                                            <h5 class="section-title text-primary mb-4">
+                                                <i class="fas fa-lock me-2"></i>
+                                                Thay đổi mật khẩu
+                                                <small class="text-muted">(để trống nếu không thay đổi)</small>
+                                            </h5>
+
+                                            <div class="row g-3">
+                                                <!-- Current Password -->
+                                                <div class="col-12">
+                                                    <div class="form-floating">
+                                                        <input type="password" class="form-control" id="matKhauHienTai"
+                                                               name="matKhauHienTai" placeholder="Nhập mật khẩu hiện tại">
+                                                        <label for="matKhauHienTai">
+                                                            <i class="fas fa-key me-2 text-primary"></i>Mật khẩu hiện tại
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                <!-- New Password -->
+                                                <div class="col-md-6">
+                                                    <div class="form-floating">
+                                                        <input type="password" class="form-control" id="matKhauMoi"
+                                                               name="matKhauMoi" placeholder="Nhập mật khẩu mới">
+                                                        <label for="matKhauMoi">
+                                                            <i class="fas fa-lock me-2 text-primary"></i>Mật khẩu mới
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Confirm Password -->
+                                                <div class="col-md-6">
+                                                    <div class="form-floating">
+                                                        <input type="password" class="form-control" id="xacNhanMatKhauMoi"
+                                                               name="xacNhanMatKhauMoi" placeholder="Xác nhận mật khẩu mới">
+                                                        <label for="xacNhanMatKhauMoi">
+                                                            <i class="fas fa-check-circle me-2 text-primary"></i>Xác nhận mật khẩu
+                                                        </label>
+                                                        <div class="invalid-feedback" id="passwordMismatch">
+                                                            Mật khẩu xác nhận không khớp
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="single-input">
-                                            <label for="account-details-newpass">Mật khẩu mới (để trống nếu không thay đổi)</label>
-                                            <input type="password" id="account-details-newpass" name="matKhauMoi">
-                                        </div>
-                                        <div class="single-input">
-                                            <label for="account-details-confpass">Xác nhận mật khẩu mới</label>
-                                            <input type="password" id="account-details-confpass" name="xacNhanMatKhauMoi">
-                                        </div>
-                                        <div class="single-input">
-                                            <button class="uren-btn uren-btn_dark" type="submit">
-                                                <span>
-                                                    LƯU
-                                                    THAY ĐỔI
+
+                                        <!-- Submit Button -->
+                                        <div class="text-center">
+                                            <button type="submit" class="btn btn-success btn-lg px-5 py-3" id="submitBtn">
+                                                <i class="fas fa-save me-2"></i>
+                                                <span class="btn-text">Lưu thay đổi</span>
+                                                <span class="spinner-border spinner-border-sm d-none ms-2" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
                                                 </span>
                                             </button>
                                         </div>
-                                    </div>
-                                </form>
-
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -206,262 +490,642 @@
             </div>
         </div>
     </div>
+</section>
 
-</main>
+<style>
+/* Profile Page Custom Styles */
+:root {
+    --primary-color: #0d6efd;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #0dcaf0;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --transition: all 0.3s ease;
+}
+
+/* Breadcrumb Section */
+.breadcrumb-section {
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+}
+
+.breadcrumb-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('@Url.Content("~/assets/images/banner/banner3.jpg")') center/cover no-repeat;
+    z-index: -2;
+}
+
+.breadcrumb-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.8), rgba(25, 135, 84, 0.4));
+    z-index: -1;
+}
+
+/* Profile Section */
+.profile-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+}
+
+/* Profile Sidebar */
+.profile-sidebar {
+    border-radius: 15px !important;
+    position: sticky;
+    top: 100px;
+}
+
+.avatar-circle {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+}
+
+.profile-nav .nav-link {
+    border: none;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    padding: 1rem;
+    color: var(--dark-color);
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+.profile-nav .nav-link:hover,
+.profile-nav .nav-link.active {
+    background: var(--primary-color);
+    color: white;
+    transform: translateX(5px);
+}
+
+.profile-nav .nav-link.text-danger:hover {
+    background: var(--danger-color);
+    color: white;
+}
+
+/* Profile Content */
+.profile-content .card {
+    border-radius: 15px !important;
+    overflow: hidden;
+}
+
+.profile-content .card-header {
+    padding: 1.5rem;
+}
+
+/* Quick Action Cards */
+.quick-action-card {
+    border-radius: 12px !important;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.quick-action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+}
+
+/* Feature Items */
+.feature-item {
+    transition: var(--transition);
+}
+
+.feature-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+/* Address Cards */
+.address-card {
+    border-radius: 12px !important;
+    transition: var(--transition);
+}
+
+.address-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
+}
+
+/* Form Sections */
+.form-section {
+    position: relative;
+}
+
+.section-title {
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem !important;
+}
+
+/* Form Controls */
+.form-floating > label {
+    padding: 1rem 0.75rem;
+    font-weight: 500;
+    color: var(--dark-color);
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label,
+.form-floating > .form-select:focus ~ label,
+.form-floating > .form-select:not([value=""]) ~ label {
+    color: var(--primary-color);
+}
+
+/* Address Preview */
+.address-preview {
+    border-radius: 12px;
+    border: 2px dashed var(--primary-color);
+    background: rgba(13, 110, 253, 0.05) !important;
+    transition: var(--transition);
+}
+
+.address-preview:hover {
+    background: rgba(13, 110, 253, 0.1) !important;
+}
+
+/* Submit Button */
+.btn-lg {
+    border-radius: 50px !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: var(--transition);
+}
+
+.btn-lg:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+/* Form Validation */
+.was-validated .form-control:valid,
+.form-control.is-valid {
+    border-color: var(--success-color);
+}
+
+.was-validated .form-control:invalid,
+.form-control.is-invalid {
+    border-color: var(--danger-color);
+}
+
+/* Animations */
+keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate__animated {
+    animation-duration: 1s;
+    animation-fill-mode: both;
+}
+
+.animate__fadeInUp {
+    animation-name: fadeInUp;
+}
+
+.animate__delay-1s {
+    animation-delay: 1s;
+}
+
+/* Responsive Design */
+media (max-width: 992px) {
+    .profile-sidebar {
+        position: static;
+        margin-bottom: 2rem;
+    }
+
+    .profile-nav .nav-link {
+        padding: 0.75rem 1rem;
+    }
+
+    .avatar-circle {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+}
+
+media (max-width: 768px) {
+    .breadcrumb-section {
+        min-height: 180px;
+    }
+
+    .profile-content .card-body {
+        padding: 1.5rem !important;
+    }
+
+    .form-section {
+        margin-bottom: 2rem !important;
+    }
+
+    .quick-action-card .card-body {
+        padding: 1.5rem !important;
+    }
+}
+
+media (max-width: 576px) {
+    .breadcrumb-content h1 {
+        font-size: 2rem;
+    }
+
+    .profile-sidebar .card-body,
+    .profile-content .card-body {
+        padding: 1rem !important;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+    }
+}
+</style>
+
 <script>
-    // Biến lưu trữ dữ liệu tỉnh/thành phố và quận/huyện
-    let provinces = [];
-    let districts = [];
-    let wards = [];
-    let currentAddress = @Html.Raw(Json.Encode(Model.DiaChi));
+// Global variables for address API
+let provinces = [];
+let districts = [];
+let wards = [];
+let currentAddress = '@Html.Raw(Json.Encode(Model.DiaChi))';
 
-    console.log(currentAddress);
-    // Gọi API để lấy danh sách tỉnh/thành phố khi trang được tải
-    document.addEventListener('DOMContentLoaded', function () {
-        parseExistingAddress();
-        loadProvinces();
-
-        // Thêm sự kiện submit form để cập nhật trường địa chỉ đầy đủ
-        document.querySelector('.uren-form').addEventListener('submit', function(e) {
-            updateFullAddress();
-        });
-
-        // Thêm sự kiện input cho trường địa chỉ chi tiết
-        document.getElementById('addressDetail').addEventListener('input', function() {
-            updateFullAddress();
-        });
-
-        // Phân tích địa chỉ hiện tại để điền vào các trường
-        parseExistingAddress();
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-hide alert messages
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 5000);
     });
 
-    // Phân tích địa chỉ hiện tại
-    function parseExistingAddress() {
-        if (!currentAddress) return;
+    // Initialize address functionality
+    parseExistingAddress();
+    loadProvinces();
 
-        // Giả sử địa chỉ có định dạng: "Địa chỉ chi tiết, Quận/Huyện, Tỉnh/Thành phố"
-        const addressParts = currentAddress.split(',');
+    // Initialize form validation
+    initializeFormValidation();
 
-        if (addressParts.length >= 4) {
-            // Địa chỉ chi tiết là phần đầu tiên
-            document.getElementById('addressDetail').value = addressParts[0].trim();
-        }
-        else document.getElementById('addressDetail').value = "";
-        // Các phần còn lại sẽ được điền sau khi API đã tải xong
+    // Form submission handling
+    const profileForm = document.getElementById('profileForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (profileForm) {
+        profileForm.addEventListener('submit', function(e) {
+            updateFullAddress();
+
+            if (!this.checkValidity() || !validatePasswordMatch()) {
+                e.preventDefault();
+                e.stopPropagation();
+                showToast('Vui lòng kiểm tra và điền đầy đủ thông tin', 'error');
+            } else {
+                // Add loading state
+                submitBtn.classList.add('loading');
+                submitBtn.querySelector('.spinner-border').classList.remove('d-none');
+                submitBtn.disabled = true;
+            }
+
+            this.classList.add('was-validated');
+        });
     }
 
-    // Hàm lấy danh sách tỉnh/thành phố từ API
-    function loadProvinces() {
-        fetch('https://provinces.open-api.vn/api/p/')
-            .then(response => response.json())
-            .then(data => {
-                provinces = data;
-                const provinceSelect = document.getElementById('province');
+    // Address detail input handler
+    const addressDetailInput = document.getElementById('addressDetail');
+    if (addressDetailInput) {
+        addressDetailInput.addEventListener('input', updateFullAddress);
+    }
 
-                // Xóa tất cả các option hiện tại
-                provinceSelect.innerHTML = '<option value="">Chọn Tỉnh/Thành phố</option>';
+    // Phone number formatting
+    const phoneInput = document.getElementById('soDienThoai');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            let value = this.value.replace(/\D/g, '');
+            if (value.length >= 10) {
+                value = value.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3');
+            }
+            this.value = value;
+        });
+    }
+});
 
-                // Thêm các option tỉnh/thành phố
-                provinces.forEach(province => {
-                    const option = document.createElement('option');
-                    option.value = province.code;
-                    option.textContent = province.name;
-                    provinceSelect.appendChild(option);
-                });
+// Parse existing address
+function parseExistingAddress() {
+    if (!currentAddress) return;
 
-                // Nếu có địa chỉ hiện tại, thử tìm và chọn tỉnh/thành phố
-                if (currentAddress) {
-                    const addressParts = currentAddress.split(',');
-                    if (addressParts.length >= 3) {
-                        const provinceName = addressParts[addressParts.length - 1].trim();
-                        const foundProvince = provinces.find(p => p.name == provinceName);
-                        if (foundProvince) {
-                            provinceSelect.value = foundProvince.code;
-                        //    updateFullAddress();
-                            // Tải danh sách quận/huyện và thử chọn
-                            loadDistricts().then(() => {
-                                if (addressParts.length >= 2) {
-                                    const districtName = addressParts[addressParts.length - 2].trim();
-                                    const districtSelect = document.getElementById('district');
-                                    const foundDistrict = districts.find(d => d.name == districtName);
-                                    if (foundDistrict) {
-                                        districtSelect.value = foundDistrict.code;
-                            //            updateFullAddress();
-                                        // Tự động chọn nếu trong địa chỉ có sẵn phường/xã
-                                        loadWards().then(() => {
-                                            if (addressParts.length >= 1) {
-                                                const wardName = addressParts[addressParts.length - 3].trim();
-                                                const wardSelect = document.getElementById('ward');
-                                                const foundWard = wards.find(d => d.name == wardName);
-                                                if (foundWard) {
-                                                    wardSelect.value = foundWard.code;
-                                                    updateFullAddress();
-                                                }
-                                            }
-                                        
-                                        });
-                                    }
-                                }
-                            });
-                           
-                        }
-                        
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Lỗi khi tải danh sách tỉnh/thành phố:', error);
-                alert('Không thể tải danh sách tỉnh/thành phố. Vui lòng thử lại sau.');
+    const addressParts = currentAddress.split(',');
+    if (addressParts.length >= 1) {
+        document.getElementById('addressDetail').value = addressParts[0].trim();
+    }
+}
+
+// Load provinces from API
+function loadProvinces() {
+    fetch('https://provinces.open-api.vn/api/p/')
+        .then(response => response.json())
+        .then(data => {
+            provinces = data;
+            const provinceSelect = document.getElementById('province');
+
+            provinceSelect.innerHTML = '<option value="">Chọn Tỉnh/Thành phố</option>';
+
+            provinces.forEach(province => {
+                const option = document.createElement('option');
+                option.value = province.code;
+                option.textContent = province.name;
+                provinceSelect.appendChild(option);
             });
+
+            // Auto-select if current address exists
+            autoSelectFromCurrentAddress();
+        })
+        .catch(error => {
+            console.error('Error loading provinces:', error);
+            showToast('Không thể tải danh sách tỉnh/thành phố', 'error');
+        });
+}
+
+// Load districts based on selected province
+function loadDistricts() {
+    const provinceCode = document.getElementById('province').value;
+    const districtSelect = document.getElementById('district');
+    const wardSelect = document.getElementById('ward');
+
+    // Reset dependent dropdowns
+    districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+    wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+    wardSelect.disabled = true;
+
+    if (!provinceCode) {
+        districtSelect.disabled = true;
+        updateFullAddress();
+        return Promise.resolve();
     }
 
-    // Hàm lấy danh sách quận/huyện theo tỉnh/thành phố từ API
-    function loadDistricts() {
-        const provinceCode = document.getElementById('province').value;
-        const districtSelect = document.getElementById('district');
+    return fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`)
+        .then(response => response.json())
+        .then(data => {
+            districts = data.districts;
 
-        // Reset quận/huyện
-        districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+            districts.forEach(district => {
+                const option = document.createElement('option');
+                option.value = district.code;
+                option.textContent = district.name;
+                districtSelect.appendChild(option);
+            });
 
-        if (!provinceCode) {
+            districtSelect.disabled = false;
+            updateFullAddress();
+            return Promise.resolve();
+        })
+        .catch(error => {
+            console.error('Error loading districts:', error);
+            showToast('Không thể tải danh sách quận/huyện', 'error');
             districtSelect.disabled = true;
-            updateFullAddress();
-            return; // Trả về Promise đã resolve để có thể chain
-        }
+            return Promise.reject(error);
+        });
+}
 
-        return fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`)
-            .then(response => response.json())
-            .then(data => {
-                districts = data.districts;
+// Load wards based on selected district
+function loadWards() {
+    const districtCode = document.getElementById('district').value;
+    const wardSelect = document.getElementById('ward');
 
-                // Thêm các option quận/huyện
-                districts.forEach(district => {
-                    const option = document.createElement('option');
-                    option.value = district.code;
-                    option.textContent = district.name;
-                    districtSelect.appendChild(option);
-                });
+    wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
 
-                districtSelect.disabled = false;
-                updateFullAddress();
-                return Promise.resolve(); // Trả về Promise đã resolve để có thể chain
-            })
-            .catch(error => {
-                console.error('Lỗi khi tải danh sách quận/huyện:', error);
-                alert('Không thể tải danh sách quận/huyện. Vui lòng thử lại sau.');
-                return Promise.reject(error); // Trả về Promise đã reject để có thể chain
-            });
+    if (!districtCode) {
+        wardSelect.disabled = true;
+        updateFullAddress();
+        return Promise.resolve();
     }
-    // Hàm lấy danh sách phường/xã theo quận/huyện
-    function loadWards() {
-        const districtCode = document.getElementById('district').value;
-        const wardSelect = document.getElementById('ward');
 
-        // Reset phường/xã
-        wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+    return fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`)
+        .then(response => response.json())
+        .then(data => {
+            wards = data.wards;
 
-        if (!districtCode) {
+            wards.forEach(ward => {
+                const option = document.createElement('option');
+                option.value = ward.code;
+                option.textContent = ward.name;
+                wardSelect.appendChild(option);
+            });
+
+            wardSelect.disabled = false;
+            updateFullAddress();
+            return Promise.resolve();
+        })
+        .catch(error => {
+            console.error('Error loading wards:', error);
+            showToast('Không thể tải danh sách phường/xã', 'error');
             wardSelect.disabled = true;
-            updateFullAddress();
-            return;
-        }
+            return Promise.reject(error);
+        });
+}
 
-       return fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`)
-            .then(response => response.json())
-            .then(data => {
-                wards = data.wards;
+// Auto-select from current address
+function autoSelectFromCurrentAddress() {
+    if (!currentAddress) return;
 
-                wards.forEach(ward => {
-                    const option = document.createElement('option');
-                    option.value = ward.code;
-                    option.textContent = ward.name;
-                    wardSelect.appendChild(option);
-                });
+    const addressParts = currentAddress.split(',');
+    if (addressParts.length >= 4) {
+        // Try to find and select province
+        const provinceName = addressParts[addressParts.length - 1].trim();
+        const foundProvince = provinces.find(p => p.name === provinceName);
 
-                wardSelect.disabled = false;
+        if (foundProvince) {
+            document.getElementById('province').value = foundProvince.code;
 
-               
+            loadDistricts().then(() => {
+                const districtName = addressParts[addressParts.length - 2].trim();
+                const foundDistrict = districts.find(d => d.name === districtName);
 
-                updateFullAddress();
-                return Promise.resolve(); // Trả về Promise đã resolve để có thể chain
-            })
-            .catch(error => {
-                console.error('Lỗi khi tải danh sách phường/xã:', error);
-                alert('Không thể tải danh sách phường/xã. Vui lòng thử lại sau.');
-                return Promise.reject(error);
+                if (foundDistrict) {
+                    document.getElementById('district').value = foundDistrict.code;
+
+                    loadWards().then(() => {
+                        const wardName = addressParts[addressParts.length - 3].trim();
+                        const foundWard = wards.find(w => w.name === wardName);
+
+                        if (foundWard) {
+                            document.getElementById('ward').value = foundWard.code;
+                            updateFullAddress();
+                        }
+                    });
+                }
             });
-
-        // Khi thay đổi phường/xã cũng cập nhật địa chỉ
-        //wardSelect.addEventListener('change', updateFullAddress);
+        }
     }
-    // Cập nhật trường địa chỉ đầy đủ
-    function updateFullAddress() {
-        const provinceSelect = document.getElementById('province');
-        const districtSelect = document.getElementById('district');
-        const addressDetail = document.getElementById('addressDetail').value.trim();
-        const fullAddressInput = document.getElementById('fullAddress');
-        const wardSelect = document.getElementById('ward');
-        let fullAddress = '';
+}
 
-        // Thêm địa chỉ chi tiết
-        if (addressDetail) {
-            fullAddress += addressDetail;
-        }
-        if (wardSelect.value) {
-            const selectedWard = wards.find(d => d.code == wardSelect.value);
-            if (fullAddress && selectedWard) fullAddress += ', ';
-            if (selectedWard) fullAddress += selectedWard.name;
-        }
-        // Thêm quận/huyện
-        if (districtSelect.value) {
-            const selectedDistrict = districts.find(d => d.code == districtSelect.value);
-            if (selectedDistrict && fullAddress) {
-                fullAddress += ', ';
-            }
-            if (selectedDistrict) {
-                fullAddress += selectedDistrict.name;
-            }
-        }
+// Update full address
+function updateFullAddress() {
+    const provinceSelect = document.getElementById('province');
+    const districtSelect = document.getElementById('district');
+    const wardSelect = document.getElementById('ward');
+    const addressDetail = document.getElementById('addressDetail').value.trim();
+    const fullAddressInput = document.getElementById('fullAddress');
+    const addressPreview = document.getElementById('addressPreview');
 
-        // Thêm tỉnh/thành phố
-        if (provinceSelect.value) {
-            const selectedProvince = provinces.find(p => p.code == provinceSelect.value);
-            if (selectedProvince && fullAddress) {
-                fullAddress += ', ';
-            }
-            if (selectedProvince) {
-                fullAddress += selectedProvince.name;
-            }
-        }
+    let addressParts = [];
 
-        
-        // Cập nhật trường ẩn
-        fullAddressInput.value = fullAddress;
-    }
-</script>
-<script>
-    function validateForm() {
+    if (addressDetail) addressParts.push(addressDetail);
 
-    var tenKhachHang = document.getElementById("account-details-firstname").value.trim();
-    var soDienThoai = document.getElementById("account-details-lastname").value.trim();
-    var diaChi = document.getElementById("account-details-email").value.trim();
-    var matKhauHienTai = document.getElementById("account-details-oldpass").value.trim();
-    var matKhauMoi = document.getElementById("account-details-newpass").value.trim();
-    var xacNhanMatKhauMoi = document.getElementById("account-details-confpass").value.trim();
-
-
-    if (!tenKhachHang || !soDienThoai || !diaChi) {
-        alert("Vui lòng điền vào tất cả các trường bắt buộc!");
-    return false;
+    if (wardSelect.value) {
+        const selectedWard = wards.find(w => w.code == wardSelect.value);
+        if (selectedWard) addressParts.push(selectedWard.name);
     }
 
-    if (matKhauMoi !== "" && matKhauMoi !== xacNhanMatKhauMoi) {
-        alert("Mật khẩu xác nhận không khớp!");
-    return false;
+    if (districtSelect.value) {
+        const selectedDistrict = districts.find(d => d.code == districtSelect.value);
+        if (selectedDistrict) addressParts.push(selectedDistrict.name);
     }
 
+    if (provinceSelect.value) {
+        const selectedProvince = provinces.find(p => p.code == provinceSelect.value);
+        if (selectedProvince) addressParts.push(selectedProvince.name);
+    }
+
+    const fullAddress = addressParts.join(', ');
+    fullAddressInput.value = fullAddress;
+
+    if (fullAddress) {
+        addressPreview.innerHTML = `<strong>${fullAddress}</strong>`;
+        addressPreview.parentElement.classList.remove('bg-light');
+        addressPreview.parentElement.classList.add('bg-success', 'bg-opacity-10', 'border-success');
+    } else {
+        addressPreview.innerHTML = '<em class="text-muted">Địa chỉ sẽ hiển thị tại đây...</em>';
+        addressPreview.parentElement.classList.remove('bg-success', 'bg-opacity-10', 'border-success');
+        addressPreview.parentElement.classList.add('bg-light');
+    }
+}
+
+// Initialize form validation
+function initializeFormValidation() {
+    const inputs = document.querySelectorAll('input[required], select[required]');
+
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            validateField(this);
+        });
+
+        input.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid')) {
+                validateField(this);
+            }
+        });
+    });
+
+    // Password validation
+    const newPassword = document.getElementById('matKhauMoi');
+    const confirmPassword = document.getElementById('xacNhanMatKhauMoi');
+
+    [newPassword, confirmPassword].forEach(input => {
+        if (input) {
+            input.addEventListener('input', validatePasswordMatch);
+        }
+    });
+}
+
+// Validate individual field
+function validateField(field) {
+    if (field.checkValidity()) {
+        field.classList.remove('is-invalid');
+        field.classList.add('is-valid');
+        return true;
+    } else {
+        field.classList.remove('is-valid');
+        field.classList.add('is-invalid');
+        return false;
+    }
+}
+
+// Validate password match
+function validatePasswordMatch() {
+    const newPassword = document.getElementById('matKhauMoi');
+    const confirmPassword = document.getElementById('xacNhanMatKhauMoi');
+    const mismatchFeedback = document.getElementById('passwordMismatch');
+
+    if (newPassword && confirmPassword && mismatchFeedback) {
+        const newPass = newPassword.value;
+        const confirmPass = confirmPassword.value;
+
+        if (newPass && confirmPass && newPass !== confirmPass) {
+            confirmPassword.classList.add('is-invalid');
+            mismatchFeedback.style.display = 'block';
+            return false;
+        } else if (confirmPass) {
+            confirmPassword.classList.remove('is-invalid');
+            confirmPassword.classList.add('is-valid');
+            mismatchFeedback.style.display = 'none';
+            return true;
+        }
+    }
 
     return true;
 }
-</script>
 
+// Switch tab function
+function switchTab(tabId) {
+    const tab = document.getElementById(tabId);
+    if (tab) {
+        const tabTrigger = new bootstrap.Tab(tab);
+        tabTrigger.show();
+    }
+}
+
+// Toast notification function
+function showToast(message, type = 'info') {
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+
+    const toastId = 'toast-' + Date.now();
+    const iconClass = type === 'success' ? 'fa-check-circle text-success' :
+                     type === 'error' ? 'fa-exclamation-circle text-danger' :
+                     type === 'warning' ? 'fa-exclamation-triangle text-warning' :
+                     'fa-info-circle text-info';
+
+    const toastHtml = `
+        <div class="toast" id="${toastId}" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="fas ${iconClass} me-2"></i>
+                <strong class="me-auto">Thông báo</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">${message}</div>
+        </div>
+    `;
+
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+
+    const toastElement = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+
+    toastElement.addEventListener('hidden.bs.toast', function() {
+        this.remove();
+    });
+}
+</script> 

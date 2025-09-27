@@ -1,63 +1,1392 @@
 @{
     ViewBag.Title = "Chi tiết đơn hàng";
-    Layout = "~/Views/Shared/_LayoutHome.cshtml"; // Thay đổi nếu cần
+    Layout = "~/Views/Shared/_LayoutHome.cshtml";
 }
 
-<div class="breadcrumb-area">
-    <div class="container">
-        <div class="breadcrumb-content">
-            <h2>Chi tiết đơn hàng</h2>
-            <ul>
-                <li><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
-                <li class="active">Chi tiết đơn hàng</li>
-            </ul>
+<!-- Breadcrumb Section -->
+<section class="breadcrumb-section position-relative overflow-hidden">
+    <div class="breadcrumb-bg"></div>
+    <div class="breadcrumb-overlay"></div>
+    <div class="container position-relative">
+        <div class="row">
+            <div class="col-12">
+                <div class="breadcrumb-content text-white">
+                    <h1 class="h2 fw-bold mb-3 animate__animated animate__fadeInUp">Chi tiết đơn hàng</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0 animate__animated animate__fadeInUp animate__delay-1s">
+                            <li class="breadcrumb-item">
+                                <a href="@Url.Action("Index", "Home")" class="text-white-50 text-decoration-none">
+                                    <i class="fas fa-home me-1"></i>Trang chủ
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active text-white" aria-current="page">
+                                Chi tiết đơn hàng
+                            </li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
         </div>
     </div>
-</div>
-<style>
-    .breadcrumb-area {
-        background-image: url('@Url.Content("~/assets/images/banner/banner3.jpg")'); 
-    }
-</style>
-<main class="page-content">
-    <div class="container mt-5">
-        <h3 class="mb-4">Mã đơn hàng: <span class="text-primary">@ViewBag.Order.MaDonHang</span></h3>
-        <p><strong>Ngày lập:</strong> @ViewBag.Order.NgayDatHang.ToString("dd/MM/yyyy")</p>
-        <p><strong>Trạng thái:</strong> @ViewBag.Order.TrangThai</p>
-        <p><strong>Tổng tiền:</strong> <span class="text-success">@ViewBag.Order.TongTien.ToString("N0") đ</span></p>
-        <p>
-            <strong>Được giảm giá:</strong>
-            <span class="text-success">
-                @(ViewBag.GiamGia != null ? ViewBag.GiamGia + " %" : "Không giảm giá")
-            </span>
-        </p>
+</section>
 
+<!-- Order Detail Section -->
+<section class="order-detail-section py-5">
+    <div class="container">
+        <!-- Order Header -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="order-header-card card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-lg-8">
+                                <div class="order-info">
+                                    <h2 class="order-title fw-bold text-dark mb-3">
+                                        <i class="fas fa-receipt text-primary me-2"></i>
+                                        Mã đơn hàng: <span class="text-primary">@ViewBag.Order.MaDonHang</span>
+                                    </h2>
 
-        <h4 class="mt-4">Chi tiết sản phẩm trong đơn hàng</h4>
-        <div class="table-responsive">
-            <table class="table table-striped table-bordered mt-2">
-                <thead class="table-light">
+                                    <div class="order-meta">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <div class="meta-item d-flex align-items-center">
+                                                    <i class="fas fa-calendar-alt text-muted me-2"></i>
+                                                    <span class="fw-bold me-2">Ngày lập:</span>
+                                                    <span class="text-muted">@ViewBag.Order.NgayDatHang.ToString("dd/MM/yyyy")</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="meta-item d-flex align-items-center">
+                                                    <i class="fas fa-info-circle text-muted me-2"></i>
+                                                    <span class="fw-bold me-2">Trạng thái:</span>
+                                                    <span class="status-badge badge @GetStatusClass(ViewBag.Order.TrangThai) fs-6">
+                                                        @ViewBag.Order.TrangThai
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                                <div class="order-total">
+                                    <div class="total-amount">
+                                        <span class="total-label text-muted d-block">Tổng tiền:</span>
+                                        <span class="total-value h3 fw-bold text-success mb-0">
+                                            @ViewBag.Order.TongTien.ToString("N0") đ
+                                        </span>
+                                    </div>
+
+                                    @if (ViewBag.GiamGia != null)
+                                    {
+                                        <div class="discount-info mt-2">
+                                            <span class="badge bg-danger fs-6">
+                                                <i class="fas fa-tag me-1"></i>
+                                                Giảm @ViewBag.GiamGia%
+                                            </span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="discount-info mt-2">
+                                            <span class="text-muted small">Không có giảm giá</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="row">
+            <div class="col-12">
+                <div class="order-items-card card border-0 shadow-sm">
+                    <div class="card-header bg-light border-0 p-4">
+                        <h4 class="card-title fw-bold text-dark mb-0">
+                            <i class="fas fa-shopping-bag text-primary me-2"></i>
+                            Chi tiết sản phẩm trong đơn hàng
+                        </h4>
+                    </div>
+
+                    <div class="card-body p-0">
+                        <!-- Desktop Table View -->
+                        <div class="table-responsive d-none d-md-block">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="py-3 px-4 fw-bold text-uppercase small">Tên sản phẩm</th>
+                                        <th class="py-3 px-4 fw-bold text-uppercase small text-center">Số lượng</th>
+                                        <th class="py-3 px-4 fw-bold text-uppercase small text-end">Đơn giá</th>
+                                        <th class="py-3 px-4 fw-bold text-uppercase small text-end">Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in ViewBag.ChiTietDonHang)
+                                    {
+                                        <tr class="order-item-row">
+                                            <td class="py-3 px-4">
+                                                <div class="product-info">
+                                                    <h6 class="product-name fw-bold mb-0 text-dark">@item.TenSanPham</h6>
+                                                </div>
+                                            </td>
+                                            <td class="py-3 px-4 text-center">
+                                                <span class="quantity-badge badge bg-light text-dark fs-6 px-3 py-2">
+                                                    @item.SoLuong
+                                                </span>
+                                            </td>
+                                            <td class="py-3 px-4 text-end">
+                                                <span class="price fw-bold text-muted">@item.Gia.ToString("N0") đ</span>
+                                            </td>
+                                            <td class="py-3 px-4 text-end">
+                                                <span class="subtotal fw-bold text-primary">@((item.Gia * item.SoLuong).ToString("N0")) đ</span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <td colspan="3" class="py-3 px-4 text-end fw-bold">Tổng cộng:</td>
+                                        <td class="py-3 px-4 text-end">
+                                            <span class="h5 fw-bold text-success mb-0">@ViewBag.Order.TongTien.ToString("N0") đ</span>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- Mobile Card View -->
+                        <div class="mobile-order-items d-md-none p-3">
+                            @foreach (var item in ViewBag.ChiTietDonHang)
+                            {
+                                <div class="mobile-item-card card border mb-3">
+                                    <div class="card-body p-3">
+                                        <div class="row align-items-center">
+                                            <div class="col-8">
+                                                <h6 class="product-name fw-bold mb-2 text-dark">@item.TenSanPham</h6>
+                                                <div class="product-meta">
+                                                    <span class="text-muted small">Số lượng: </span>
+                                                    <span class="badge bg-light text-dark">@item.SoLuong</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-4 text-end">
+                                                <div class="price-info">
+                                                    <div class="unit-price text-muted small">@item.Gia.ToString("N0") đ</div>
+                                                    <div class="total-price fw-bold text-primary">@((item.Gia * item.SoLuong).ToString("N0")) đ</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Mobile Total -->
+                            <div class="mobile-total-card card bg-light border-0">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="fw-bold mb-0">Tổng cộng:</h6>
+                                        <h5 class="fw-bold text-success mb-0">@ViewBag.Order.TongTien.ToString("N0") đ</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="action-buttons text-center">
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-lg px-5 py-3 rounded-pill me-3">
+                        <i class="fas fa-home me-2"></i>
+                        Trở về trang chủ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<div id="print-invoice" class="print-only">
+    <div class="invoice-container">
+        <!-- Header -->
+        <div class="invoice-header">
+            <div class="company-info">
+                <h1 class="company-name">CÔNG TY TNHH ABC STORE</h1>
+                <div class="company-details">
+                    <p>Địa chỉ: 123 Đường ABC, Quận 1, TP.HCM</p>
+                    <p>Điện thoại: (028) 1234 5678 | Email: info@abcstore.com</p>
+                    <p>Website: www.abcstore.com</p>
+                </div>
+            </div>
+            <div class="invoice-number">
+                <h2>HÓA ĐƠN BÁN HÀNG</h2>
+                <p>Số: <strong>@ViewBag.Order.MaDonHang</strong></p>
+                <p>Ngày: <strong>@ViewBag.Order.NgayDatHang.ToString("dd/MM/yyyy")</strong></p>
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <hr class="invoice-divider">
+
+        <!-- Customer Info -->
+        <div class="customer-info">
+            <div class="customer-details">
+                <h3>THÔNG TIN KHÁCH HÀNG</h3>
+                <table class="info-table">
                     <tr>
-                        <th>Tên sản phẩm</th>
-                        <th>Số lượng</th>
-                        <th>Giá</th>
+                        <td class="label">Họ tên:</td>
+                        <td class="value">@ViewBag.Order.HoTen</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Địa chỉ:</td>
+                        <td class="value">@ViewBag.Order.DiaChiGiaoHang</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Điện thoại:</td>
+                        <td class="value">@ViewBag.Order.SoDienThoai</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Trạng thái:</td>
+                        <td class="value">@ViewBag.Order.TrangThai</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Products Table -->
+        <div class="products-section">
+            <h3>CHI TIẾT SẢN PHẨM</h3>
+            <table class="products-table">
+                <thead>
+                    <tr>
+                        <th class="stt">STT</th>
+                        <th class="product-name">Tên sản phẩm</th>
+                        <th class="quantity">Số lượng</th>
+                        <th class="unit-price">Đơn giá</th>
+                        <th class="total-price">Thành tiền</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in ViewBag.ChiTietDonHang) 
+                    @{int index = 1;}
+                    @foreach (var item in ViewBag.ChiTietDonHang)
                     {
                         <tr>
-                            <td>@item.TenSanPham</td>
-                            <td>@item.SoLuong</td>
-                            <td>@item.Gia.ToString("N0") đ</td>
+                            <td class="stt">@index</td>
+                            <td class="product-name">@item.TenSanPham</td>
+                            <td class="quantity">@item.SoLuong</td>
+                            <td class="unit-price">@item.Gia.ToString("N0") đ</td>
+                            <td class="total-price">@((item.Gia * item.SoLuong).ToString("N0")) đ</td>
                         </tr>
+                        index++;
                     }
                 </tbody>
             </table>
         </div>
 
-        <div class="mt-4">
-            <a href="@Url.Action("Index", "Home")" class="btn btn-primary">Trở về trang chủ</a>
+        <!-- Summary -->
+        <div class="invoice-summary">
+            <table class="summary-table">
+                <tr>
+                    <td class="summary-label">Tạm tính:</td>
+                    <td class="summary-value">@ViewBag.Order.TongTien.ToString("N0") đ</td>
+                </tr>
+                @if (ViewBag.GiamGia != null && ViewBag.GiamGia > 0)
+                {
+                    <tr>
+                        <td class="summary-label">Giảm giá (@ViewBag.GiamGia%):</td>
+                        <td class="summary-value">-@(((ViewBag.Order.TongTien * ViewBag.GiamGia) / 100).ToString("N0")) đ</td>
+                    </tr>
+                }
+                <tr>
+                    <td class="summary-label">Phí vận chuyển:</td>
+                    <td class="summary-value">0 đ</td>
+                </tr>
+                <tr class="total-row">
+                    <td class="summary-label"><strong>TỔNG CỘNG:</strong></td>
+                    <td class="summary-value"><strong>@ViewBag.Order.TongTien.ToString("N0") đ</strong></td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Notes -->
+        <div class="invoice-notes">
+            <h3>GHI CHÚ</h3>
+            <p>- Quý khách vui lòng kiểm tra kỹ hàng hóa trước khi nhận.</p>
+            <p>- Đơn hàng được bảo hành theo chính sách của công ty.</p>
+            <p>- Cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ của chúng tôi!</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="invoice-footer">
+            <div class="signatures">
+                <div class="signature-section">
+                    <p class="signature-title">Người lập phiếu</p>
+                    <div class="signature-space"></div>
+                    <p class="signature-name">(Ký và ghi rõ họ tên)</p>
+                </div>
+                <div class="signature-section">
+                    <p class="signature-title">Người nhận hàng</p>
+                    <div class="signature-space"></div>
+                    <p class="signature-name">(Ký và ghi rõ họ tên)</p>
+                </div>
+                <div class="signature-section">
+                    <p class="signature-title">Thủ trưởng đơn vị</p>
+                    <div class="signature-space"></div>
+                    <p class="signature-name">(Ký và ghi rõ họ tên)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Print info -->
+        <div class="print-info">
+            <p>In lúc: <span id="print-time"></span></p>
+            <p>Người in: <span>@Session["Username"]</span></p>
         </div>
     </div>
-</main>
+</div>
+@{
+    string GetStatusClass(string status)
+    {
+        switch (status.ToLower())
+        {
+            case "đang xử lý":
+            case "pending":
+                return "bg-warning";
+            case "đã xác nhận":
+            case "confirmed":
+                return "bg-info";
+            case "đang giao":
+            case "shipping":
+                return "bg-primary";
+            case "đã giao":
+            case "delivered":
+                return "bg-success";
+            case "đã hủy":
+            case "cancelled":
+                return "bg-danger";
+            default:
+                return "bg-secondary";
+        }
+    }
+}
+
+<style>
+/* Order Detail Page Custom Styles */
+:root {
+    --primary-color: #0d6efd;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #0dcaf0;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --transition: all 0.3s ease;
+}
+
+/* Breadcrumb Section */
+.breadcrumb-section {
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+}
+
+.breadcrumb-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('@Url.Content("~/assets/images/banner/banner3.jpg")') center/cover no-repeat;
+    z-index: -2;
+}
+
+.breadcrumb-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.8), rgba(108, 117, 125, 0.6));
+    z-index: -1;
+}
+
+.breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+    content: ">";
+    color: rgba(255,255,255,0.7);
+}
+
+/* Order Detail Section */
+.order-detail-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 80vh;
+}
+
+/* Order Header Card */
+.order-header-card {
+    border-radius: 20px !important;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.order-title {
+    font-size: 1.75rem;
+}
+
+.meta-item {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem;
+    background: rgba(248, 249, 250, 0.8);
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.meta-item:hover {
+    background: rgba(13, 110, 253, 0.1);
+}
+
+.status-badge {
+    padding: 0.5rem 1rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.order-total {
+    text-align: center;
+    padding: 1.5rem;
+    background: rgba(25, 135, 84, 0.1);
+    border-radius: 15px;
+    border: 2px dashed var(--success-color);
+}
+
+.total-value {
+    font-size: 2rem;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Order Items Card */
+.order-items-card {
+    border-radius: 20px !important;
+    overflow: hidden;
+}
+
+.order-items-card .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+}
+
+.order-item-row {
+    transition: var(--transition);
+    border-left: 4px solid transparent;
+}
+
+.order-item-row:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+    border-left-color: var(--primary-color);
+    transform: translateX(5px);
+}
+
+.product-name {
+    color: var(--dark-color);
+    transition: var(--transition);
+}
+
+.order-item-row:hover .product-name {
+    color: var(--primary-color);
+}
+
+.quantity-badge {
+    border: 2px solid #dee2e6 !important;
+    font-weight: bold !important;
+}
+
+.price {
+    font-size: 1.1rem;
+}
+
+.subtotal {
+    font-size: 1.2rem;
+}
+
+/* Mobile Cards */
+.mobile-item-card {
+    border-radius: 12px !important;
+    transition: var(--transition);
+}
+
+.mobile-item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+}
+
+.mobile-total-card {
+    border-radius: 15px !important;
+    background: linear-gradient(135deg, var(--success-color), #20c997) !important;
+    color: white;
+}
+
+.mobile-total-card .card-body {
+    background: rgba(255,255,255,0.95);
+    border-radius: 15px;
+    color: var(--dark-color);
+}
+
+/* Action Buttons */
+.action-buttons {
+    margin-top: 3rem;
+}
+
+.action-buttons .btn {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.action-buttons .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* Hide print template by default */
+.print-only {
+    display: none;
+}
+
+/* Print styles */
+media print {
+    /* Hide everything except print template */
+    body * {
+        visibility: hidden;
+    }
+
+    .print-only, .print-only * {
+        visibility: visible;
+    }
+
+    .print-only {
+        display: block !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+
+    /* Page setup */
+    page {
+        size: A4;
+        margin: 10mm;
+    }
+
+    .invoice-container {
+        width: 100%;
+        max-width: none;
+        font-family: 'Times New Roman', serif;
+        font-size: 12pt;
+        line-height: 1.4;
+        color: #000;
+        background: white;
+    }
+
+    /* Header */
+    .invoice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+    }
+
+    .company-name {
+        font-size: 18pt;
+        font-weight: bold;
+        margin: 0 0 10px 0;
+        text-transform: uppercase;
+    }
+
+    .company-details p {
+        margin: 3px 0;
+        font-size: 11pt;
+    }
+
+    .invoice-number {
+        text-align: right;
+    }
+
+    .invoice-number h2 {
+        font-size: 16pt;
+        font-weight: bold;
+        margin: 0 0 10px 0;
+        text-transform: uppercase;
+    }
+
+    .invoice-number p {
+        margin: 5px 0;
+        font-size: 12pt;
+    }
+
+    /* Divider */
+    .invoice-divider {
+        border: none;
+        border-top: 2px solid #000;
+        margin: 15px 0;
+    }
+
+    /* Customer Info */
+    .customer-info {
+        margin-bottom: 20px;
+    }
+
+    .customer-info h3 {
+        font-size: 13pt;
+        font-weight: bold;
+        margin: 0 0 10px 0;
+        text-transform: uppercase;
+    }
+
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .info-table td {
+        padding: 3px 0;
+        vertical-align: top;
+    }
+
+    .info-table .label {
+        width: 120px;
+        font-weight: bold;
+    }
+
+    .info-table .value {
+        border-bottom: 1px dotted #ccc;
+        padding-left: 10px;
+    }
+
+    /* Products Table */
+    .products-section {
+        margin-bottom: 20px;
+    }
+
+    .products-section h3 {
+        font-size: 13pt;
+        font-weight: bold;
+        margin: 0 0 10px 0;
+        text-transform: uppercase;
+    }
+
+    .products-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid #000;
+    }
+
+    .products-table th,
+    .products-table td {
+        border: 1px solid #000;
+        padding: 8px 5px;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .products-table th {
+        background-color: #f0f0f0;
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 11pt;
+    }
+
+    .products-table .stt {
+        width: 40px;
+    }
+
+    .products-table .product-name {
+        width: 40%;
+        text-align: left;
+        padding-left: 10px;
+    }
+
+    .products-table .quantity {
+        width: 80px;
+    }
+
+    .products-table .unit-price,
+    .products-table .total-price {
+        width: 100px;
+        text-align: right;
+        padding-right: 10px;
+    }
+
+    /* Summary */
+    .invoice-summary {
+        margin: 20px 0;
+        float: right;
+        width: 300px;
+    }
+
+    .summary-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .summary-table td {
+        padding: 5px 10px;
+        border-bottom: 1px dotted #ccc;
+    }
+
+    .summary-table .summary-label {
+        text-align: left;
+        width: 60%;
+    }
+
+    .summary-table .summary-value {
+        text-align: right;
+        width: 40%;
+        font-weight: bold;
+    }
+
+    .summary-table .total-row {
+        border-top: 2px solid #000;
+        border-bottom: 2px solid #000;
+    }
+
+    .summary-table .total-row td {
+        padding: 10px;
+        font-size: 13pt;
+    }
+
+    /* Notes */
+    .invoice-notes {
+        clear: both;
+        margin: 30px 0 20px 0;
+    }
+
+    .invoice-notes h3 {
+        font-size: 13pt;
+        font-weight: bold;
+        margin: 0 0 10px 0;
+        text-transform: uppercase;
+    }
+
+    .invoice-notes p {
+        margin: 5px 0;
+        font-size: 11pt;
+        font-style: italic;
+    }
+
+    /* Footer */
+    .invoice-footer {
+        margin-top: 40px;
+        page-break-inside: avoid;
+    }
+
+    .signatures {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+    }
+
+    .signature-section {
+        text-align: center;
+        width: 30%;
+    }
+
+    .signature-title {
+        font-weight: bold;
+        margin: 0 0 5px 0;
+        text-transform: uppercase;
+        font-size: 11pt;
+    }
+
+    .signature-space {
+        height: 60px;
+        margin: 10px 0;
+    }
+
+    .signature-name {
+        font-size: 10pt;
+        font-style: italic;
+        margin: 0;
+    }
+
+    /* Print info */
+    .print-info {
+        position: absolute;
+        bottom: 10px;
+        right: 0;
+        font-size: 9pt;
+        color: #666;
+    }
+
+    .print-info p {
+        margin: 2px 0;
+        text-align: right;
+    }
+}
+
+/* Animations */
+keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate__animated {
+    animation-duration: 1s;
+    animation-fill-mode: both;
+}
+
+.animate__fadeInUp {
+    animation-name: fadeInUp;
+}
+
+.animate__delay-1s {
+    animation-delay: 1s;
+}
+
+keyframes shine {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* Responsive Design */
+media (max-width: 992px) {
+    .order-title {
+        font-size: 1.5rem;
+    }
+
+    .total-value {
+        font-size: 1.75rem;
+    }
+
+    .order-total {
+        margin-top: 2rem;
+        text-align: center;
+    }
+}
+
+media (max-width: 768px) {
+    .breadcrumb-section {
+        min-height: 150px;
+    }
+
+    .order-title {
+        font-size: 1.25rem;
+    }
+
+    .total-value {
+        font-size: 1.5rem;
+    }
+
+    .action-buttons .btn {
+        display: block;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+
+    .action-buttons .btn:last-child {
+        margin-bottom: 0;
+    }
+
+    .meta-item {
+        flex-direction: column;
+        align-items: flex-start !important;
+        text-align: left;
+    }
+}
+
+media (max-width: 576px) {
+    .breadcrumb-content h1 {
+        font-size: 1.5rem;
+    }
+
+    .order-title {
+        font-size: 1.1rem;
+    }
+
+    .card-body {
+        padding: 1.5rem !important;
+    }
+
+    .mobile-order-items {
+        padding: 1rem !important;
+    }
+}
+
+/* Hover Effects */
+.card {
+    transition: var(--transition);
+}
+
+.order-header-card:hover,
+.order-items-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+}
+
+/* Status Badge Animation */
+.status-badge {
+    position: relative;
+    overflow: hidden;
+}
+
+.status-badge::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: var(--transition);
+    transform: rotate(45deg);
+}
+
+.status-badge:hover::before {
+    animation: shine 0.6s ease-in-out;
+}
+/* Print styles - sửa lại hoàn toàn */
+media print {
+    * {
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        font-family: 'Times New Roman', serif !important;
+        font-size: 12pt !important;
+        line-height: 1.4 !important;
+        color: #000 !important;
+        background: white !important;
+    }
+
+    /* Hide everything except print template */
+    body > * {
+        display: none !important;
+    }
+
+    #print-invoice {
+        display: block !important;
+        visibility: visible !important;
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        page-break-inside: avoid;
+    }
+
+    .invoice-container {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 15mm !important;
+        box-shadow: none !important;
+        background: white !important;
+    }
+
+    /* Header styles */
+    .invoice-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        margin-bottom: 20px !important;
+        padding-bottom: 15px !important;
+        page-break-inside: avoid;
+    }
+
+    .company-name {
+        font-size: 18pt !important;
+        font-weight: bold !important;
+        margin: 0 0 10px 0 !important;
+        text-transform: uppercase !important;
+        color: #000 !important;
+    }
+
+    .company-details p {
+        margin: 3px 0 !important;
+        font-size: 11pt !important;
+        color: #000 !important;
+    }
+
+    .invoice-number {
+        text-align: right !important;
+    }
+
+    .invoice-number h2 {
+        font-size: 16pt !important;
+        font-weight: bold !important;
+        margin: 0 0 10px 0 !important;
+        text-transform: uppercase !important;
+        color: #000 !important;
+    }
+
+    .invoice-number p {
+        margin: 5px 0 !important;
+        font-size: 12pt !important;
+        color: #000 !important;
+    }
+
+    /* Divider */
+    .invoice-divider {
+        border: none !important;
+        border-top: 2px solid #000 !important;
+        margin: 15px 0 !important;
+        page-break-inside: avoid;
+    }
+
+    /* Customer Info */
+    .customer-info {
+        margin-bottom: 20px !important;
+        page-break-inside: avoid;
+    }
+
+    .customer-info h3 {
+        font-size: 13pt !important;
+        font-weight: bold !important;
+        margin: 0 0 10px 0 !important;
+        text-transform: uppercase !important;
+        color: #000 !important;
+    }
+
+    .info-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-bottom: 15px !important;
+    }
+
+    .info-table td {
+        padding: 3px 0 !important;
+        vertical-align: top !important;
+        color: #000 !important;
+    }
+
+    .info-table .label {
+        width: 120px !important;
+        font-weight: bold !important;
+    }
+
+    .info-table .value {
+        border-bottom: 1px dotted #ccc !important;
+        padding-left: 10px !important;
+    }
+
+    /* Products Table */
+    .products-section {
+        margin-bottom: 20px !important;
+        page-break-inside: avoid;
+    }
+
+    .products-section h3 {
+        font-size: 13pt !important;
+        font-weight: bold !important;
+        margin: 0 0 10px 0 !important;
+        text-transform: uppercase !important;
+        color: #000 !important;
+    }
+
+    .products-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        border: 1px solid #000 !important;
+        margin: 10px 0 !important;
+    }
+
+    .products-table th,
+    .products-table td {
+        border: 1px solid #000 !important;
+        padding: 8px 5px !important;
+        text-align: center !important;
+        vertical-align: middle !important;
+        color: #000 !important;
+        font-size: 11pt !important;
+    }
+
+    .products-table th {
+        background-color: #f0f0f0 !important;
+        font-weight: bold !important;
+        text-transform: uppercase !important;
+    }
+
+    .products-table .stt {
+        width: 40px !important;
+    }
+
+    .products-table .product-name {
+        width: 40% !important;
+        text-align: left !important;
+        padding-left: 10px !important;
+    }
+
+    .products-table .quantity {
+        width: 80px !important;
+    }
+
+    .products-table .unit-price,
+    .products-table .total-price {
+        width: 100px !important;
+        text-align: right !important;
+        padding-right: 10px !important;
+    }
+
+    /* Summary */
+    .invoice-summary {
+        margin: 20px 0 !important;
+        float: right !important;
+        width: 300px !important;
+        clear: right !important;
+    }
+
+    .summary-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+
+    .summary-table td {
+        padding: 5px 10px !important;
+        border-bottom: 1px dotted #ccc !important;
+        color: #000 !important;
+        font-size: 11pt !important;
+    }
+
+    .summary-table .summary-label {
+        text-align: left !important;
+        width: 60% !important;
+    }
+
+    .summary-table .summary-value {
+        text-align: right !important;
+        width: 40% !important;
+        font-weight: bold !important;
+    }
+
+    .summary-table .total-row {
+        border-top: 2px solid #000 !important;
+        border-bottom: 2px solid #000 !important;
+    }
+
+    .summary-table .total-row td {
+        padding: 10px !important;
+        font-size: 13pt !important;
+        font-weight: bold !important;
+    }
+
+    /* Notes */
+    .invoice-notes {
+        clear: both !important;
+        margin: 30px 0 20px 0 !important;
+        page-break-inside: avoid;
+    }
+
+    .invoice-notes h3 {
+        font-size: 13pt !important;
+        font-weight: bold !important;
+        margin: 0 0 10px 0 !important;
+        text-transform: uppercase !important;
+        color: #000 !important;
+    }
+
+    .invoice-notes p {
+        margin: 5px 0 !important;
+        font-size: 11pt !important;
+        font-style: italic !important;
+        color: #000 !important;
+    }
+
+    /* Footer */
+    .invoice-footer {
+        margin-top: 40px !important;
+        page-break-inside: avoid;
+    }
+
+    .signatures {
+        display: flex !important;
+        justify-content: space-between !important;
+        margin-top: 30px !important;
+    }
+
+    .signature-section {
+        text-align: center !important;
+        width: 30% !important;
+    }
+
+    .signature-title {
+        font-weight: bold !important;
+        margin: 0 0 5px 0 !important;
+        text-transform: uppercase !important;
+        font-size: 11pt !important;
+        color: #000 !important;
+    }
+
+    .signature-space {
+        height: 60px !important;
+        margin: 10px 0 !important;
+    }
+
+    .signature-name {
+        font-size: 10pt !important;
+        font-style: italic !important;
+        margin: 0 !important;
+        color: #000 !important;
+    }
+
+    /* Print info */
+    .print-info {
+        margin-top: 20px !important;
+        text-align: right !important;
+        font-size: 9pt !important;
+        color: #666 !important;
+    }
+
+    .print-info p {
+        margin: 2px 0 !important;
+    }
+}
+
+page {
+    size: A4;
+    margin: 10mm;
+}
+</style>
+
+<script>
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Animate elements on scroll
+        const animateOnScroll = () => {
+            const elements = document.querySelectorAll('.order-item-row, .mobile-item-card, .meta-item');
+
+            elements.forEach((element, index) => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 150;
+
+                if (elementTop < window.innerHeight - elementVisible) {
+                    setTimeout(() => {
+                        element.style.opacity = '1';
+                        element.style.transform = 'translateY(0)';
+                    }, index * 100);
+                }
+            });
+        };
+
+        // Initialize animation styles
+        document.querySelectorAll('.order-item-row, .mobile-item-card, .meta-item').forEach(element => {
+            element.style.opacity = '0';
+            element.style.transform = 'translateY(20px)';
+            element.style.transition = 'all 0.6s ease';
+        });
+
+        // Run animation
+        window.addEventListener('scroll', animateOnScroll);
+        animateOnScroll();
+
+        // Add smooth transitions for table rows
+        document.querySelectorAll('.order-item-row').forEach((row, index) => {
+            row.style.animationDelay = `${index * 0.1}s`;
+            row.classList.add('animate__animated', 'animate__fadeInLeft');
+        });
+
+        // Set print time on page load
+        const printTimeEl = document.getElementById('print-time');
+        if (printTimeEl) {
+            const now = new Date();
+            printTimeEl.textContent = now.toLocaleString('vi-VN');
+        }
+    });
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Animate elements on scroll
+        const animateOnScroll = () => {
+            const elements = document.querySelectorAll('.order-item-row, .mobile-item-card, .meta-item');
+
+            elements.forEach((element, index) => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 150;
+
+                if (elementTop < window.innerHeight - elementVisible) {
+                    setTimeout(() => {
+                        element.style.opacity = '1';
+                        element.style.transform = 'translateY(0)';
+                    }, index * 100);
+                }
+            });
+        };
+
+        // Initialize animation styles
+        document.querySelectorAll('.order-item-row, .mobile-item-card, .meta-item').forEach(element => {
+            element.style.opacity = '0';
+            element.style.transform = 'translateY(20px)';
+            element.style.transition = 'all 0.6s ease';
+        });
+
+        // Run animation
+        window.addEventListener('scroll', animateOnScroll);
+        animateOnScroll(); // Run on load
+
+        // Add smooth transitions for table rows
+        document.querySelectorAll('.order-item-row').forEach((row, index) => {
+            row.style.animationDelay = `${index * 0.1}s`;
+            row.classList.add('animate__animated', 'animate__fadeInLeft');
+        });
+
+        // Set print time on page load
+        const printTimeEl = document.getElementById('print-time');
+        if (printTimeEl) {
+            const now = new Date();
+            printTimeEl.textContent = now.toLocaleString('vi-VN');
+        }
+    });
+
+    // Toast notification for successful actions
+    function showSuccessToast(message) {
+        // Create toast container if it doesn't exist
+        let toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            document.body.appendChild(toastContainer);
+        }
+
+        // Create toast
+        const toastId = 'toast-' + Date.now();
+        const toastHtml = `
+        <div class="toast" id="${toastId}" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="fas fa-check-circle text-success me-2"></i>
+                <strong class="me-auto">Thành công</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">${message}</div>
+        </div>
+    `;
+
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+
+        const toastElement = document.getElementById(toastId);
+        const toast = new bootstrap.Toast(toastElement);
+        toast.show();
+
+        toastElement.addEventListener('hidden.bs.toast', function () {
+            this.remove();
+        });
+    }
+</script>
