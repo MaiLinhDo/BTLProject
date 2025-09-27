@@ -65,22 +65,22 @@
                 <div class="form-group">
                     @Html.LabelFor(model => model.MaDanhMuc, "Danh Mục")
                     @Html.DropDownListFor(
-                        model => model.MaDanhMuc,
-                        new SelectList(ViewBag.DanhMuc, "MaDanhMuc", "TenDanhMuc", Model.MaDanhMuc),
-                        "Chọn Danh Mục",
-                        new { @class = "form-control" }
-                    )
+                             model => model.MaDanhMuc,
+                             new SelectList(ViewBag.DanhMuc, "MaDanhMuc", "TenDanhMuc", Model.MaDanhMuc),
+                             "Chọn Danh Mục",
+                             new { @class = "form-control" }
+                         )
                     @Html.ValidationMessageFor(model => model.MaDanhMuc, "", new { @class = "text-danger" })
                 </div>
 
                 <div class="form-group">
                     @Html.LabelFor(model => model.MaHang, "Hãng Sản Phẩm")
                     @Html.DropDownListFor(
-                        model => model.MaHang,
-                        new SelectList(ViewBag.Hang, "MaHang", "TenHang", Model.MaHang),
-                        "Chọn Hãng",
-                        new { @class = "form-control" }
-                    )
+                             model => model.MaHang,
+                             new SelectList(ViewBag.Hang, "MaHang", "TenHang", Model.MaHang),
+                             "Chọn Hãng",
+                             new { @class = "form-control" }
+                         )
                     @Html.ValidationMessageFor(model => model.MaHang, "", new { @class = "text-danger" })
                 </div>
 

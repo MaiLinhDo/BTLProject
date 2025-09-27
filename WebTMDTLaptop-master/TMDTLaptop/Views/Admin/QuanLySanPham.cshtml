@@ -43,9 +43,9 @@
                             </td>
                             <td>@item.MoTa</td>
                             <td>@item.Gia.ToString("N0") đ</td>
-                        
-                                @if (item.GiaMoi != null)
-                                {
+
+                            @if (item.GiaMoi != null)
+                            {
                                 <td>
                                     @item.GiaMoi.ToString("N0") đ
                                 </td>
@@ -56,31 +56,31 @@
                                     <span>Không có giảm giá</span>
                                 </td>
                             }
-  
-                                <td>
-                                    <span class="badge @(item.TrangThai == true ? "bg-success" : "bg-danger")">
-                                        @(item.TrangThai == true ? "Hoạt động" : "Ngừng hoạt động")
-                                    </span>
-                                </td>
-                                <td>
-                                    <a href="@Url.Action("SuaSanPham", new { id = item.MaSanPham })" class="btn btn-warning btn-sm">Sửa</a>
-                                    @if (item.TrangThai == true) // Nếu sản phẩm đang mở bán
-                                    {
-                                        <a href="@Url.Action("CapNhatTrangThaiSP", new { id = item.MaSanPham, status = false })" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn ngưng bán sản phẩm này?');">Ngưng Bán</a>
-                                    }
-                                    else // Nếu sản phẩm đang ngưng bán
-                                    {
-                                        <a href="@Url.Action("CapNhatTrangThaiSP", new { id = item.MaSanPham, status = true })" class="btn btn-success btn-sm" onclick="return confirm('Bạn có chắc chắn muốn mở bán sản phẩm này?');">Mở Bán</a>
-                                    }
-                                    <form action="@Url.Action("NgungGiamGia", new { id = item.MaSanPham })" method="post" style="display:inline;">
-                                        <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('Bạn có chắc chắn muốn ngưng giảm giá sản phẩm này?');">Ngưng Giảm Giá</button>
-                                    </form>
-                                    <!-- Thêm nút Giảm Giá -->
-                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#giamGiaModal" data-id="@item.MaSanPham" data-tensp="@item.TenSanPham" data-gia="@item.Gia">Giảm Giá</button>
 
-                                </td>
+                            <td>
+                                <span class="badge @(item.TrangThai == true ? "bg-success" : "bg-danger")">
+                                    @(item.TrangThai == true ? "Hoạt động" : "Ngừng hoạt động")
+                                </span>
+                            </td>
+                            <td>
+                                <a href="@Url.Action("SuaSanPham", new { id = item.MaSanPham })" class="btn btn-warning btn-sm">Sửa</a>
+                                @if (item.TrangThai == true) // Nếu sản phẩm đang mở bán
+                                {
+                                    <a href="@Url.Action("CapNhatTrangThaiSP", new { id = item.MaSanPham, status = false })" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn ngưng bán sản phẩm này?');">Ngưng Bán</a>
+                                }
+                                else // Nếu sản phẩm đang ngưng bán
+                                {
+                                    <a href="@Url.Action("CapNhatTrangThaiSP", new { id = item.MaSanPham, status = true })" class="btn btn-success btn-sm" onclick="return confirm('Bạn có chắc chắn muốn mở bán sản phẩm này?');">Mở Bán</a>
+                                }
+                                <form action="@Url.Action("NgungGiamGia", new { id = item.MaSanPham })" method="post" style="display:inline;">
+                                    <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('Bạn có chắc chắn muốn ngưng giảm giá sản phẩm này?');">Ngưng Giảm Giá</button>
+                                </form>
+                                <!-- Thêm nút Giảm Giá -->
+                                <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#giamGiaModal" data-id="@item.MaSanPham" data-tensp="@item.TenSanPham" data-gia="@item.Gia">Giảm Giá</button>
 
-                            </tr>
+                            </td>
+
+                        </tr>
                     }
                 </tbody>
             </table>
@@ -149,11 +149,11 @@
             // Xử lý submit form giảm giá
             $('#giamGiaForm').submit(function (e) {
                 e.preventDefault(); // Ngăn chặn reload trang
-              
+
                 var maSanPham = $('#MaSanPham').val();
-               
+
                 var giaMoi = $('#GiaMoi').val();
-            
+
                 $.ajax({
                     type: 'POST',
                     url: '@Url.Action("GiamGia", "Admin")', // Thay đổi tên controller nếu cần

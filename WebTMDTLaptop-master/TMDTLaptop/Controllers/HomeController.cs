@@ -32,7 +32,6 @@ namespace TMDTLaptop.Controllers
            
             return View();
         }
-       
         
 
 
