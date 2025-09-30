@@ -977,5 +977,315 @@ namespace TMDTLaptop.Controllers
             }
         }
 
+        // Quản lý khách hàng
+        public async Task<ActionResult> QuanLyKhachHang(int page = 1, int pageSize = 5, string searchTerm = null)
+        {
+            //   if (!check()) { return RedirectToAction("Loi404", "Admin"); }
+
+            // Gọi API để lấy dữ liệu danh sách khách hàng
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://127.0.0.1:5000");  // URL của Flask API
+
+                // Xây dựng URL với tham số trang và kích thước trang
+                var url = $"/api/khachhang?page={page}&pageSize={pageSize}&search={searchTerm}";
+
+                // Gọi API GET
+                var response = await client.GetAsync(url);
+                if (response.IsSuccessStatusCode)
+                {
+                    Debug.WriteLine("Kết nối thành công đến API");
+                    // Đọc kết quả trả về từ API
+                    var data = await response.Content.ReadAsStringAsync();
+                    var result = JsonConvert.DeserializeObject<dynamic>(data);
+
+                    // Kiểm tra dữ liệu trả về từ API
+                    if (result != null && result.success != null && result.success == true)
+                    {
+                        ViewBag.CurrentPage = page;
+
+                        // Tính toán tổng số trang
+                        ViewBag.TotalPages = result.total != null ? (int)Math.Ceiling((double)result.total / pageSize) : 0;
+                        ViewBag.SearchTerm = searchTerm; // Giữ từ khóa tìm kiếm
+
+                        // Kiểm tra nếu danh sách khách hàng tồn tại
+                        if (result.khachhang != null)
+                        {
+                            // Chuyển đổi JArray thành IEnumerable<KhachHang>
+                            var categories = result.khachhang.ToObject<List<TaiKhoan>>();
+                            ViewBag.TaiKhoan = categories;
+                            // Trả về view với dữ liệu khách hàng
+                            return View();
+                        }
+                        else
+                        {
+                            ViewBag.Message = "Không có khách hàng nào.";
+                            return View();
+                        }
+                    }
+                    else
+                    {
+                        // Nếu API trả về không thành công
+                        ViewBag.Message = result != null ? result.message : "Không thể lấy dữ liệu từ API.";
+                        return View();
+                    }
+                }
+                else
+                {
+                    // Xử lý lỗi khi không thể kết nối tới API
+                    ViewBag.Message = "Không thể kết nối đến API.";
+                    return View();
+                }
+            }
+        }
+
+
+
+        public async Task<ActionResult> CapNhatTrangThaiKH(int id)
+        {
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://127.0.0.1:5000"); // URL của Flask API
+
+                // Gọi API PUT để cập nhật trạng thái
+                var response = await client.PutAsync($"/api/capnhat_trangthai_taikhoan/{id}/toggle", null);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("QuanLyKhachHang");
+                }
+                else
+                {
+                    // Xử lý lỗi nếu không thành công
+                    return RedirectToAction("Loi404", "Admin");
+                }
+            }
+        }
+
+
+        // GET: Voucher
+        public async Task<ActionResult> QuanLyVoucher(int page = 1, int pageSize = 5, string searchTerm = null)
+        {
+            // if (!check()) { return RedirectToAction("Loi404", "Admin"); }
+
+            using (var client = new HttpClient())
+            {
+                var url = $"http://127.0.0.1:5000/api/get_all_voucher?page={page}&pageSize={pageSize}&search={searchTerm}";
+                var response = await client.GetAsync(url);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    ViewBag.Message = "Có lỗi khi kết nối đến API.";
+                    return View();
+                }
+
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                if (data != null && data.success != null && data.success == true)
+                {
+                    ViewBag.CurrentPage = page;
+                    ViewBag.TotalPages = data.total != null ? (int)Math.Ceiling((double)data.total / pageSize) : 0;
+                    ViewBag.SearchTerm = searchTerm; // Giữ từ khóa tìm kiếm
+
+                    if (data.vouchers != null)
+                    {
+                        var vouchers = data.vouchers.ToObject<List<Voucher>>(); // Chuyển dữ liệu từ JSON thành list voucher
+                        return View(vouchers);
+                    }
+                    else
+                    {
+                        ViewBag.Message = "Không có voucher nào.";
+                        return View();
+                    }
+                }
+                else
+                {
+                    ViewBag.Message = data != null ? data.message : "Không thể lấy dữ liệu từ API.";
+                    return View();
+                }
+            }
+        }
+
+
+
+        public ActionResult ThemVoucher()
+        {
+            //   if (!check()) { return RedirectToAction("Loi404", "Admin"); }
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ThemVoucher(Voucher voucher)
+        {
+            if (ModelState.IsValid)
+            {
+                // Kiểm tra ngày bắt đầu không được nhỏ hơn ngày hiện tại
+                if (voucher.NgayBatDau < DateTime.Now.Date)
+                {
+                    ModelState.AddModelError("NgayBatDau", "Ngày bắt đầu không được nhỏ hơn ngày hiện tại.");
+                    return View(voucher);
+                }
+
+                // Kiểm tra ngày kết thúc phải sau ngày bắt đầu
+                if (voucher.NgayBatDau > voucher.NgayKetThuc)
+                {
+                    ModelState.AddModelError("NgayKetThuc", "Ngày kết thúc phải sau ngày bắt đầu.");
+                    return View(voucher);
+                }
+
+                // Kiểm tra tỷ lệ giảm giá không vượt quá 100
+                if (voucher.GiamGia > 100)
+                {
+                    ModelState.AddModelError("GiamGia", "Tỷ lệ giảm giá không được vượt quá 100%.");
+                    return View(voucher);
+                }
+
+                // Gửi voucher mới qua API
+                using (var client = new HttpClient())
+                {
+                    var data = new
+                    {
+                        Code = voucher.Code,
+                        GiamGia = voucher.GiamGia,
+                        NgayBatDau = voucher.NgayBatDau,
+                        NgayKetThuc = voucher.NgayKetThuc,
+                        SoLuongSuDungToiDa = voucher.SoLuongSuDungToiDa,
+                        MoTa = voucher.MoTa
+                    };
+
+                    var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+                    var response = await client.PostAsync("http://127.0.0.1:5000/api/voucher", content);
+                    var result = await response.Content.ReadAsStringAsync();
+                    dynamic responseData = JsonConvert.DeserializeObject(result);
+
+                    bool success = Convert.ToBoolean(responseData.success);
+
+                    if (success)
+                    {
+                        return RedirectToAction("QuanLyVoucher");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", responseData.message);
+                        return View(voucher);
+                    }
+                }
+            }
+
+            return View(voucher);
+        }
+
+
+        // GET: Voucher/Sua/5
+        public async Task<ActionResult> SuaVoucher(int id)
+        {
+            using (var client = new HttpClient())
+            {
+                var url = $"http://127.0.0.1:5000/api/voucher/{id}"; // API lấy chi tiết voucher theo ID
+                var response = await client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonConvert.DeserializeObject<dynamic>(result);
+
+                    if (apiResponse.success == true && apiResponse.voucher != null)
+                    {
+                        var voucher = JsonConvert.DeserializeObject<Voucher>(apiResponse.voucher.ToString());
+                        return View(voucher);
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", apiResponse.message.ToString());
+                        return View();
+                    }
+                }
+                else
+                {
+                    var errorResponse = await response.Content.ReadAsStringAsync();
+                    var errorData = JsonConvert.DeserializeObject<dynamic>(errorResponse);
+                    ModelState.AddModelError("", errorData.message.ToString());
+                    return View();
+                }
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> SuaVoucher(Voucher voucher)
+        {
+            if (ModelState.IsValid)
+            {
+                using (var client = new HttpClient())
+                {
+                    // Tạo đối tượng data từ voucher
+                    var data = new
+                    {
+                        MaVoucher = voucher.MaVoucher,
+                        Code = voucher.Code,
+                        GiamGia = voucher.GiamGia,
+                        NgayBatDau = voucher.NgayBatDau,
+                        NgayKetThuc = voucher.NgayKetThuc,
+                        SoLuongSuDungToiDa = voucher.SoLuongSuDungToiDa,
+                        MoTa = voucher.MoTa
+                    };
+
+                    // Chuyển đối tượng data thành JSON và gói nó vào StringContent
+                    var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+
+                    // Gửi yêu cầu PUT tới API
+                    var response = await client.PutAsync($"http://127.0.0.1:5000/api/voucher/{voucher.MaVoucher}", content);
+
+                    // Đọc phản hồi trả về từ server
+                    var result = await response.Content.ReadAsStringAsync();
+
+                    // Giải mã JSON trả về từ server
+                    dynamic responseData = JsonConvert.DeserializeObject(result);
+
+                    // Kiểm tra kết quả trả về
+                    bool success = Convert.ToBoolean(responseData.success);
+
+                    if (success)
+                    {
+                        // Nếu cập nhật thành công, chuyển hướng về trang quản lý voucher
+                        return RedirectToAction("QuanLyVoucher");
+                    }
+                    else
+                    {
+                        // Nếu thất bại, thêm lỗi vào ModelState và hiển thị lại trang
+                        ModelState.AddModelError("", responseData.message);
+                        return View(voucher);
+                    }
+                }
+            }
+
+            return View(voucher);
+        }
+
+
+        public async Task<ActionResult> ChuyenDoiTrangThai(int id)
+        {
+            using (var client = new HttpClient())
+            {
+                var response = await client.PutAsync($"http://127.0.0.1:5000/api/voucher/{id}/toggle", null);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                bool success = Convert.ToBoolean(data.success);
+
+                if (success)
+                {
+                    return RedirectToAction("QuanLyVoucher");
+                }
+                else
+                {
+                    ViewBag.Message = data.message.ToString();
+                    return RedirectToAction("QuanLyVoucher");
+                }
+            }
+        }
+
     }
 }

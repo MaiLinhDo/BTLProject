@@ -273,6 +273,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\BestSellingProduct.cs" />
     <Compile Include="Models\Class\Banner.cs" />
     <Compile Include="Models\Class\ChiTietDonHang.cs" />
     <Compile Include="Models\Class\ChiTietGioHang.cs" />
