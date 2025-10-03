@@ -12,6 +12,57 @@ def get_connection():
 order_routes = Blueprint("order_routes", __name__)
 
 
+def create_auto_warranty(ma_don_hang):
+    """Tạo bảo hành tự động cho đơn hàng khi giao thành công"""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # Lấy thông tin đơn hàng
+        cursor.execute("SELECT MaTaiKhoan FROM DonHang WHERE MaDonHang = ?", (ma_don_hang,))
+        don_hang = cursor.fetchone()
+
+        if not don_hang:
+            return False
+
+        ma_tai_khoan = don_hang[0]
+        ngay_giao = datetime.now()
+        ngay_het_han = ngay_giao + timedelta(days=365)  # 1 năm bảo hành
+
+        # Lấy chi tiết sản phẩm trong đơn hàng
+        cursor.execute("""
+            SELECT MaSanPham, SoLuong 
+            FROM ChiTietDonHang 
+            WHERE MaDonHang = ?
+        """, (ma_don_hang,))
+
+        chi_tiet = cursor.fetchall()
+
+        # Tạo bảo hành cho từng sản phẩm
+        for item in chi_tiet:
+            ma_san_pham, so_luong = item
+
+            # Kiểm tra đã tạo bảo hành chưa
+            cursor.execute("""
+                SELECT COUNT(*) FROM BaoHanhTuDong 
+                WHERE MaDonHang = ? AND MaSanPham = ?
+            """, (ma_don_hang, ma_san_pham))
+
+            if cursor.fetchone()[0] == 0:
+                # Tạo bảo hành tự động
+                cursor.execute("""
+                    INSERT INTO BaoHanhTuDong (MaDonHang, MaSanPham, MaTaiKhoan, SoLuong, NgayBatDau, NgayKetThuc, TrangThai)
+                    VALUES (?, ?, ?, ?, ?, ?, N'Hoạt động')
+                """, (ma_don_hang, ma_san_pham, ma_tai_khoan, so_luong, ngay_giao, ngay_het_han))
+
+        conn.commit()
+        conn.close()
+        return True
+
+    except Exception as e:
+        print(f"Lỗi tạo bảo hành tự động: {str(e)}")
+        return False
+
 @order_routes.route("/api/get_order_detail", methods=["POST"])
 def get_order_detail():
     data = request.json
