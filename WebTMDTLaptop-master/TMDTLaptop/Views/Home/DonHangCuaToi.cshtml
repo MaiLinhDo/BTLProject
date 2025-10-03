@@ -1,0 +1,974 @@
+﻿@{
+    ViewBag.Title = "Đơn hàng của tôi";
+    Layout = "~/Views/Shared/_LayoutHome.cshtml";
+}
+
+<style>
+    /* Order Detail Page Custom Styles */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #0dcaf0;
+        --light-color: #f8f9fa;
+        --dark-color: #212529;
+        --transition: all 0.3s ease;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        min-height: 100vh;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, rgba(13, 110, 253, 0.8), rgba(108, 117, 125, 0.6));
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 2rem 0;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.3);
+    }
+
+    .page-header h1 {
+        color: white;
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-align: center;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        position: relative;
+        z-index: 2;
+    }
+
+    .breadcrumb {
+        display: flex;
+        justify-content: center;
+        margin-top: 1rem;
+        list-style: none;
+        gap: 1rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .breadcrumb li {
+        color: rgba(255, 255, 255, 0.8);
+        font-weight: 500;
+    }
+
+    .breadcrumb li a {
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .breadcrumb li a:hover {
+        color: #ffd700;
+    }
+
+    .breadcrumb li:not(:last-child)::after {
+        content: '>';
+        margin-left: 1rem;
+        opacity: 0.6;
+        color: rgba(255,255,255,0.7);
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .orders-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .order-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .order-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+    }
+
+    .order-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .order-id {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .order-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .order-date {
+        color: #6c757d;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .order-total {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--success-color);
+        text-align: right;
+    }
+
+    .order-status {
+        margin-top: 1rem;
+        text-align: center;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .status-pending {
+        background: var(--warning-color);
+        color: white;
+    }
+
+    .status-processing {
+        background: var(--info-color);
+        color: white;
+    }
+
+    .status-shipped {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .status-delivered {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .status-cancelled {
+        background: var(--danger-color);
+        color: white;
+    }
+
+    .order-body {
+        padding: 1.5rem;
+    }
+
+    .product-list {
+        margin-bottom: 1.5rem;
+    }
+
+    .product-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin-bottom: 0.75rem;
+        transition: var(--transition);
+        border-left: 4px solid transparent;
+    }
+
+    .product-item:hover {
+        background: #e3f2fd;
+        transform: translateX(5px);
+        border-left-color: var(--primary-color);
+    }
+
+    .product-image {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-right: 1rem;
+    }
+
+    .product-info {
+        flex: 1;
+    }
+
+    .product-name {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 0.25rem;
+        line-height: 1.3;
+        transition: var(--transition);
+    }
+
+    .product-item:hover .product-name {
+        color: var(--primary-color);
+    }
+
+    .product-quantity {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .product-price {
+        font-weight: 700;
+        color: var(--primary-color);
+        font-size: 1rem;
+    }
+
+    .order-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+        font-size: 0.9rem;
+        cursor: pointer;
+        flex: 1;
+        min-width: 120px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .btn-detail {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0b5ed7 100%);
+        color: white;
+    }
+
+    .btn-detail:hover {
+        background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-cancel {
+        background: linear-gradient(135deg, var(--danger-color) 0%, #c82333 100%);
+        color: white;
+    }
+
+    .btn-cancel:hover {
+        background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+    }
+
+    .btn-confirm {
+        background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);
+        color: white;
+    }
+
+    .btn-confirm:hover {
+        background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+    }
+
+    .btn-return {
+        background: linear-gradient(135deg, var(--warning-color) 0%, #fd7e14 100%);
+        color: white;
+    }
+
+    .btn-return:hover {
+        background: linear-gradient(135deg, #fd7e14 0%, #e55a00 100%);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-review {
+        background: linear-gradient(135deg, #6f42c1 0%, #5a2d91 100%);
+        color: white;
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
+        margin: 0.25rem;
+        flex: none;
+        min-width: auto;
+    }
+
+    .btn-review:hover {
+        background: linear-gradient(135deg, #5a2d91 0%, #4a2471 100%);
+        color: white;
+        text-decoration: none;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 3rem 0;
+        gap: 0.5rem;
+    }
+
+    .pagination-btn {
+        padding: 0.75rem 1rem;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 8px;
+        color: #495057;
+        text-decoration: none;
+        font-weight: 600;
+        transition: var(--transition);
+        min-width: 45px;
+        text-align: center;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .pagination-btn:hover:not(.disabled) {
+        background: white;
+        color: var(--primary-color);
+        transform: translateY(-2px);
+        text-decoration: none;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .pagination-btn.active {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0b5ed7 100%);
+        color: white;
+    }
+
+    .pagination-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .pagination-info {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+        margin: 0 1rem;
+        padding: 0.75rem;
+        background: rgba(13, 110, 253, 0.8);
+        border-radius: 8px;
+        backdrop-filter: blur(10px);
+    }
+
+    .loading {
+        text-align: center;
+        padding: 3rem;
+        color: var(--primary-color);
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .empty-orders {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        margin: 2rem 0;
+    }
+
+    .empty-orders h3 {
+        color: #6c757d;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+
+    .empty-orders p {
+        color: #8e9297;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+
+    .btn-shop {
+        background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);
+        color: white;
+        padding: 1rem 2.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        text-decoration: none;
+        display: inline-block;
+        transition: var(--transition);
+        box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-shop:hover {
+        background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(40, 167, 69, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        z-index: 9999;
+        display: none;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .notification.success {
+        background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);
+    }
+
+    .notification.error {
+        background: linear-gradient(135deg, var(--danger-color) 0%, #c82333 100%);
+    }
+
+    /* Hover Effects */
+    .order-card {
+        transition: var(--transition);
+    }
+
+    .order-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+
+    /* Animations */
+    keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .order-card {
+        animation: slideUp 0.6s ease-out;
+    }
+
+    /* Responsive Design */
+    media (max-width: 768px) {
+        .orders-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            padding: 0 1rem;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+        }
+
+        .container {
+            padding: 0 1rem;
+        }
+
+        .order-meta {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+
+        .order-total {
+            text-align: center;
+        }
+
+        .product-item {
+            flex-direction: column;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .product-image {
+            margin-right: 0;
+            margin-bottom: 0.75rem;
+        }
+
+        .order-actions {
+            flex-direction: column;
+        }
+
+        .btn {
+            flex: none;
+            width: 100%;
+        }
+
+        .breadcrumb {
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .breadcrumb li:not(:last-child)::after {
+            content: '↓';
+            margin-left: 0;
+        }
+
+        .pagination {
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+
+        .pagination-info {
+            order: -1;
+            width: 100%;
+            text-align: center;
+            margin: 0 0 1rem 0;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <div class="container">
+        <h1>Đơn hàng của tôi</h1>
+        <ul class="breadcrumb">
+            <li><a href="@Url.Action("Index","Home")">Trang chủ</a></li>
+            <li>Đơn hàng của tôi</li>
+        </ul>
+    </div>
+</div>
+
+<div id="notification" class="notification"></div>
+
+<main class="container">
+    <div id="loading" class="loading" style="display: none;">
+        Đang tải đơn hàng...
+    </div>
+
+    <div id="orders-container">
+        <!-- Orders will be loaded here -->
+    </div>
+
+    <div id="pagination-container" class="pagination" style="display: none;">
+        <!-- Pagination will be generated here -->
+    </div>
+</main>
+
+<script>
+let currentPage = 1;
+const ordersPerPage = 6; // 2 hàng x 3 cột = 6 đơn hàng mỗi trang
+let totalPages = 1;
+let maTaiKhoan = null;
+
+// Khởi tạo khi trang load
+document.addEventListener('DOMContentLoaded', function() {
+    initializePage();
+});
+
+async function initializePage() {
+    try {
+        // Lấy thông tin user trước
+        await getUserInfo();
+        if (maTaiKhoan) {
+            await loadOrders(1);
+        } else {
+            showError('Không thể lấy thông tin tài khoản');
+        }
+    } catch (error) {
+        console.error('Error initializing page:', error);
+        showError('Có lỗi xảy ra khi tải trang');
+    }
+}
+
+async function getUserInfo() {
+    try {
+        const username = '@Session["Username"]';
+        if (!username) {
+            window.location.href = '@Url.Action("DangNhap", "Home")';
+            return;
+        }
+
+        const response = await fetch(`http://127.0.0.1:5000/api/check_username?username=${username}`);
+        if (response.ok) {
+            const userData = await response.json();
+            maTaiKhoan = userData.MaTaiKhoan;
+        }
+    } catch (error) {
+        console.error('Error getting user info:', error);
+    }
+}
+
+async function loadOrders(page) {
+    try {
+        showLoading(true);
+
+        const response = await fetch(`http://127.0.0.1:5000/api/get_user_orders_paginated`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                maTaiKhoan: maTaiKhoan,
+                page: page,
+                pageSize: ordersPerPage
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                displayOrders(data.orders);
+                updatePagination(data.currentPage, data.totalPages, data.total);
+                currentPage = data.currentPage;
+                totalPages = data.totalPages;
+            } else {
+                showEmptyOrders();
+            }
+        } else {
+            throw new Error('Failed to load orders');
+        }
+    } catch (error) {
+        console.error('Error loading orders:', error);
+        showError('Có lỗi xảy ra khi tải đơn hàng');
+    } finally {
+        showLoading(false);
+    }
+}
+
+function displayOrders(orders) {
+    const container = document.getElementById('orders-container');
+
+    if (!orders || orders.length === 0) {
+        showEmptyOrders();
+        return;
+    }
+
+    const ordersGrid = document.createElement('div');
+    ordersGrid.className = 'orders-grid';
+
+    orders.forEach((order, index) => {
+        const orderCard = createOrderCard(order);
+        orderCard.style.animationDelay = `${index * 0.1}s`;
+        ordersGrid.appendChild(orderCard);
+    });
+
+    container.innerHTML = '';
+    container.appendChild(ordersGrid);
+}
+
+function createOrderCard(order) {
+    const card = document.createElement('div');
+    card.className = 'order-card';
+
+    const statusClass = getStatusClass(order.TrangThai);
+
+    card.innerHTML = `
+        <div class="order-header">
+            <div class="order-id">Đơn hàng #${order.MaDonHang}</div>
+            <div class="order-meta">
+                <div class="order-date">${formatDate(order.NgayDatHang)}</div>
+                <div class="order-total">${formatCurrency(order.TongTien)}</div>
+            </div>
+            <div class="order-status">
+                <span class="status-badge ${statusClass}">
+                    ${order.TrangThai}
+                </span>
+            </div>
+        </div>
+
+        <div class="order-body">
+            ${order.Products ? createProductList(order.Products) : ''}
+            <div class="order-actions">
+                ${createOrderActions(order)}
+            </div>
+        </div>
+    `;
+
+    return card;
+}
+
+function createProductList(products) {
+    const productList = products.map(product => `
+        <div class="product-item">
+            <img src="/assets/images/product/${product.MaSanPham}/${product.HinhAnh}"
+                 alt="${product.TenSanPham}"
+                 class="product-image"
+                 onerror="this.src='/assets/images/default-product.jpg'">
+            <div class="product-info">
+                <div class="product-name">${product.TenSanPham}</div>
+                <div class="product-quantity">Số lượng: ${product.SoLuong}</div>
+            </div>
+            <div class="product-price">
+                ${formatCurrency(product.Gia)}
+            </div>
+        </div>
+    `).join('');
+
+    return `<div class="product-list">${productList}</div>`;
+}
+
+function createOrderActions(order) {
+    let actions = [`<a href="@Url.Action("ChiTietDonHang", "Home")?id=${order.MaDonHang}" class="btn btn-detail">Xem chi tiết</a>`];
+
+    if (order.CanCancel) {
+        actions.push(`<button class="btn btn-cancel" onclick="cancelOrder(${order.MaDonHang})">Hủy đơn hàng</button>`);
+    }
+
+    if (order.CanConfirm) {
+        actions.push(`<button class="btn btn-confirm" onclick="confirmReceived(${order.MaDonHang})">Đã nhận hàng</button>`);
+    }
+
+    if (order.CanReturn) {
+        actions.push(`<a href="@Url.Action("TaoYeuCauDoiTra")?orderId=${order.MaDonHang}" class="btn btn-return">Đổi/Trả hàng</a>`);
+    }
+
+    if (order.CanReview && order.Products) {
+        order.Products.forEach(product => {
+            actions.push(`<a href="@Url.Action("DanhGiaSanPham")?orderId=${order.MaDonHang}&productId=${product.MaSanPham}" class="btn btn-review">Đánh giá ${product.TenSanPham}</a>`);
+        });
+    }
+
+    return actions.join('');
+}
+
+function updatePagination(currentPage, totalPages, totalOrders) {
+    const container = document.getElementById('pagination-container');
+
+    if (totalPages <= 1) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = 'flex';
+    container.innerHTML = '';
+
+    // Previous buttons
+    const prevAllBtn = createPaginationButton('«', 1, currentPage === 1);
+    const prevBtn = createPaginationButton('‹', currentPage - 1, currentPage === 1);
+    container.appendChild(prevAllBtn);
+    container.appendChild(prevBtn);
+
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+
+    if (startPage > 1) {
+        container.appendChild(createPaginationButton('1', 1));
+        if (startPage > 2) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'pagination-btn disabled';
+            ellipsis.textContent = '...';
+            container.appendChild(ellipsis);
+        }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        const isActive = i === currentPage;
+        container.appendChild(createPaginationButton(i.toString(), i, false, isActive));
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'pagination-btn disabled';
+            ellipsis.textContent = '...';
+            container.appendChild(ellipsis);
+        }
+        container.appendChild(createPaginationButton(totalPages.toString(), totalPages));
+    }
+
+    // Next buttons
+    const nextBtn = createPaginationButton('›', currentPage + 1, currentPage === totalPages);
+    const nextAllBtn = createPaginationButton('»', totalPages, currentPage === totalPages);
+    container.appendChild(nextBtn);
+    container.appendChild(nextAllBtn);
+
+    // Info
+    const info = document.createElement('div');
+    info.className = 'pagination-info';
+    const startItem = (currentPage - 1) * ordersPerPage + 1;
+    const endItem = Math.min(currentPage * ordersPerPage, totalOrders);
+    info.textContent = `${startItem}-${endItem} của ${totalOrders} đơn hàng`;
+    container.appendChild(info);
+}
+
+function createPaginationButton(text, page, disabled = false, active = false) {
+    const button = document.createElement('button');
+    button.className = `pagination-btn ${disabled ? 'disabled' : ''} ${active ? 'active' : ''}`;
+    button.textContent = text;
+
+    if (!disabled && !active) {
+        button.onclick = () => changePage(page);
+    }
+
+    return button;
+}
+
+async function changePage(page) {
+    if (page < 1 || page > totalPages || page === currentPage) return;
+
+    await loadOrders(page);
+
+    // Scroll to top
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+
+function showEmptyOrders() {
+    const container = document.getElementById('orders-container');
+    container.innerHTML = `
+        <div class="empty-orders">
+            <h3>Chưa có đơn hàng nào</h3>
+            <p>Bạn chưa có đơn hàng nào. Hãy khám phá các sản phẩm tuyệt vời của chúng tôi!</p>
+            <a href="@Url.Action("Index", "Home")" class="btn-shop">
+                Bắt đầu mua sắm
+            </a>
+        </div>
+    `;
+    document.getElementById('pagination-container').style.display = 'none';
+}
+
+function showLoading(show) {
+    document.getElementById('loading').style.display = show ? 'block' : 'none';
+    document.getElementById('orders-container').style.display = show ? 'none' : 'block';
+}
+
+// Utility functions
+function getStatusClass(status) {
+    const statusMap = {
+        'Đang chờ xử lý': 'status-pending',
+        'Đặt hàng thành công': 'status-processing',
+        'Đang chuẩn bị hàng': 'status-processing',
+        'Đơn hàng sẽ sớm được giao đến bạn': 'status-shipped',
+        'Đã giao': 'status-delivered',
+        'Đã hủy': 'status-cancelled'
+    };
+    return statusMap[status] || 'status-pending';
+}
+
+function formatDate(dateString) {
+    return new Date(dateString).toLocaleDateString('vi-VN');
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(amount).replace('₫', 'đ');
+}
+
+function showNotification(message, type = 'success') {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.className = `notification ${type}`;
+    notification.style.display = 'block';
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 4000);
+}
+
+function showError(message) {
+    showNotification(message, 'error');
+}
+
+// Order actions
+async function cancelOrder(orderId) {
+    if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?')) return;
+
+    try {
+        const response = await fetch('http://127.0.0.1:5000/api/cancel_order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ order_id: orderId })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            showNotification('Đơn hàng đã được hủy thành công!', 'success');
+            await loadOrders(currentPage);
+        } else {
+            showError('Có lỗi xảy ra khi hủy đơn hàng!');
+        }
+    } catch (error) {
+        console.error('Error canceling order:', error);
+        showError('Có lỗi xảy ra khi hủy đơn hàng!');
+    }
+}
+
+async function confirmReceived(orderId) {
+    if (!confirm('Bạn xác nhận đã nhận được hàng?')) return;
+
+    try {
+        const response = await fetch('http://127.0.0.1:5000/api/confirm_received', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ MaDonHang: orderId })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            showNotification('Xác nhận nhận hàng thành công!', 'success');
+            await loadOrders(currentPage);
+        } else {
+            showError('Có lỗi xảy ra khi xác nhận!');
+        }
+    } catch (error) {
+        console.error('Error confirming order:', error);
+        showError('Có lỗi xảy ra khi xác nhận!');
+    }
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <text>
+    document.addEventListener('DOMContentLoaded', function() {
+        showNotification('@Html.Raw(TempData["SuccessMessage"])', 'success');
+    });
+    </text>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <text>
+    document.addEventListener('DOMContentLoaded', function() {
+        showNotification('@Html.Raw(TempData["ErrorMessage"])', 'error');
+    });
+    </text>
+}
+</script>

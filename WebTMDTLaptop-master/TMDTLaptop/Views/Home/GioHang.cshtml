@@ -1,237 +1,1432 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "GioHang";
     Layout = "~/Views/Shared/_LayoutHome.cshtml";
 }
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<style>
-    .breadcrumb-area {
-        background-image: url('@Url.Content("~/assets/images/banner/banner3.jpg")'); /* Đường dẫn tới hình ảnh */
-    }
-    .quantity-controls {
-        display: flex;
-        align-items: center;
-        justify-content: center; /* Căn giữa theo chiều ngang */
-        gap: 5px; /* Tạo khoảng cách giữa nút và ô input */
-    }
-
-        .quantity-controls button {
-            width: 30px;
-            height: 30px;
-            border: 1px solid #ddd;
-            background-color: #f8f8f8;
-            cursor: pointer;
-        }
-
-        .quantity-controls input {
-            width: 50px;
-            text-align: center;
-            border: 1px solid #ddd;
-        }
-</style>
-<div class="breadcrumb-area">
-    <div class="container">
-        <div class="breadcrumb-content">
-            <h2>Giỏ hàng</h2>
-            <ul>
-                <li><a href="@Url.Action("Index","Home")">Trang chủ</a></li>
-                <li class="active">Giỏ hàng</li>
-            </ul>
-        </div>
-    </div>
-</div>
+<!-- Error Message Alert -->
 @if (ViewBag.ErrorMessage != null)
 {
-    <div class="alert alert-danger" role="alert">
+    <div class="alert alert-danger alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3"
+         style="z-index: 9999; max-width: 500px;" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
         @ViewBag.ErrorMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
-
-<!-- Uren's Breadcrumb Area End Here -->
-<div class="uren-cart-area">
-    <div class="container-fluid">
+<!-- Breadcrumb Section -->
+<section class="breadcrumb-section position-relative overflow-hidden">
+    <div class="breadcrumb-bg"></div>
+    <div class="breadcrumb-overlay"></div>
+    <div class="container position-relative">
         <div class="row">
             <div class="col-12">
-                <div class="table-content table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Xóa</th>
-                                <th>Hình ảnh</th>
-                                <th>Sản phẩm</th>
-                                <th>Giá</th>
-                                <th>Số lượng</th>
-                                <th>Tổng tiền</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (ViewBag.Cart != null)
-                            {
-                                foreach (var item in ViewBag.Cart)
-                                {
-                                    <tr>
-                                        <td>
-                                            <a href="javascript:void(0)" class="remove-item" data-id="@item.MaSanPham">
-                                                <i class="fa fa-trash" title="Remove"></i>
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <img style="width:60px" src="@Url.Content($"~/assets/images/product/{item.MaSanPham}/{item.HinhAnh}")" alt="@item.TenSanPham">
-                                        </td>
-                                        <td>@item.TenSanPham</td>
-                                        <td><span class="amount">@String.Format("{0:N0}", item.Gia) đ</span></td>
-                                        <td class="quantity">
-                                            <div class="quantity-controls">
-                                                <button class="decrease-qty" data-id="@item.MaSanPham">-</button>
-                                                <input class="cart-plus-minus-box" value="@item.SoLuong" type="number" min="1" data-id="@item.MaSanPham">
-                                                <button class="increase-qty" data-id="@item.MaSanPham">+</button>
-                                            </div>
-                                        </td>
-                                        <td class="product-subtotal">
-                                            <span class="amount">@String.Format("{0:N0}", item.Gia * item.SoLuong) đ</span>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="6">Giỏ hàng của bạn hiện tại đang trống.</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                <div class="breadcrumb-content text-white text-center">
+                    <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInUp">
+                        <i class="fas fa-shopping-cart me-2"></i>Giỏ hàng
+                    </h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center mb-0 animate__animated animate__fadeInUp animate__delay-1s">
+                            <li class="breadcrumb-item">
+                                <a href="@Url.Action("Index","Home")" class="text-white-50 text-decoration-none">
+                                    <i class="fas fa-home me-1"></i>Trang chủ
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active text-white" aria-current="page">
+                                Giỏ hàng
+                            </li>
+                        </ol>
+                    </nav>
                 </div>
-
-                <div class="coupon-all">
-                    <div class="coupon">
-                        <input id="coupon_code" class="input-text" name="coupon_code" placeholder="Mã giảm giá" type="text">
-                        <button type="button" class="button" id="apply_coupon">Áp dụng</button>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Cart Section -->
+<section class="cart-section py-5">
+    <div class="container-fluid">
+        @if (ViewBag.Cart != null && ((IEnumerable<dynamic>)ViewBag.Cart).Any())
+        {
+            <!-- Cart Items -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="cart-table-container card border-0 shadow-sm">
+                        <div class="card-header bg-primary text-white p-4">
+                            <h4 class="mb-0 fw-bold">
+                                <i class="fas fa-list me-2"></i>
+                                Sản phẩm trong giỏ hàng
+                            </h4>
+                        </div>
+                        <div class="card-body p-0">
+                            <!-- Desktop Table View -->
+                            <div class="table-responsive d-none d-lg-block">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="text-center" width="8%">Xóa</th>
+                                            <th width="12%">Hình ảnh</th>
+                                            <th width="30%">Sản phẩm</th>
+                                            <th width="15%">Đơn giá</th>
+                                            <th class="text-center" width="15%">Số lượng</th>
+                                            <th class="text-end" width="20%">Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in ViewBag.Cart)
+                                        {
+                                            <tr class="cart-item" data-product-id="@item.MaSanPham">
+                                                <!-- Remove Button -->
+                                                <td class="text-center">
+                                                    <button class="btn btn-outline-danger btn-sm rounded-circle remove-item"
+                                                            data-id="@item.MaSanPham" data-bs-toggle="tooltip" title="Xóa sản phẩm">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                                <!-- Product Image -->
+                                                <td>
+                                                    <div class="product-image">
+                                                        <img src="@Url.Content($"~/assets/images/product/{item.MaSanPham}/{item.HinhAnh}")"
+                                                             alt="@item.TenSanPham" class="img-fluid rounded">
+                                                    </div>
+                                                </td>
+                                                <!-- Product Info -->
+                                                <td>
+                                                    <div class="product-info">
+                                                        <h6 class="product-name mb-1">@item.TenSanPham</h6>
+                                                        <small class="text-muted">Mã SP: @item.MaSanPham</small>
+                                                    </div>
+                                                </td>
+                                                <!-- Price -->
+                                                <td>
+                                                    <span class="product-price fw-bold text-primary">
+                                                        @item.Gia.ToString("N0")₫
+                                                    </span>
+                                                </td>
+                                                <!-- Quantity Controls -->
+                                                <td>
+                                                    <div class="quantity-controls d-flex justify-content-center">
+                                                        <div class="input-group" style="width: 130px;">
+                                                            <button class="btn btn-outline-secondary decrease-qty" type="button" data-id="@item.MaSanPham">
+                                                                <i class="fas fa-minus"></i>
+                                                            </button>
+                                                            <input type="number" class="form-control text-center quantity-input"
+                                                                   value="@item.SoLuong" min="1" data-id="@item.MaSanPham" readonly>
+                                                            <button class="btn btn-outline-secondary increase-qty" type="button" data-id="@item.MaSanPham">
+                                                                <i class="fas fa-plus"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <!-- Subtotal -->
+                                                <td class="text-end">
+                                                    <span class="product-subtotal fw-bold text-success h6">
+                                                        @((item.Gia * item.SoLuong).ToString("N0"))₫
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Mobile Card View -->
+                            <div class="mobile-cart-items d-lg-none p-3">
+                                @foreach (var item in ViewBag.Cart)
+                                {
+                                    <div class="mobile-cart-item card border mb-3" data-product-id="@item.MaSanPham">
+                                        <div class="card-body">
+                                            <div class="row align-items-center">
+                                                <div class="col-3">
+                                                    <img src="@Url.Content($"~/assets/images/product/{item.MaSanPham}/{item.HinhAnh}")"
+                                                         alt="@item.TenSanPham" class="img-fluid rounded">
+                                                </div>
+                                                <div class="col-9">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <h6 class="product-name mb-1">@item.TenSanPham</h6>
+                                                        <button class="btn btn-outline-danger btn-sm rounded-circle remove-item"
+                                                                data-id="@item.MaSanPham">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <small class="text-muted">Đơn giá:</small>
+                                                            <div class="fw-bold text-primary">@item.Gia.ToString("N0")₫</div>
+                                                        </div>
+                                                        <div class="col-6 text-end">
+                                                            <small class="text-muted">Thành tiền:</small>
+                                                            <div class="fw-bold text-success">@((item.Gia * item.SoLuong).ToString("N0"))₫</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="quantity-controls mt-2">
+                                                        <div class="input-group" style="width: 120px;">
+                                                            <button class="btn btn-outline-secondary btn-sm decrease-qty" type="button" data-id="@item.MaSanPham">
+                                                                <i class="fas fa-minus"></i>
+                                                            </button>
+                                                            <input type="number" class="form-control form-control-sm text-center quantity-input"
+                                                                   value="@item.SoLuong" min="1" data-id="@item.MaSanPham" readonly>
+                                                            <button class="btn btn-outline-secondary btn-sm increase-qty" type="button" data-id="@item.MaSanPham">
+                                                                <i class="fas fa-plus"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
+            <!-- Coupon and Checkout Section -->
+            <div class="row mt-5">
+                <!-- Coupon Section -->
+                <div class="col-lg-8 mb-4 mb-lg-0">
+                    <!-- Manual Coupon Input -->
+                    <div class="coupon-card card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0 fw-bold">
+                                <i class="fas fa-tag me-2"></i>Mã giảm giá
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row align-items-end">
+                                <div class="col-md-8 mb-3 mb-md-0">
+                                    <label for="coupon_code" class="form-label">Nhập mã giảm giá:</label>
+                                    <input type="text" class="form-control form-control-lg" id="coupon_code"
+                                           placeholder="VD: SALE20, FREESHIP">
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-warning btn-lg w-100" id="apply_coupon">
+                                        <i class="fas fa-percent me-2"></i>Áp dụng
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                <div class="row">
-                    <div class="col-md-5 ml-auto">
-                        <form id="checkoutForm" action="@Url.Action("DatHang", "Home")" method="post">
-                            <div class="cart-page-total">
-                                <h2>Thành tiền</h2>
-                                <ul>
-                                    <li>Tổng tiền <span id="tongTien">@String.Format("{0:N0}", ViewBag.TongTien) đ</span></li>
-                                </ul>
-                                <div class="form-group">
-                                    <label for="paymentMethod">Phương thức thanh toán:</label>
-                                    <select id="paymentMethod" name="paymentMethod" class="form-control">
-                                        <option value="COD">Thanh toán khi nhận hàng (COD)</option>
-                                        <option value="VNPAY">Thanh toán online</option>
+                    <!-- Available Vouchers Section -->
+                    @if (ViewBag.Voucher != null && ((IEnumerable<dynamic>)ViewBag.Voucher).Any())
+                    {
+                        <div class="vouchers-card card border-0 shadow-sm">
+                            <div class="card-header bg-gradient-primary text-white">
+                                <h5 class="mb-0 fw-bold">
+                                    <i class="fas fa-gift me-2"></i>Voucher khả dụng
+                                </h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="vouchers-list">
+                                    @foreach (var voucher in ViewBag.Voucher)
+                                    {
+                                        <div class="voucher-item border-bottom p-3" data-voucher-code="@voucher.Code">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-2 col-3 text-center">
+                                                    <div class="voucher-discount-badge">
+                                                        <span class="discount-value">@voucher.GiamGia%</span>
+                                                        <small class="discount-label">GIẢM</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-7 col-6">
+                                                    <div class="voucher-details">
+                                                        <h6 class="voucher-title mb-1">@voucher.MoTa</h6>
+                                                        <div class="voucher-code-display mb-1">
+                                                            <span class="badge bg-light text-dark">@voucher.Code</span>
+                                                        </div>
+                                                        <small class="voucher-expiry text-muted">
+                                                            <i class="fas fa-clock me-1"></i>
+                                                            Hết hạn: @voucher.NgayKetThuc.ToString("dd/MM/yyyy")
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 col-3 text-end">
+                                                    <button class="btn btn-outline-primary btn-sm apply-voucher-btn"
+                                                            data-voucher-code="@voucher.Code"
+                                                            data-discount="@voucher.GiamGia">
+                                                        <i class="fas fa-plus me-1"></i>
+                                                        <span class="d-none d-md-inline">Áp dụng</span>
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary btn-sm ms-1 copy-voucher-btn"
+                                                            data-voucher-code="@voucher.Code"
+                                                            data-bs-toggle="tooltip" title="Sao chép mã">
+                                                        <i class="fas fa-copy"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <!-- Checkout Summary -->
+                <div class="col-lg-4">
+                    <div class="checkout-card card border-0 shadow-lg">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0 fw-bold">
+                                <i class="fas fa-calculator me-2"></i>Tóm tắt đơn hàng
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="order-summary">
+                                <div class="summary-row d-flex justify-content-between mb-2">
+                                    <span>Tạm tính:</span>
+                                    <span class="fw-bold" id="subtotal">@ViewBag.TongTien.ToString("N0")₫</span>
+                                </div>
+                                <div class="summary-row d-flex justify-content-between mb-2">
+                                    <span>Phí vận chuyển:</span>
+                                    <span class="text-success">Miễn phí</span>
+                                </div>
+                                <div class="summary-row d-flex justify-content-between mb-2" id="discount-row" style="display: none;">
+                                    <span>Giảm giá:</span>
+                                    <span class="text-danger" id="discount-amount">-0₫</span>
+                                </div>
+                                <hr>
+                                <div class="summary-row d-flex justify-content-between mb-4">
+                                    <span class="h6">Tổng cộng:</span>
+                                    <span class="h5 fw-bold text-success" id="total">@ViewBag.TongTien.ToString("N0")₫</span>
+                                </div>
+                            </div>
+                            <!-- Applied Voucher Display -->
+                            <div id="applied-voucher" class="alert alert-success d-none mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        <strong>Áp dụng:</strong> <span id="applied-voucher-code"></span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary remove-voucher-btn">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Payment Method -->
+                            <form id="checkoutForm" action="@Url.Action("DatHang", "Home")" method="post">
+                                <div class="mb-4">
+                                    <label for="paymentMethod" class="form-label fw-bold">Phương thức thanh toán:</label>
+                                    <select id="paymentMethod" name="paymentMethod" class="form-select form-select-lg">
+                                        <option value="COD"> Thanh toán khi nhận hàng (COD)</option>
+                                        <option value="VNPAY"> Thanh toán online (VNPAY)</option>
                                     </select>
                                 </div>
-                                <button type="submit" class="btn btn-primary">Tiến hành đặt hàng</button>
-                            </div>
-                        </form>
-
+                                <!-- Hidden field for applied voucher -->
+                                <input type="hidden" id="appliedVoucherCode" name="appliedVoucherCode" value="">
+                                <!-- Checkout Button -->
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-success btn-lg py-3 checkout-btn" id="checkoutBtn">
+                                        <i class="fas fa-credit-card me-2"></i>
+                                        <span class="btn-text">Tiến hành đặt hàng</span>
+                                        <span class="spinner-border spinner-border-sm d-none ms-2" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
-
+            </div>
+        }
+        else
+        {
+            <!-- Empty Cart -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="empty-cart text-center py-5">
+                        <div class="empty-cart-icon mb-4">
+                            <i class="fas fa-shopping-cart fa-5x text-muted"></i>
+                        </div>
+                        <h3 class="fw-bold text-muted mb-3">Giỏ hàng của bạn đang trống</h3>
+                        <p class="text-muted mb-4">Hãy thêm sản phẩm vào giỏ hàng để tiếp tục mua sắm</p>
+                        <a href="@Url.Action("CuaHang", "Home")" class="btn btn-primary btn-lg">
+                            <i class="fas fa-shopping-bag me-2"></i>Tiếp tục mua sắm
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+<!-- Confirmation Modals -->
+<div class="modal fade" id="removeConfirmModal" tabindex="-1" aria-labelledby="removeConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="removeConfirmModalLabel">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Xác nhận xóa
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirmRemoveBtn">Xóa</button>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+/* Cart Page Custom Styles */
+:root {
+    --primary-color: #0d6efd;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #0dcaf0;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --transition: all 0.3s ease;
+}
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+/* Breadcrumb Section */
+.breadcrumb-section {
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+}
+
+.breadcrumb-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('@Url.Content("~/assets/images/banner/banner3.jpg")') center/cover no-repeat;
+    z-index: -2;
+}
+
+.breadcrumb-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.8), rgba(25, 135, 84, 0.4));
+    z-index: -1;
+}
+
+/* Cart Section */
+.cart-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+}
+
+/* Cart Table */
+.cart-table-container {
+    border-radius: 15px !important;
+    overflow: hidden;
+}
+
+.cart-table-container .card-header {
+    background: linear-gradient(135deg, var(--primary-color), #0056b3) !important;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    padding: 1rem;
+}
+
+.table td {
+    border: none;
+    padding: 1.5rem 1rem;
+    vertical-align: middle;
+}
+
+.cart-item {
+    transition: var(--transition);
+}
+
+.cart-item:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* Product Image */
+.product-image img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.product-image img:hover {
+    transform: scale(1.1);
+}
+
+/* Product Info */
+.product-name {
+    color: var(--dark-color);
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.product-name:hover {
+    color: var(--primary-color);
+}
+
+.product-price {
+    font-size: 1.1rem;
+}
+
+.product-subtotal {
+    font-size: 1.2rem;
+}
+
+/* Quantity Controls */
+.quantity-controls .input-group {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.quantity-controls .btn {
+    border: 1px solid #dee2e6;
+    background: white;
+    color: var(--dark-color);
+    transition: var(--transition);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quantity-controls .btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.quantity-input {
+    border-left: none;
+    border-right: none;
+    background: white;
+    font-weight: 600;
+    width: 60px;
+}
+
+.quantity-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: none;
+}
+
+/* Remove Button */
+.remove-item {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.remove-item:hover {
+    transform: scale(1.1);
+}
+
+/* Mobile Cart Items */
+.mobile-cart-item {
+    border-radius: 12px !important;
+    transition: var(--transition);
+}
+
+.mobile-cart-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important;
+}
+
+/* Coupon Card */
+.coupon-card {
+    border-radius: 15px !important;
+}
+
+.coupon-card .card-header {
+    background: linear-gradient(135deg, var(--warning-color), #e6a200) !important;
+}
+
+/* Vouchers Card */
+.vouchers-card {
+    border-radius: 15px !important;
+}
+
+.vouchers-card .card-header {
+    background: linear-gradient(135deg, var(--primary-color), #6f42c1) !important;
+}
+
+.voucher-item {
+    transition: var(--transition);
+}
+
+.voucher-item:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.voucher-item:last-child {
+    border-bottom: none !important;
+}
+
+.voucher-discount-badge {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    color: white;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(238, 90, 82, 0.3);
+}
+
+.voucher-discount-badge .discount-value {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.voucher-discount-badge .discount-label {
+    font-size: 0.7rem;
+    margin-top: -2px;
+}
+
+.voucher-title {
+    color: var(--dark-color);
+    font-weight: 600;
+}
+
+.voucher-code-display .badge {
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+}
+
+.voucher-expiry {
+    font-size: 0.8rem;
+}
+
+.apply-voucher-btn, .copy-voucher-btn {
+    transition: var(--transition);
+    border-radius: 20px;
+}
+
+.apply-voucher-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+}
+
+.copy-voucher-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(108, 117, 125, 0.3);
+}
+
+.apply-voucher-btn.applied {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+    color: white;
+}
+
+/* Checkout Card */
+.checkout-card {
+    border-radius: 15px !important;
+    position: sticky;
+    top: 100px;
+}
+
+.checkout-card .card-header {
+    background: linear-gradient(135deg, var(--success-color), #20c997) !important;
+}
+
+.order-summary {
+    background: rgba(25, 135, 84, 0.05);
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+}
+
+.summary-row {
+    padding: 0.5rem 0;
+}
+
+.summary-row:last-of-type {
+    font-size: 1.1rem;
+}
+
+/* Applied Voucher Display */
+#applied-voucher {
+    border-radius: 10px !important;
+    border: none;
+    background: linear-gradient(135deg, rgba(25, 135, 84, 0.1), rgba(32, 201, 151, 0.1));
+}
+
+.remove-voucher-btn {
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+/* Payment Method */
+.form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+/* Checkout Button */
+.checkout-btn {
+    border-radius: 50px !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.checkout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(25, 135, 84, 0.3);
+}
+
+.checkout-btn.loading .btn-text {
+    opacity: 0;
+}
+
+.checkout-btn.loading .spinner-border {
+    display: inline-block !important;
+}
+
+/* Empty Cart */
+.empty-cart {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.empty-cart-icon {
+    animation: bounce 2s infinite;
+}
+
+@@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+/* Loading Animation */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 0.25rem solid #f3f3f3;
+    border-top: 0.25rem solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Animations */
+@@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate__animated {
+    animation-duration: 1s;
+    animation-fill-mode: both;
+}
+
+.animate__fadeInUp {
+    animation-name: fadeInUp;
+}
+
+.animate__delay-1s {
+    animation-delay: 1s;
+}
+
+/* Responsive Design */
+@@media (max-width: 992px) {
+    .checkout-card {
+        position: static;
+    }
+    .product-image img {
+        width: 60px;
+        height: 60px;
+    }
+    .voucher-discount-badge {
+        width: 50px;
+        height: 50px;
+    }
+    .voucher-discount-badge .discount-value {
+        font-size: 0.9rem;
+    }
+}
+
+@@media (max-width: 768px) {
+    .breadcrumb-section {
+        min-height: 180px;
+    }
+    .cart-section {
+        padding: 3rem 0;
+    }
+    .mobile-cart-item .product-name {
+        font-size: 0.9rem;
+    }
+    .quantity-controls .btn,
+    .quantity-input {
+        height: 35px;
+    }
+    .quantity-controls .btn {
+        width: 35px;
+    }
+    .voucher-discount-badge {
+        width: 45px;
+        height: 45px;
+    }
+    .voucher-discount-badge .discount-value {
+        font-size: 0.8rem;
+    }
+}
+
+@@media (max-width: 576px) {
+    .breadcrumb-content h1 {
+        font-size: 2rem;
+    }
+    .order-summary {
+        padding: 1rem;
+    }
+    .checkout-card .card-body,
+    .coupon-card .card-body,
+    .vouchers-card .card-body {
+        padding: 1.5rem;
+    }
+    .voucher-item {
+        padding: 1rem !important;
+    }
+}
+
+/* Success States */
+.quantity-updated {
+    animation: pulse 0.6s ease-in-out;
+}
+
+.item-removed {
+    animation: slideOut 0.4s ease-in-out forwards;
+}
+
+.voucher-applied {
+    animation: highlight 0.8s ease-in-out;
+}
+
+@@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@@keyframes slideOut {
+    0% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-100%);
+    }
+}
+
+@@keyframes highlight {
+    0% { background-color: transparent; }
+    50% { background-color: rgba(25, 135, 84, 0.2); }
+    100% { background-color: transparent; }
+}
+</style>
 
 <script>
-    $(document).ready(function () {
-        $('.increase-qty').click(function () {
-            var input = $(this).siblings('.cart-plus-minus-box');
-            var quantity = parseInt(input.val()) + 1;
-            input.val(quantity).trigger('change');
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-hide alert messages - EXCLUDE applied-voucher alert
+    const alerts = document.querySelectorAll('.alert:not(#applied-voucher)');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 5000);
+    });
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    // Quantity controls
+    document.querySelectorAll('.increase-qty').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.getAttribute('data-id');
+            const input = document.querySelector(`input[data-id="${productId}"]`);
+            const currentQty = parseInt(input.value);
+            updateQuantity(productId, currentQty + 1);
         });
-
-        $('.decrease-qty').click(function () {
-            var input = $(this).siblings('.cart-plus-minus-box');
-            var quantity = parseInt(input.val()) - 1;
-            if (quantity > 0) {
-                input.val(quantity).trigger('change');
+    });
+    document.querySelectorAll('.decrease-qty').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.getAttribute('data-id');
+            const input = document.querySelector(`input[data-id="${productId}"]`);
+            const currentQty = parseInt(input.value);
+            if (currentQty > 1) {
+                updateQuantity(productId, currentQty - 1);
             }
         });
-        // Cập nhật số lượng sản phẩm
-        $('.cart-plus-minus-box').on('change', function () {
-            var input = $(this);
-            var quantity = input.val();
-            var productId = input.data('id');
-
-            $.ajax({
-                url: '@Url.Action("CapNhatGioHang", "Home")',
-                type: 'POST',
-                data: { productId: productId, quantity: quantity },
-                success: function (response) {
-                    if (response.success) {
-                        alert(response.message);
-                        location.reload();
-                    } else {
-                        alert('Có lỗi xảy ra, vui lòng thử lại!');
-                    }
-                },
-                error: function () {
-                    alert('Có lỗi xảy ra, vui lòng thử lại!');
-                }
-            });
+    });
+    // Remove item functionality
+    let itemToRemove = null;
+    const removeModal = new bootstrap.Modal(document.getElementById('removeConfirmModal'));
+    document.querySelectorAll('.remove-item').forEach(btn => {
+        btn.addEventListener('click', function() {
+            itemToRemove = this.getAttribute('data-id');
+            removeModal.show();
         });
+    });
+    document.getElementById('confirmRemoveBtn').addEventListener('click', function() {
+        if (itemToRemove) {
+            removeItem(itemToRemove);
+            removeModal.hide();
+            itemToRemove = null;
+        }
+    });
+    // Manual coupon application
+    const applyCouponBtn = document.getElementById('apply_coupon');
+    if (applyCouponBtn) {
+        applyCouponBtn.addEventListener('click', function() {
+            const couponInput = document.getElementById('coupon_code');
+            if (!couponInput) return;
 
-        // Xóa sản phẩm khỏi giỏ hàng
-        $('.remove-item').on('click', function () {
-            var productId = $(this).data('id');
-            if (confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?")) {
-                $.ajax({
-                    url: '@Url.Action("XoaGioHang", "Home")',
-                    type: 'POST',
-                    data: { id: productId },
-                    success: function (response) {
-                        if (response.success) {
-                            alert(response.message);
-                            location.reload();
-                        } else {
-                            alert('Không thể xóa sản phẩm. Vui lòng thử lại!');
-                        }
-                    },
-                    error: function () {
-                        alert('Có lỗi xảy ra, vui lòng thử lại!');
-                    }
-                });
-            }
-        });
-
-        // Áp dụng mã giảm giá
-        $('#apply_coupon').on('click', function () {
-            var couponCode = $('#coupon_code').val().trim();
-
-            if (couponCode === "") {
-                alert("Vui lòng nhập mã giảm giá!");
+            const couponCode = couponInput.value.trim();
+            if (!couponCode) {
+                showToast('Vui lòng nhập mã giảm giá!', 'warning');
                 return;
             }
+            applyCoupon(couponCode);
+        });
+    }
+    // Voucher application
+    console.log('Initializing voucher buttons...');
+    const voucherButtons = document.querySelectorAll('.apply-voucher-btn');
+    console.log('Found voucher buttons:', voucherButtons.length);
+    voucherButtons.forEach((btn, index) => {
+        console.log(`Adding listener to button ${index}:`, btn.getAttribute('data-voucher-code'));
+        btn.addEventListener('click', function() {
+            console.log('Voucher button clicked:', this.getAttribute('data-voucher-code'));
+            const voucherCode = this.getAttribute('data-voucher-code');
+            const discount = this.getAttribute('data-discount');
+            applyCoupon(voucherCode, discount, this);
+        });
+    });
+    // Voucher copy functionality
+    document.querySelectorAll('.copy-voucher-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const voucherCode = this.getAttribute('data-voucher-code');
+            copyToClipboard(voucherCode);
+            // Update button appearance temporarily
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-check"></i>';
+            this.classList.add('btn-success');
+            this.classList.remove('btn-outline-secondary');
+            setTimeout(() => {
+                this.innerHTML = originalHTML;
+                this.classList.remove('btn-success');
+                this.classList.add('btn-outline-secondary');
+            }, 2000);
+            showToast(`Đã sao chép mã: ${voucherCode}`, 'success');
+        });
+    });
+    // Remove voucher functionality
+    document.querySelector('.remove-voucher-btn')?.addEventListener('click', function() {
+        removeAppliedVoucher(true);
+    });
+    // Checkout form submission
+    const checkoutForm = document.getElementById('checkoutForm');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', function(e) {
+            // Add loading state
+            checkoutBtn.classList.add('loading');
+            const spinner = checkoutBtn.querySelector('.spinner-border');
+            if (spinner) {
+                spinner.classList.remove('d-none');
+            }
+            checkoutBtn.disabled = true;
+        });
+    }
+});
 
-            $.ajax({
-                url: '@Url.Action("ApplyCoupon", "Home")',
-                type: 'POST',
-                data: { coupon: couponCode },
-                success: function (response) {
-                    if (response.success) {
-                        alert(response.message);
+// Update quantity function
+function updateQuantity(productId, quantity) {
+    showLoading(true);
+    fetch('@Url.Action("CapNhatGioHang", "Home")', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `productId=${productId}&quantity=${quantity}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        showLoading(false);
+        if (data.success) {
+            // Update quantity in UI
+            const input = document.querySelector(`input[data-id="${productId}"]`);
+            if (input) {
+                input.value = quantity;
+            }
+            // Add animation
+            const row = document.querySelector(`tr[data-product-id="${productId}"], .mobile-cart-item[data-product-id="${productId}"]`);
+            if (row) {
+                row.classList.add('quantity-updated');
+                setTimeout(() => row.classList.remove('quantity-updated'), 600);
+            }
+            // Update subtotal and total
+            updateCartTotals();
+            showToast(data.message || 'Cập nhật số lượng thành công', 'success');
+        } else {
+            showToast('Có lỗi xảy ra, vui lòng thử lại!', 'error');
+        }
+    })
+    .catch(error => {
+        showLoading(false);
+        console.error('Error:', error);
+        showToast('Có lỗi xảy ra, vui lòng thử lại!', 'error');
+    });
+}
+
+// Remove item function
+function removeItem(productId) {
+    showLoading(true);
+    fetch('@Url.Action("XoaGioHang", "Home")', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `id=${productId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        showLoading(false);
+        if (data.success) {
+            // Add removal animation
+            const row = document.querySelector(`tr[data-product-id="${productId}"], .mobile-cart-item[data-product-id="${productId}"]`);
+            if (row) {
+                row.classList.add('item-removed');
+                setTimeout(() => {
+                    row.remove();
+                    updateCartTotals();
+                    // Check if cart is empty
+                    const remainingItems = document.querySelectorAll('.cart-item, .mobile-cart-item').length;
+                    if (remainingItems === 0) {
                         location.reload();
-                    } else {
-                        alert(response.message);
                     }
-                },
-                error: function () {
-                    alert("Đã có lỗi xảy ra. Vui lòng thử lại.");
+                }, 400);
+            }
+            showToast(data.message || 'Đã xóa sản phẩm khỏi giỏ hàng', 'success');
+        } else {
+            showToast('Không thể xóa sản phẩm. Vui lòng thử lại!', 'error');
+        }
+    })
+    .catch(error => {
+        showLoading(false);
+        console.error('Error:', error);
+        showToast('Có lỗi xảy ra, vui lòng thử lại!', 'error');
+    });
+}
+
+// Apply coupon function - FIXED VERSION with NULL SAFETY
+function applyCoupon(couponCode, discountPercent = null, buttonElement = null) {
+    // Kiểm tra xem đã có voucher được áp dụng chưa
+    const hiddenInput = document.getElementById('appliedVoucherCode');
+    if (!hiddenInput) {
+        console.error('appliedVoucherCode element not found');
+        showToast('Lỗi hệ thống, vui lòng tải lại trang', 'error');
+        return;
+    }
+
+    const currentVoucher = hiddenInput.value;
+    if (currentVoucher && currentVoucher !== couponCode) {
+        // Nếu đã có voucher khác, hỏi người dùng có muốn thay thế không
+        if (!confirm(`Bạn đã áp dụng voucher "${currentVoucher}". Bạn có muốn thay thế bằng "${couponCode}"?`)) {
+            return;
+        }
+        // Xóa voucher cũ trước
+        removeAppliedVoucher();
+    } else if (currentVoucher === couponCode) {
+        // Nếu voucher giống nhau, không làm gì
+        showToast('Voucher này đã được áp dụng!', 'warning');
+        return;
+    }
+
+    const applyBtn = buttonElement || document.getElementById('apply_coupon');
+    if (!applyBtn) {
+        console.error('Apply button not found');
+        return;
+    }
+
+    const originalText = applyBtn.innerHTML;
+
+    // Disable button và hiển thị loading
+    applyBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang áp dụng...';
+    applyBtn.disabled = true;
+
+    fetch('@Url.Action("ApplyCoupon", "Home")', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `coupon=${couponCode}`
+    })
+    .then(response => {
+        // Reset button state trước khi xử lý response
+        applyBtn.innerHTML = originalText;
+        applyBtn.disabled = false;
+
+        // Kiểm tra response status
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Xử lý response từ server
+        if (data.success) {
+            // Thành công - hiển thị voucher đã áp dụng
+            showToast(data.message || 'Áp dụng mã giảm giá thành công', 'success');
+
+            // Calculate discount amount
+            const subtotal = getSubtotalAmount();
+            const discount = data.coupon ? Math.round(subtotal * data.coupon.giamGia / 100) :
+                           discountPercent ? Math.round(subtotal * discountPercent / 100) : 0;
+
+            // Show applied voucher
+            const displayPercent = data.coupon ? data.coupon.giamGia : discountPercent;
+            showAppliedVoucher(couponCode, displayPercent, discount);
+
+            // Update UI for voucher buttons
+            updateVoucherButtonStates(couponCode);
+
+            // Add highlight animation to voucher item
+            if (buttonElement) {
+                const voucherItem = buttonElement.closest('.voucher-item');
+                if (voucherItem) {
+                    voucherItem.classList.add('voucher-applied');
+                    setTimeout(() => voucherItem.classList.remove('voucher-applied'), 800);
                 }
-            });
+            }
+
+            // Show discount in order summary
+            const discountRow = document.getElementById('discount-row');
+            const discountAmount = document.getElementById('discount-amount');
+            if (discountRow && discountAmount) {
+                discountAmount.textContent = `-${discount.toLocaleString()}₫`;
+                discountRow.style.display = 'flex';
+            }
+
+            // Update total
+            updateCartTotals();
+
+            // Clear manual coupon input
+            const couponInput = document.getElementById('coupon_code');
+            if (couponInput) {
+                couponInput.value = '';
+            }
+        } else {
+            // Thất bại - hiển thị lỗi
+            showToast(data.message || 'Mã giảm giá không hợp lệ', 'error');
+        }
+    })
+    .catch(error => {
+        // Reset button state on error
+        applyBtn.innerHTML = originalText;
+        applyBtn.disabled = false;
+
+        console.error('Error details:', error);
+        showToast('Không thể kết nối đến server. Vui lòng kiểm tra kết nối và thử lại.', 'error');
+    });
+}
+
+// Show applied voucher - Fixed to prevent auto-hide
+function showAppliedVoucher(voucherCode, discountPercent, discountAmount) {
+    const appliedVoucher = document.getElementById('applied-voucher');
+    const appliedVoucherCode = document.getElementById('applied-voucher-code');
+    const hiddenInput = document.getElementById('appliedVoucherCode');
+
+    if (appliedVoucherCode) {
+        appliedVoucherCode.textContent = `${voucherCode} (${discountPercent}% giảm)`;
+    }
+    if (appliedVoucher) {
+        appliedVoucher.classList.remove('d-none');
+        // Remove any Bootstrap Alert instance to prevent auto-hide
+        const alertInstance = bootstrap.Alert.getInstance(appliedVoucher);
+        if (alertInstance) {
+            alertInstance.dispose();
+        }
+    }
+    if (hiddenInput) {
+        hiddenInput.value = voucherCode;
+    }
+}
+
+// Remove applied voucher - FIXED VERSION with complete NULL SAFETY
+function removeAppliedVoucher(showToastMessage = false) {
+    try {
+        const appliedVoucher = document.getElementById('applied-voucher');
+        const discountRow = document.getElementById('discount-row');
+        const hiddenInput = document.getElementById('appliedVoucherCode');
+
+        // Hide applied voucher display with null checks
+        if (appliedVoucher) {
+            appliedVoucher.classList.add('d-none');
+        }
+        if (discountRow) {
+            discountRow.style.display = 'none';
+        }
+        if (hiddenInput) {
+            hiddenInput.value = '';
+        }
+
+        // Reset voucher button states - Enable all buttons
+        document.querySelectorAll('.apply-voucher-btn').forEach(btn => {
+            if (btn) {
+                btn.classList.remove('applied');
+                btn.innerHTML = '<i class="fas fa-plus me-1"></i><span class="d-none d-md-inline">Áp dụng</span>';
+                btn.disabled = false;
+            }
         });
 
+        // Update totals
+        updateCartTotals();
 
+        // Only show toast if this was called manually
+        if (showToastMessage) {
+            showToast('Đã hủy áp dụng voucher', 'info');
+        }
+    } catch (error) {
+        console.error('Error in removeAppliedVoucher:', error);
+    }
+}
 
+// Update voucher button states - IMPROVED VERSION with null safety
+function updateVoucherButtonStates(appliedCode) {
+    document.querySelectorAll('.apply-voucher-btn').forEach(btn => {
+        if (!btn) return;
+
+        const voucherCode = btn.getAttribute('data-voucher-code');
+        if (voucherCode === appliedCode) {
+            // Voucher đã được áp dụng
+            btn.classList.add('applied');
+            btn.innerHTML = '<i class="fas fa-check me-1"></i><span class="d-none d-md-inline">Đã áp dụng</span>';
+            btn.disabled = true;
+        } else {
+            // Các voucher khác
+            btn.classList.remove('applied');
+            btn.innerHTML = '<i class="fas fa-plus me-1"></i><span class="d-none d-md-inline">Áp dụng</span>';
+            btn.disabled = false;
+        }
     });
+}
+
+// Calculate discount amount
+function calculateDiscountAmount(discountPercent) {
+    const subtotal = getSubtotalAmount();
+    return Math.round(subtotal * discountPercent / 100);
+}
+
+// Get subtotal amount with null safety
+function getSubtotalAmount() {
+    let subtotal = 0;
+    document.querySelectorAll('.product-subtotal').forEach(element => {
+        if (element && element.textContent) {
+            const text = element.textContent.replace(/[^\d]/g, '');
+            subtotal += parseInt(text) || 0;
+        }
+    });
+    return subtotal;
+}
+
+// Update cart totals with null safety
+function updateCartTotals() {
+    const subtotal = getSubtotalAmount();
+
+    // Update subtotal display
+    const subtotalElement = document.getElementById('subtotal');
+    if (subtotalElement) {
+        subtotalElement.textContent = subtotal.toLocaleString() + '₫';
+    }
+
+    // Calculate total (subtotal - discount)
+    const discountElement = document.getElementById('discount-amount');
+    const discountRow = document.getElementById('discount-row');
+    let discount = 0;
+
+    if (discountElement && discountRow && !discountRow.style.display.includes('none')) {
+        const discountText = discountElement.textContent.replace(/[^\d]/g, '');
+        discount = parseInt(discountText) || 0;
+    }
+
+    const total = subtotal - discount;
+    const totalElement = document.getElementById('total');
+    if (totalElement) {
+        totalElement.textContent = total.toLocaleString() + '₫';
+    }
+}
+
+// Copy to clipboard function
+function copyToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        // Use modern clipboard API
+        navigator.clipboard.writeText(text);
+    } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+    }
+}
+
+// Show loading overlay
+function showLoading(show) {
+    let loadingOverlay = document.getElementById('loadingOverlay');
+    if (show) {
+        if (!loadingOverlay) {
+            loadingOverlay = document.createElement('div');
+            loadingOverlay.id = 'loadingOverlay';
+            loadingOverlay.className = 'loading-overlay';
+            loadingOverlay.innerHTML = '<div class="loading-spinner"></div>';
+            document.body.appendChild(loadingOverlay);
+        }
+    } else {
+        if (loadingOverlay) {
+            loadingOverlay.remove();
+        }
+    }
+}
+
+// Enhanced toast function với better error handling
+function showToast(message, type = 'info') {
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+
+    const toastId = 'toast-' + Date.now();
+    const iconClass = type === 'success' ? 'fa-check-circle text-success' :
+                     type === 'error' ? 'fa-exclamation-circle text-danger' :
+                     type === 'warning' ? 'fa-exclamation-triangle text-warning' :
+                     'fa-info-circle text-info';
+
+    const bgClass = type === 'success' ? 'bg-success' :
+                   type === 'error' ? 'bg-danger' :
+                   type === 'warning' ? 'bg-warning' :
+                   'bg-info';
+
+    const toastHtml = `
+        <div class="toast align-items-center text-white ${bgClass} border-0" id="${toastId}" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas ${iconClass} me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    const toastElement = document.getElementById(toastId);
+    if (toastElement) {
+        const toast = new bootstrap.Toast(toastElement, {
+            autohide: true,
+            delay: 5000
+        });
+        toast.show();
+
+        // Remove toast element after hidden
+        toastElement.addEventListener('hidden.bs.toast', function() {
+            this.remove();
+        });
+    }
+}
+
+// Initialize cart totals on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateCartTotals();
+});
+
+// Auto-save cart state periodically
+function saveCartState() {
+    const cartItems = [];
+    document.querySelectorAll('.cart-item, .mobile-cart-item').forEach(item => {
+        if (item) {
+            const productId = item.getAttribute('data-product-id');
+            const quantityInput = item.querySelector('.quantity-input');
+            if (productId && quantityInput) {
+                const quantity = quantityInput.value;
+                cartItems.push({ productId, quantity });
+            }
+        }
+    });
+    localStorage.setItem('cart-backup', JSON.stringify(cartItems));
+}
+setInterval(saveCartState, 30000); // Save every 30 seconds
+
+// Handle page visibility change
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        saveCartState();
+    }
+});
 </script>
-
-

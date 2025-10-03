@@ -1,0 +1,483 @@
+﻿@{
+    ViewBag.Title = "Đặt hàng thành công";
+    Layout = "~/Views/Shared/_LayoutHome.cshtml";
+}
+
+<style>
+    .breadcrumb-area {
+        background: #ffffff;
+        padding: 40px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .breadcrumb-content {
+        text-align: center;
+    }
+
+    .breadcrumb-content h2 {
+        font-size: 2.25rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #111827;
+    }
+
+    .breadcrumb-content ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .breadcrumb-content ul li a {
+        color: #6b7280;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .breadcrumb-content ul li a:hover {
+        color: #374151;
+    }
+
+    .breadcrumb-content ul li::after {
+        content: '/';
+        margin-left: 8px;
+        color: #d1d5db;
+    }
+
+    .breadcrumb-content ul li:last-child::after {
+        display: none;
+    }
+
+    .page-content {
+        padding: 48px 0;
+        background: #f9fafb;
+        min-height: 80vh;
+    }
+
+    .success-container {
+        animation: slideUp 0.6s ease-out;
+    }
+
+    .success-alert {
+        background: #ffffff;
+        border: 1px solid #d1fae5;
+        border-radius: 12px;
+        padding: 32px;
+        margin-bottom: 32px;
+        border-left: 4px solid #10b981;
+    }
+
+    .success-alert h4 {
+        color: #065f46;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+    .success-alert p {
+        color: #374151;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+
+    .order-id {
+        background: #f3f4f6;
+        padding: 16px;
+        border-radius: 8px;
+        border-left: 3px solid #10b981;
+    }
+
+    .order-id strong {
+        color: #065f46;
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+
+    .order-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.2s ease;
+    }
+
+    .order-card:hover {
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    }
+
+    .order-card .card-header {
+        background: #f8fafc;
+        color: #374151;
+        padding: 20px 24px;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+
+    .order-card .card-body {
+        padding: 24px;
+    }
+
+    .order-card .card-title {
+        color: #111827;
+        font-weight: 600;
+        font-size: 1.125rem;
+        margin-bottom: 20px;
+    }
+
+    .order-table {
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+    }
+
+    .order-table thead th {
+        background: #f8fafc;
+        color: #374151;
+        font-weight: 600;
+        border: none;
+        padding: 16px;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .order-table tbody td {
+        padding: 16px;
+        border: none;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+        color: #374151;
+    }
+
+    .order-table tbody tr:hover {
+        background-color: #f9fafb;
+    }
+
+    .order-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .product-name {
+        font-weight: 500;
+        color: #111827;
+    }
+
+    .price-cell {
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .quantity-cell {
+        font-weight: 500;
+        text-align: center;
+        background: #eff6ff;
+        padding: 4px 12px;
+        border-radius: 6px;
+        color: #1e40af;
+        display: inline-block;
+    }
+
+    .total-cell {
+        font-weight: 600;
+        color: #065f46;
+    }
+
+    .summary-row {
+        background: #f8fafc !important;
+        font-weight: 500;
+    }
+
+    .summary-row td {
+        color: #374151 !important;
+    }
+
+    .final-total-row {
+        background: #f0fdf4 !important;
+        border-top: 2px solid #10b981 !important;
+    }
+
+    .final-total-row td {
+        color: #065f46 !important;
+        font-weight: 700;
+        font-size: 1.125rem;
+        padding: 20px 16px !important;
+    }
+
+    .discount-badge {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-weight: 500;
+        font-size: 0.875rem;
+        border: 1px solid #fde68a;
+    }
+
+    .action-buttons {
+        text-align: center;
+        margin-top: 32px;
+        padding: 24px;
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .btn-home {
+        background: #111827;
+        border: none;
+        color: white;
+        padding: 12px 32px;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+        margin-right: 12px;
+    }
+
+    .btn-home:hover {
+        background: #1f2937;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-orders {
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        color: #374151;
+        padding: 12px 32px;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-orders:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+        color: #111827;
+        text-decoration: none;
+    }
+
+    @@media (max-width: 768px) {
+        .breadcrumb-content h2 {
+            font-size: 1.875rem;
+        }
+
+        .success-alert {
+            padding: 24px;
+        }
+
+        .success-alert h4 {
+            font-size: 1.25rem;
+        }
+
+        .order-card .card-body {
+            padding: 20px;
+        }
+
+        .order-table thead th,
+        .order-table tbody td {
+            padding: 12px 8px;
+            font-size: 0.875rem;
+        }
+
+        .action-buttons {
+            padding: 20px;
+        }
+
+        .btn-home,
+        .btn-orders {
+            display: block;
+            width: 100%;
+            margin: 8px 0;
+        }
+
+        .breadcrumb-content ul {
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .breadcrumb-content ul li::after {
+            display: none;
+        }
+    }
+
+    /* Animations */
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* Success indicator */
+    .success-indicator {
+        width: 48px;
+        height: 48px;
+        background: #10b981;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px auto;
+    }
+
+    .success-indicator::after {
+        content: '✓';
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+    }
+</style>
+
+<div class="breadcrumb-area">
+    <div class="container">
+        <div class="breadcrumb-content">
+            <h2>Đặt hàng thành công</h2>
+            <ul>
+                <li><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                <li class="active">Thành công</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="page-content">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="success-container">
+                    <!-- Success Alert -->
+                    <div class="alert success-alert fade-in" role="alert">
+                        <div class="success-indicator"></div>
+                        <h4 class="text-center">Cảm ơn bạn đã đặt hàng!</h4>
+                        <p class="text-center">Đơn hàng của bạn đã được đặt thành công và đang được xử lý. Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất để xác nhận và giao hàng.</p>
+                        <div class="order-id">
+                            <p class="mb-0 text-center">
+                                Mã đơn hàng của bạn là: <strong>#@ViewBag.OrderId</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Order Details Card -->
+                    <div class="card order-card fade-in">
+                        <div class="card-header">
+                            Thông tin đơn hàng
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">Chi tiết sản phẩm</h5>
+                            <div class="table-responsive">
+                                <table class="table order-table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Sản phẩm</th>
+                                            <th scope="col">Giá</th>
+                                            <th scope="col">Số lượng</th>
+                                            <th scope="col">Tổng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (ViewBag.OrderDetails != null)
+                                        {
+                                            var orderDetails = ViewBag.OrderDetails as List<string>;
+                                            foreach (var detail in orderDetails)
+                                            {
+                                                var parts = detail.Split('|');
+                                                <tr>
+                                                    <td class="product-name">@parts[0]</td>
+                                                    <td class="price-cell">@decimal.Parse(parts[1]).ToString("N0") đ</td>
+                                                    <td class="text-center">
+                                                        <span class="quantity-cell">@parts[2]</span>
+                                                    </td>
+                                                    <td class="total-cell">@decimal.Parse(parts[3]).ToString("N0") đ</td>
+                                                </tr>
+                                            }
+                                        }
+
+                                        @if (ViewBag.phantram != null && ViewBag.phantram > 0)
+                                        {
+                                            <tr class="summary-row">
+                                                <td colspan="3" class="text-end">
+                                                    <strong>Đã giảm giá:</strong>
+                                                </td>
+                                                <td>
+                                                    <span class="discount-badge">@ViewBag.phantram%</span>
+                                                </td>
+                                            </tr>
+                                        }
+
+                                        <tr class="final-total-row">
+                                            <td colspan="3" class="text-end">
+                                                <strong>TỔNG CỘNG:</strong>
+                                            </td>
+                                            <td>
+                                                <strong>@ViewBag.TotalAmount.ToString("N0") đ</strong>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons fade-in">
+                        <a href="@Url.Action("Index", "Home")" class="btn-home">
+                            Quay lại trang chủ
+                        </a>
+                        <a href="@Url.Action("DonHangCuaToi", "Home")" class="btn-orders">
+                            Xem đơn hàng của tôi
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Add fade-in animation to elements
+        const elements = document.querySelectorAll('.fade-in');
+        elements.forEach((element, index) => {
+            element.style.animationDelay = `${index * 0.1}s`;
+        });
+
+        // Add hover effect to table rows
+        const tableRows = document.querySelectorAll('.order-table tbody tr:not(.summary-row):not(.final-total-row)');
+        tableRows.forEach(row => {
+            row.addEventListener('mouseenter', function () {
+                this.style.backgroundColor = '#f9fafb';
+            });
+
+            row.addEventListener('mouseleave', function () {
+                this.style.backgroundColor = '';
+            });
+        });
+    });
+</script>
