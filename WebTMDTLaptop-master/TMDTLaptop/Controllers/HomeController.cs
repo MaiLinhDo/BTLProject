@@ -29,8 +29,21 @@ namespace TMDTLaptop.Controllers
       
         public async Task<ActionResult> Index()
         {
-           
-            return View();
+            List<SanPham> products = new List<SanPham>();
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://127.0.0.1:5000/");
+
+               
+                // Gọi API Product
+                var productRes = await client.GetAsync("api/products");
+                if (productRes.IsSuccessStatusCode)
+                {
+                    var data = await productRes.Content.ReadAsStringAsync();
+                    products = JsonConvert.DeserializeObject<List<SanPham>>(data);
+                }
+            }
+            return View(products);
         }
 
         // DatHangThanhCong: Xử lý đặt hàng
@@ -199,6 +212,160 @@ namespace TMDTLaptop.Controllers
                 }
             }
         }
+
+        public ActionResult GetDanhMuc()
+        {
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://127.0.0.1:5000/");
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                try
+                {
+                    var response = client.GetAsync("api/categories").Result;
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var data = response.Content.ReadAsStringAsync().Result;
+
+                        // Giải mã JSON thành List<DanhMucSanPham>
+                        var danhMucList = JsonConvert.DeserializeObject<List<DanhMucSanPham>>(data);
+
+                        return PartialView("_DanhMucPartial", danhMucList);
+                    }
+                    else
+                    {
+                        return PartialView("_DanhMucPartial", new List<DanhMucSanPham>());
+                    }
+                }
+                catch (Exception ex)
+                {
+
+                    return PartialView("_DanhMucPartial", new List<DanhMucSanPham>());
+                }
+            }
+        }
+
+        public ActionResult About()
+        {
+            ViewBag.Message = "Your application description page.";
+
+            return View();
+        }
+
+        public async Task<ActionResult> CuaHang(int id, string search = "", decimal? minPrice = null, decimal? maxPrice = null, int? brand = null, int page = 1, int pageSize = 8)
+        {
+            string apiUrl = "http://127.0.0.1:5000/api/products_user";
+            var client = new HttpClient();
+            var queryString = $"?id={id}&search={search}&minPrice={minPrice}&maxPrice={maxPrice}&brand={brand}&page={page}&pageSize={pageSize}";
+
+            try
+            {
+                // Gửi yêu cầu GET đến API sản phẩm
+                var response = await client.GetStringAsync(apiUrl + queryString);
+                Debug.WriteLine(response);
+                var jsonResponse = JObject.Parse(response);
+
+                if (jsonResponse["products"] == null || !jsonResponse["products"].Any())
+                {
+                    return RedirectToAction("Error", "Home");
+                }
+
+                var productsToDisplay = jsonResponse["products"].ToObject<List<SanPham>>();
+
+                // Gán các ViewBag cho phân trang và thông tin tìm kiếm
+                ViewBag.DanhMuc = id;
+                ViewBag.TotalPages = jsonResponse["totalPages"].Value<int>();
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalProducts = jsonResponse["totalProducts"].Value<int>();
+                ViewBag.Search = search;
+                ViewBag.MinPrice = minPrice;
+                ViewBag.MaxPrice = maxPrice;
+                ViewBag.Brand = brand?.ToString();
+
+                // Gọi API lấy danh mục sản phẩm (Brands)
+                var categoriesResponse = await client.GetStringAsync("http://127.0.0.1:5000/api/get_categories");
+                var categoriesJsonResponse = JObject.Parse(categoriesResponse);
+
+                if (categoriesJsonResponse["categories"] == null || !categoriesJsonResponse["categories"].Any())
+                {
+                    return RedirectToAction("Error", "Home");
+                }
+
+                var categories = categoriesJsonResponse["categories"].ToObject<List<HangSanPham>>();
+                ViewBag.Brands = categories;
+
+                return View(productsToDisplay);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Lỗi khi gọi API: {ex.Message}");
+                return RedirectToAction("Error", "Home");
+            }
+        }
+        public async Task<ActionResult> ChiTietSanPham(int id, int reviewPage = 1)
+        {
+            var httpClient = new HttpClient();
+            var jsonData = new { productId = id };
+
+            var response = httpClient.PostAsJsonAsync("http://127.0.0.1:5000/api/get_detail_product", jsonData).Result;
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = response.Content.ReadAsAsync<dynamic>().Result;
+                var sanPham = JsonConvert.DeserializeObject<TMDTLaptop.Models.Class.SanPham>(result.product.ToString());
+                var sanPhamCungGia = result.similarProducts;
+
+                // Lấy đánh giá sản phẩm
+                var reviewResponse = await httpClient.GetAsync($"http://127.0.0.1:5000/api/get_reviews/{id}?page={reviewPage}");
+                if (reviewResponse.IsSuccessStatusCode)
+                {
+                    var reviewResult = await reviewResponse.Content.ReadAsStringAsync();
+                    dynamic reviewData = JsonConvert.DeserializeObject(reviewResult);
+
+                    ViewBag.Reviews = reviewData.reviews;
+                    ViewBag.AverageRating = (double)reviewData.averageRating;
+                    ViewBag.TotalReviews = (int)reviewData.totalReviews;
+                    ViewBag.ReviewCurrentPage = reviewPage;
+                    ViewBag.ReviewTotalPages = reviewData.totalPages;
+
+                    // Tính phân bố rating cho biểu đồ
+                    if (reviewData.ratingDistribution != null)
+                    {
+                        ViewBag.RatingDistribution = reviewData.ratingDistribution;
+                    }
+                }
+
+                ViewBag.SanPhamCungGia = sanPhamCungGia;
+                return View(sanPham);
+            }
+
+            return HttpNotFound();
+        }
+        public async Task<ActionResult> ChiTietSanPhamEnhanced(int id)
+        {
+            
+            var httpClient = new HttpClient();
+            var jsonData = new { productId = id };
+
+            var response = httpClient.PostAsJsonAsync("http://127.0.0.1:5000/api/get_detail_product", jsonData).Result;
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = response.Content.ReadAsAsync<dynamic>().Result;
+                var sanPham = JsonConvert.DeserializeObject<TMDTLaptop.Models.Class.SanPham>(result.product.ToString());
+                var sanPhamCungGia = result.similarProducts;
+
+               
+                ViewBag.SanPhamCungGia = sanPhamCungGia;
+                return View(sanPham);
+            }
+
+            return HttpNotFound();
+        }
+
+
 
         public async Task<ActionResult> GioHang()
         {

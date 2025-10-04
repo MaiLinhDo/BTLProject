@@ -2,100 +2,598 @@
     ViewBag.Title = "About";
     Layout = "~/Views/Shared/_LayoutHome.cshtml";
 }
-<style>
-    .breadcrumb-area {
-        background-image: url('@Url.Content("~/assets/images/banner/banner3.jpg")'); /* Đường dẫn tới hình ảnh */
-    }
-</style>
-<div class="breadcrumb-area">
-    <div class="container">
-        <div class="breadcrumb-content">
-            <h2>Web Bán Laptop và Linh Kiện</h2>
-            <ul>
-                <li><a href="@Url.Action("Index","Home")">Trang chủ</a></li>
-                <li class="active">Web Bán Laptop và Linh Kiện</li>
-            </ul>
-        </div>
-    </div>
-</div>
-<!-- Bắt Đầu Khu Vực Giới Thiệu Của Web Bán Laptop -->
-<div class="about-us-area">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-6 col-md-5">
-                <div class="overview-img text-center img-hover_effect">
-                    <a href="#">
-                        <img style="height:400px" class="img-full" src="~/assets/images/banner/laptop.jpg" alt="Hình Ảnh Giới Thiệu Laptop">
-                    </a>
+
+<!-- Breadcrumb Section -->
+<section class="breadcrumb-section position-relative overflow-hidden">
+    <div class="breadcrumb-bg"></div>
+    <div class="breadcrumb-overlay"></div>
+    <div class="container position-relative">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <div class="breadcrumb-content text-white">
+                    <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInUp">
+                        Web Bán Laptop và Linh Kiện
+                    </h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center fs-5 animate__animated animate__fadeInUp animate__delay-1s">
+                            <li class="breadcrumb-item">
+                                <a href="@Url.Action("Index","Home")" class="text-white-50 text-decoration-none">
+                                    <i class="fas fa-home me-2"></i>Trang chủ
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active text-white" aria-current="page">
+                                Về chúng tôi
+                            </li>
+                        </ol>
+                    </nav>
                 </div>
             </div>
-            <div class="col-lg-6 col-md-7 d-flex align-items-center">
-                <div class="overview-content">
-                    <h2>Chào Mừng Đến <span>Web Bán Laptop</span> của Chúng Tôi!</h2>
-                    <p class="short_desc">
+        </div>
+    </div>
+</section>
+
+<!-- About Us Section -->
+<section class="about-section py-5">
+    <div class="container-fluid">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <div class="about-image position-relative">
+                    <div class="image-wrapper">
+                        <img src="~/assets/images/banner/laptop.jpg"
+                             alt="Hình Ảnh Giới Thiệu Laptop"
+                             class="img-fluid rounded-4 shadow-lg main-image">
+                    </div>
+                    <div class="floating-card position-absolute">
+                        <div class="card border-0 shadow">
+                            <div class="card-body text-center">
+                                <div class="icon-circle bg-primary text-white mb-2">
+                                    <i class="fas fa-award"></i>
+                                </div>
+                                <h6 class="fw-bold mb-1">Chất Lượng</h6>
+                                <small class="text-muted">Đảm Bảo 100%</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="floating-badge position-absolute">
+                        <span class="badge bg-success fs-6 px-3 py-2 rounded-pill">
+                            <i class="fas fa-check-circle me-2"></i>Uy Tín
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="about-content">
+                    <div class="section-badge mb-3">
+                        <span class="badge bg-primary bg-gradient px-3 py-2 rounded-pill">
+                            <i class="fas fa-info-circle me-1"></i>VỀ CHÚNG TÔI
+                        </span>
+                    </div>
+
+                    <h2 class="display-5 fw-bold text-dark mb-4">
+                        Chào Mừng Đến
+                        <span class="text-primary">Web Bán Laptop</span>
+                        của Chúng Tôi!
+                    </h2>
+
+                    <p class="lead text-muted mb-4">
                         Chúng tôi cung cấp các sản phẩm laptop và linh kiện chính hãng, chất lượng cao nhất cho bạn.
                         Chúng tôi cam kết mang đến cho bạn những sản phẩm tốt nhất với giá cả hợp lý.
+                    </p>
+
+                    <p class="text-muted mb-4">
                         Đội ngũ nhân viên tận tâm và chuyên nghiệp sẽ luôn sẵn sàng hỗ trợ bạn trong việc lựa chọn sản phẩm phù hợp.
                         Hãy đến với chúng tôi để trải nghiệm mua sắm tuyệt vời nhất!
                     </p>
-                    <div class="uren-about-us_btn-area">
-                        <a class="about-us_btn" href="@Url.Action("Index","Home")">Mua Ngay</a>
+
+                    <!-- Features List -->
+                    <div class="features-list mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="feature-item d-flex align-items-center">
+                                    <div class="feature-icon bg-success bg-gradient text-white rounded-circle me-3">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">Bảo Hành Chính Hãng</h6>
+                                        <small class="text-muted">Đầy đủ tem niêm phong</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="feature-item d-flex align-items-center">
+                                    <div class="feature-icon bg-warning bg-gradient text-white rounded-circle me-3">
+                                        <i class="fas fa-shipping-fast"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">Giao Hàng Nhanh</h6>
+                                        <small class="text-muted">Miễn phí trong nội thành</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="feature-item d-flex align-items-center">
+                                    <div class="feature-icon bg-info bg-gradient text-white rounded-circle me-3">
+                                        <i class="fas fa-headset"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">Hỗ Trợ 24/7</h6>
+                                        <small class="text-muted">Tư vấn chuyên nghiệp</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="feature-item d-flex align-items-center">
+                                    <div class="feature-icon bg-danger bg-gradient text-white rounded-circle me-3">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">Đổi Trả Linh Hoạt</h6>
+                                        <small class="text-muted">30 ngày đầu tiên</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cta-buttons">
+                        <a href="@Url.Action("Index","Home")" class="btn btn-primary btn-lg px-4 py-3 rounded-pill me-3">
+                            <i class="fas fa-shopping-cart me-2"></i>Mua Ngay
+                        </a>
+                        <a href="@Url.Action("Contact","Home")" class="btn btn-outline-primary btn-lg px-4 py-3 rounded-pill">
+                            <i class="fas fa-phone me-2"></i>Liên Hệ
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<!-- Kết Thúc Khu Vực Giới Thiệu Của Web Bán Laptop -->
-<!-- Bắt Đầu Khu Vực Thống Kê Dự Án -->
-<div class="project-count-area">
+</section>
+
+<!-- Statistics Section -->
+<section class="stats-section py-5 bg-gradient">
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-3 col-md-6 col-sm-6">
-                <div class="single-count text-center">
-                    <div class="count-icon">
-                        <span class="ion-ios-briefcase-outline"></span>
+        <div class="row text-center">
+            <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
+                <div class="stat-card">
+                    <div class="stat-icon bg-primary text-white mx-auto mb-3">
+                        <i class="fas fa-briefcase"></i>
                     </div>
-                    <div class="count-title">
-                        <h2 class="count">5000</h2>
-                        <span>Khách Hàng Đã Đặt Hàng</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-6">
-                <div class="single-count text-center">
-                    <div class="count-icon">
-                        <span class="ion-ios-wineglass-outline"></span>
-                    </div>
-                    <div class="count-title">
-                        <h2 class="count">1000</h2>
-                        <span>Sản Phẩm Được Bán Ra</span>
+                    <div class="stat-content">
+                        <h3 class="stat-number fw-bold text-dark mb-2" data-target="5000">0</h3>
+                        <p class="stat-text text-muted mb-0">Khách Hàng Đã Đặt Hàng</p>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 col-sm-6">
-                <div class="single-count text-center">
-                    <div class="count-icon">
-                        <span class="ion-ios-lightbulb-outline"></span>
+
+            <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
+                <div class="stat-card">
+                    <div class="stat-icon bg-success text-white mx-auto mb-3">
+                        <i class="fas fa-box"></i>
                     </div>
-                    <div class="count-title">
-                        <h2 class="count">1200</h2>
-                        <span>Giờ Làm Việc</span>
+                    <div class="stat-content">
+                        <h3 class="stat-number fw-bold text-dark mb-2" data-target="1000">0</h3>
+                        <p class="stat-text text-muted mb-0">Sản Phẩm Được Bán Ra</p>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 col-sm-6">
-                <div class="single-count text-center">
-                    <div class="count-icon">
-                        <span class="ion-happy-outline"></span>
+
+            <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                <div class="stat-card">
+                    <div class="stat-icon bg-warning text-white mx-auto mb-3">
+                        <i class="fas fa-clock"></i>
                     </div>
-                    <div class="count-title">
-                        <h2 class="count">4500</h2>
-                        <span>Khách Hàng Hài Lòng</span>
+                    <div class="stat-content">
+                        <h3 class="stat-number fw-bold text-dark mb-2" data-target="1200">0</h3>
+                        <p class="stat-text text-muted mb-0">Giờ Làm Việc</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon bg-info text-white mx-auto mb-3">
+                        <i class="fas fa-smile"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number fw-bold text-dark mb-2" data-target="4500">0</h3>
+                        <p class="stat-text text-muted mb-0">Khách Hàng Hài Lòng</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<!-- Kết Thúc Khu Vực Thống Kê Dự Án -->
+</section>
+
+<style>
+/* About Page Custom Styles */
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #0dcaf0;
+    --transition: all 0.3s ease;
+}
+
+/* Breadcrumb Section */
+.breadcrumb-section {
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 0;
+}
+
+.breadcrumb-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('@Url.Content("~/assets/images/banner/banner3.jpg")') center/cover no-repeat;
+    z-index: -2;
+}
+
+.breadcrumb-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.8), rgba(220, 53, 69, 0.4));
+    z-index: -1;
+}
+
+.breadcrumb-content h1 {
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+}
+
+.breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+    content: ">";
+    color: rgba(255,255,255,0.7);
+}
+
+/* About Section */
+.about-section {
+    padding: 100px 0;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.about-image {
+    height: 500px;
+}
+
+.image-wrapper {
+    height: 100%;
+    overflow: hidden;
+    border-radius: 20px;
+    position: relative;
+}
+
+.main-image {
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.main-image:hover {
+    transform: scale(1.05);
+}
+
+.floating-card {
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+}
+
+.floating-card .card {
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    background: rgba(255,255,255,0.95);
+}
+
+.floating-badge {
+    bottom: 20px;
+    left: 20px;
+    z-index: 10;
+}
+
+.icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-size: 1.2rem;
+}
+
+.section-badge {
+    margin-bottom: 1rem;
+}
+
+.features-list {
+    margin: 2rem 0;
+}
+
+.feature-item {
+    margin-bottom: 1rem;
+    transition: var(--transition);
+}
+
+.feature-item:hover {
+    transform: translateX(10px);
+}
+
+.feature-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.cta-buttons .btn {
+    transition: var(--transition);
+    font-weight: 600;
+}
+
+.cta-buttons .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* Statistics Section */
+.stats-section {
+    padding: 100px 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+}
+
+.stats-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+}
+
+.stats-section .container-fluid {
+    position: relative;
+    z-index: 2;
+}
+
+.stat-card {
+    padding: 2rem;
+    background: rgba(255,255,255,0.95);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: var(--transition);
+    height: 100%;
+}
+
+.stat-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.stat-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 1.5rem;
+    position: relative;
+}
+
+.stat-icon::before {
+    content: '';
+    position: absolute;
+    width: 120%;
+    height: 120%;
+    border: 2px dashed rgba(13, 110, 253, 0.3);
+    border-radius: 50%;
+    animation: rotate 10s linear infinite;
+}
+
+.stat-number {
+    font-size: 3rem;
+    color: var(--primary-color);
+}
+
+.stat-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Animations */
+keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+keyframes countUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive Design */
+media (max-width: 992px) {
+    .breadcrumb-section {
+        min-height: 300px;
+    }
+
+    .breadcrumb-content h1 {
+        font-size: 2.5rem;
+    }
+
+    .about-section {
+        padding: 60px 0;
+    }
+
+    .about-image {
+        height: 400px;
+        margin-bottom: 3rem;
+    }
+
+    .stats-section {
+        padding: 60px 0;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+    }
+}
+
+media (max-width: 768px) {
+    .breadcrumb-section {
+        min-height: 250px;
+    }
+
+    .breadcrumb-content h1 {
+        font-size: 2rem;
+    }
+
+    .about-image {
+        height: 300px;
+    }
+
+    .floating-card {
+        position: static !important;
+        margin-top: 2rem;
+    }
+
+    .floating-badge {
+        position: static !important;
+        margin-top: 1rem;
+        text-align: center;
+    }
+
+    .cta-buttons {
+        text-align: center;
+    }
+
+    .cta-buttons .btn {
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+    }
+}
+
+media (max-width: 576px) {
+    .breadcrumb-content h1 {
+        font-size: 1.75rem;
+    }
+
+    .cta-buttons .btn {
+        font-size: 0.9rem;
+        padding: 0.75rem 2rem !important;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Counter Animation
+    const counters = document.querySelectorAll('.stat-number');
+    const speed = 200; // Animation speed
+
+    const animateCounter = (counter) => {
+        const target = parseInt(counter.getAttribute('data-target'));
+        const increment = target / speed;
+        let current = 0;
+
+        const timer = setInterval(() => {
+            current += increment;
+            counter.textContent = Math.floor(current);
+
+            if (current >= target) {
+                counter.textContent = target.toLocaleString();
+                clearInterval(timer);
+            }
+        }, 1);
+    };
+
+    // Intersection Observer for counter animation
+    const counterObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const counter = entry.target.querySelector('.stat-number');
+                animateCounter(counter);
+                counterObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    // Observe stat cards
+    document.querySelectorAll('.stat-card').forEach(card => {
+        counterObserver.observe(card);
+    });
+
+    // Animate elements on scroll
+    const animateOnScroll = () => {
+        const elements = document.querySelectorAll('.feature-item, .stat-card, .about-content');
+
+        elements.forEach(element => {
+            const elementTop = element.getBoundingClientRect().top;
+            const elementVisible = 150;
+
+            if (elementTop < window.innerHeight - elementVisible) {
+                element.style.animation = 'countUp 0.6s ease forwards';
+            }
+        });
+    };
+
+    // Scroll event listener
+    window.addEventListener('scroll', animateOnScroll);
+    animateOnScroll(); // Run on load
+
+    // Smooth scrolling for internal links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+
+    // Image lazy loading effect
+    const imageObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.filter = 'blur(0px)';
+                entry.target.style.opacity = '1';
+            }
+        });
+    });
+
+    document.querySelectorAll('.main-image').forEach(img => {
+        img.style.filter = 'blur(5px)';
+        img.style.opacity = '0.8';
+        img.style.transition = 'all 0.6s ease';
+        imageObserver.observe(img);
+    });
+});
+</script>
