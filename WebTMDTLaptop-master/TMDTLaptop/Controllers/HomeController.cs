@@ -46,6 +46,383 @@ namespace TMDTLaptop.Controllers
             return View(products);
         }
 
+        // Action để điều hướng người dùng đến trang đăng nhập Google
+        public ActionResult GoogleLogin()
+        {
+            string apiUrl = "http://127.0.0.1:5000/api/google-login";  // API Python sẽ xử lý đăng nhập Google
+
+            using (var client = new HttpClient())
+            {
+                try
+                {
+                    // Gọi API Python để nhận URL đăng nhập Google
+                    var response = client.GetAsync(apiUrl).Result;
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        ViewBag.ErrorMessage = "Lỗi: Không gọi được API Python.";
+                        return View();
+                    }
+
+                    var resultJson = response.Content.ReadAsStringAsync().Result;
+                    dynamic result = JsonConvert.DeserializeObject(resultJson);
+
+                    string redirectUrl = result.redirect_url;
+                    return Redirect(redirectUrl);
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.ErrorMessage = $"Lỗi: {ex.Message}";
+                    return View();
+                }
+            }
+        }
+
+        public async Task<ActionResult> GoogleLoginCallback(string code)
+        {
+            if (string.IsNullOrEmpty(code))
+            {
+                ViewBag.ErrorMessage = "Lỗi: Không nhận được mã xác thực từ Google.";
+                return View();
+            }
+
+            string apiUrl = $"http://127.0.0.1:5000/api/google-login-callback?code={code}";
+
+            using (var client = new HttpClient())
+            {
+                try
+                {
+                    // Gọi API Python để xử lý token và thêm user vào DB
+                    var response = await client.GetAsync(apiUrl);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        ViewBag.ErrorMessage = "Lỗi: Không gọi được API Python.";
+                        return View();
+                    }
+
+                    var resultJson = await response.Content.ReadAsStringAsync();
+                    dynamic result = JsonConvert.DeserializeObject(resultJson);
+
+                    string email = result.email;
+                    string fullName = result.name;
+
+                    if (string.IsNullOrEmpty(email))
+                    {
+                        ViewBag.ErrorMessage = "Lỗi: Không lấy được email từ API.";
+                        return View();
+                    }
+                    string apiUrluser = $"http://127.0.0.1:5000/api/check_username?username={email}";
+                    HttpResponseMessage responseuser = client.GetAsync(apiUrluser).Result;
+                    if (responseuser.IsSuccessStatusCode)
+                    {
+                        string responseBody = responseuser.Content.ReadAsStringAsync().Result;
+
+                        // Dùng dynamic để không cần tạo class
+                        dynamic user = JsonConvert.DeserializeObject(responseBody);
+                        if (user.TrangThai == false)
+                            return RedirectToAction("DangNhap", "Home", new { mess = "Tài khoản của bạn đã bị khóa" });
+                        // Đăng nhập user
+                        Session["Username"] = email;
+                        Session["FullName"] = fullName;
+                        return RedirectToAction("Index", "Home");
+                    }
+                    else
+                    {
+                        return RedirectToAction("DangNhap", "Home", new { mess = "Tài khoản của bạn đã bị khóa" });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.ErrorMessage = $"Lỗi: {ex.Message}";
+                    return View();
+                }
+            }
+        }
+
+        public ActionResult FacebookLogin()
+        {
+            string apiUrl = "http://127.0.0.1:5000/api/facebook-login";  // API Flask sẽ xử lý đăng nhập Facebook
+
+            using (var client = new HttpClient())
+            {
+                try
+                {
+                    // Gọi API Flask để nhận URL đăng nhập Facebook
+                    var response = client.GetAsync(apiUrl).Result;
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        ViewBag.ErrorMessage = "Lỗi: Không gọi được API Flask.";
+                        return View();
+                    }
+
+                    var resultJson = response.Content.ReadAsStringAsync().Result;
+                    dynamic result = JsonConvert.DeserializeObject(resultJson);
+
+                    string redirectUrl = result.url;
+                    return Redirect(redirectUrl);
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.ErrorMessage = $"Lỗi: {ex.Message}";
+                    return View();
+                }
+            }
+        }
+
+        public async Task<ActionResult> FacebookLoginCallback(string code)
+        {
+            if (string.IsNullOrEmpty(code))
+            {
+                ViewBag.ErrorMessage = "Lỗi: Không nhận được mã xác thực từ Facebook.";
+                return View();
+            }
+
+            string apiUrl = $"http://127.0.0.1:5000/api/facebook-login-callback?code={code}";  // API Flask sẽ xử lý callback
+
+            using (var client = new HttpClient())
+            {
+                try
+                {
+                    // Gọi API Flask để xử lý token và thêm user vào DB
+                    var response = await client.GetAsync(apiUrl);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        ViewBag.ErrorMessage = "Lỗi: Không gọi được API Flask.";
+                        return View();
+                    }
+
+                    var resultJson = await response.Content.ReadAsStringAsync();
+                    dynamic result = JsonConvert.DeserializeObject(resultJson);
+
+                    string email = result.email;
+                    string fullName = result.name;
+
+                    if (string.IsNullOrEmpty(email))
+                    {
+                        ViewBag.ErrorMessage = "Lỗi: Không lấy được email từ API Flask.";
+                        return View();
+                    }
+
+                    string apiUrluser = $"http://127.0.0.1:5000/api/check_username?username={email}";
+                    HttpResponseMessage responseuser = client.GetAsync(apiUrluser).Result;
+                    if (responseuser.IsSuccessStatusCode)
+                    {
+                        string responseBody = responseuser.Content.ReadAsStringAsync().Result;
+
+                        // Dùng dynamic để không cần tạo class
+                        dynamic user = JsonConvert.DeserializeObject(responseBody);
+                        if (user.TrangThai == false)
+                            return RedirectToAction("DangNhap", "Home", new { mess = "Tài khoản của bạn đã bị khóa" });
+                        // Đăng nhập user
+                        Session["Username"] = email;
+                        Session["FullName"] = fullName;
+                        return RedirectToAction("Index", "Home");
+                    }
+                    else
+                    {
+                        return RedirectToAction("DangNhap", "Home", new { mess = "Tài khoản của bạn đã bị khóa" });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.ErrorMessage = $"Lỗi: {ex.Message}";
+                    return View();
+                }
+            }
+        }
+
+        public async Task<ActionResult> DangNhap(string text, string MatKhau)
+        {
+            List<ModelGioHang> cart;
+            if (string.IsNullOrEmpty(text) || string.IsNullOrEmpty(MatKhau))
+            {
+                ModelState.AddModelError("", "Tên đăng nhập và mật khẩu là bắt buộc.");
+                return View();
+            }
+
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://127.0.0.1:5000/");
+
+                var loginData = new
+                {
+                    Username = text,
+                    Password = MatKhau
+                };
+
+                var response = await client.PostAsJsonAsync("api/dangnhap", loginData);
+                if (response.IsSuccessStatusCode)
+                {
+                    var resultJson = await response.Content.ReadAsStringAsync();
+                    dynamic result = JsonConvert.DeserializeObject(resultJson);
+
+                    if (result.success == true)
+                    {
+                        Session["Username"] = result.user.Username.ToString();
+                        Session["FullName"] = result.user.HoTen.ToString();
+
+                        // Chuẩn bị dữ liệu để gửi
+                        var requestData = new
+                        {
+                            username = text
+                        };
+
+                        // Chuyển đổi đối tượng thành JSON
+                        var jsonContent = new StringContent(
+                            JsonConvert.SerializeObject(requestData),
+                            Encoding.UTF8,
+                            "application/json");
+
+                        // Gửi request POST đến API Python
+                        var responsegiohang = await client.PostAsync("http://127.0.0.1:5000/api/giohang", jsonContent);
+
+                        // Kiểm tra response
+                        if (responsegiohang.IsSuccessStatusCode)
+                        {
+                            // Đọc và parse JSON response
+                            var jsonString = await responsegiohang.Content.ReadAsStringAsync();
+                            cart = JsonConvert.DeserializeObject<List<ModelGioHang>>(jsonString);
+                            if (cart != null && cart.Any())
+                            {
+                                Session["Cart"] = cart;
+                            }
+
+
+                        }
+                        return RedirectToAction("Index", "Home");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", result.message.ToString());
+                    }
+                }
+
+                else
+                {
+                    ModelState.AddModelError("", "Không thể kết nối đến máy chủ xác thực.");
+                }
+            }
+
+            return View();
+        }
+        public async Task<ActionResult> DangXuat()
+        {
+            string username = Session["Username"] as string;
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Khởi tạo HttpClient để gọi API
+            using (var client = new HttpClient())
+            {
+
+                var apiUrl = "http://127.0.0.1:5000/api/dangxuat";
+
+                // Lấy giỏ hàng từ session
+                var sessionCart = Session["Cart"] as List<ModelGioHang>;
+
+                // Tạo một danh sách mới chỉ chứa những thuộc tính cần thiết từ các item trong giỏ hàng
+                var cartData = sessionCart?.Select(item => new
+                {
+                    item.MaSanPham, // Chỉ lấy MaSanPham thay vì toàn bộ đối tượng SanPham
+                    item.SoLuong,
+                    item.Gia
+                }).ToList();
+
+                // Tạo đối tượng JSON chứa thông tin cần gửi đến API
+                var requestData = new
+                {
+                    username = username,
+                    cart = cartData
+                };
+
+                // Gửi yêu cầu POST đến API Python
+                var response = await client.PostAsJsonAsync(apiUrl, requestData);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+                    dynamic apiData = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+
+                    if (apiData.success == true)
+                    {
+                        // Xóa session khi đăng xuất thành công
+                        Session.Remove("Username");
+                        Session.Remove("Cart");
+
+                        return RedirectToAction("Index", "Home");
+                    }
+                    else
+                    {
+                        // Xử lý nếu API trả về lỗi
+                        ViewBag.ErrorMessage = apiData.message ?? "Có lỗi xảy ra khi đăng xuất.";
+                        return View();
+                    }
+                }
+                else
+                {
+                    // Xử lý nếu yêu cầu API không thành công
+                    ViewBag.ErrorMessage = "Không thể kết nối đến API.";
+                    return View();
+                }
+            }
+        }
+
+        public async Task<ActionResult> HoSo(string mess = "")
+        {
+            if (!string.IsNullOrEmpty(mess))
+                ViewBag.ErrorMessage = mess;
+            // Lấy tên đăng nhập từ session
+            var taikhoan = Session["Username"] as string;
+            if (string.IsNullOrEmpty(taikhoan))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Khởi tạo HttpClient để gọi API
+            using (var client = new HttpClient())
+            {
+                // Thiết lập URL của API (giả sử API Flask đang chạy trên localhost:5000)
+                var apiUrl = $"http://127.0.0.1:5000/api/hoso?username={taikhoan}";
+
+                // Gửi yêu cầu GET đến API để lấy thông tin người dùng và đơn hàng
+                var response = await client.GetAsync(apiUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Đọc dữ liệu JSON trả về từ API
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+
+                    // Dùng dynamic để tự động phân tích JSON mà không cần ép kiểu
+                    dynamic apiData = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+
+                    if (apiData != null && apiData.success == true)
+                    {
+                        var user = JsonConvert.DeserializeObject<TaiKhoan>(apiData.user.ToString());
+                        var orders = JsonConvert.DeserializeObject<List<DonHang>>(apiData.orders.ToString());
+
+                        ViewBag.Orders = orders;
+
+                        return View(user);
+                    }
+                    else
+                    {
+                        // Xử lý trường hợp API trả về lỗi
+                        ViewBag.ErrorMessage = apiData?.message ?? "Có lỗi xảy ra khi lấy dữ liệu.";
+                        return View();
+                    }
+                }
+                else
+                {
+                    // Xử lý nếu yêu cầu API không thành công
+                    ViewBag.ErrorMessage = "Không thể kết nối đến API.";
+                    return View();
+                }
+            }
+        }
+
         // DatHangThanhCong: Xử lý đặt hàng
         public ActionResult DatHang(string paymentMethod)
         {
