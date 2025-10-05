@@ -3,7 +3,13 @@ import requests
 from app.services.home_service import add_user_to_db
 
 facebook_api = Blueprint('facebook_api', __name__)
-
+# Cấu hình
+client_id = "9772077859541620"  # Thay bằng App ID của bạn
+client_secret = "1d1bd75b18e40fa0f2a527294ad216f8"  # Thay bằng App Secret của bạn
+redirect_uri = "https://localhost:44373/Home/FacebookLoginCallback"
+authorization_endpoint = "https://www.facebook.com/v18.0/dialog/oauth"
+token_endpoint = "https://graph.facebook.com/v18.0/oauth/access_token"
+user_info_endpoint = "https://graph.facebook.com/me?fields=id,name,email,picture"
 
 
 # API Facebook Login: Trả về URL đăng nhập Facebook

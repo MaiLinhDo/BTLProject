@@ -1,84 +1,378 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-    <meta name="viewport" content="width=device-width" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@ViewBag.Title</title>
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="~/assets/css/vendor/bootstrap.min.css">
-    <!-- Fontawesome -->
-    <link rel="stylesheet" href="~/assets/css/vendor/font-awesome.css">
-    <!-- Fontawesome Star -->
-    <link rel="stylesheet" href="~/assets/css/vendor/fontawesome-stars.css">
-    <!-- Ion Icon -->
-    <link rel="stylesheet" href="~/assets/css/vendor/ion-fonts.css">
-    <!-- Slick CSS -->
-    <link rel="stylesheet" href="~/assets/css/plugins/slick.css">
-    <!-- Animation -->
-    <link rel="stylesheet" href="~/assets/css/plugins/animate.css">
-    <!-- jQuery Ui -->
-    <link rel="stylesheet" href="~/assets/css/plugins/jquery-ui.min.css">
-    <!-- Lightgallery -->
-    <link rel="stylesheet" href="~/assets/css/plugins/lightgallery.min.css">
-    <!-- Nice Select -->
-    <link rel="stylesheet" href="~/assets/css/plugins/nice-select.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Vendor & Plugins CSS (Please remove the comment from below vendor.min.css & plugins.min.css for better website load performance and remove css files from the above) -->
-    <!--
-    <script src="assets/js/vendor/vendor.min.js"></script>
-    <script src="assets/js/plugins/plugins.min.js"></script>
-    -->
-    <!-- Main Style CSS (Please use minify version for better website load performance) -->
-    <link rel="stylesheet" href="~/assets/css/style.css">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Animate.css -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Global Styles */
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #0dcaf0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--dark-color);
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Utility Classes */
+        .hover-lift {
+            transition: var(--transition);
+        }
+
+            .hover-lift:hover {
+                transform: translateY(-5px);
+            }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #0b5ed7;
+            }
+
+        /* Loading Animation */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @@keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Back to top button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+        }
+
+            .back-to-top:hover {
+                background: #0b5ed7;
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(13, 110, 253, 0.4);
+            }
+
+            .back-to-top.show {
+                display: flex;
+            }
+
+        /* Header Styles */
+        .main-header {
+            background: white;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary-color) !important;
+        }
+
+        .navbar-nav .nav-link {
+            font-weight: 500;
+            padding: 0.75rem 1rem !important;
+            transition: var(--transition);
+            position: relative;
+        }
+
+            .navbar-nav .nav-link:hover {
+                color: var(--primary-color) !important;
+            }
+
+            .navbar-nav .nav-link::after {
+                content: '';
+                position: absolute;
+                width: 0;
+                height: 2px;
+                bottom: 0;
+                left: 50%;
+                background: var(--primary-color);
+                transition: var(--transition);
+            }
+
+            .navbar-nav .nav-link:hover::after {
+                width: 100%;
+                left: 0;
+            }
+
+        /* Footer Styles */
+        .main-footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 60px 0 30px;
+            margin-top: 80px;
+        }
+
+        .footer-widget h5 {
+            color: white;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .footer-widget ul {
+            list-style: none;
+            padding: 0;
+        }
+
+            .footer-widget ul li {
+                margin-bottom: 8px;
+            }
+
+                .footer-widget ul li a {
+                    color: rgba(255,255,255,0.8);
+                    text-decoration: none;
+                    transition: var(--transition);
+                }
+
+                    .footer-widget ul li a:hover {
+                        color: white;
+                        padding-left: 5px;
+                    }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 40px;
+            padding-top: 20px;
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .back-to-top {
+                bottom: 20px;
+                right: 20px;
+                width: 45px;
+                height: 45px;
+            }
+        }
+    </style>
 </head>
-<body class="template-color-1">
-    <div class="main-wrapper">
-
-
-
-
-        @Html.Partial("_PartialHeader")
-        <div>
-            @RenderBody()
-        </div>
-        @Html.Partial("_PartialFooter")
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
     </div>
-    <script src="~/assets/js/vendor/jquery-1.12.4.min.js"></script>
-    <!-- Modernizer JS -->
-    <script src="~/assets/js/vendor/modernizr-2.8.3.min.js"></script>
-    <!-- Popper JS -->
-    <script src="~/assets/js/vendor/popper.min.js"></script>
-    <!-- Bootstrap JS -->
-    <script src="~/assets/js/vendor/bootstrap.min.js"></script>
 
-    <!-- Slick Slider JS -->
-    <script src="~/assets/js/plugins/slick.min.js"></script>
-    <!-- Barrating JS -->
-    <script src="~/assets/js/plugins/jquery.barrating.min.js"></script>
-    <!-- Counterup JS -->
-    <script src="~/assets/js/plugins/jquery.counterup.js"></script>
-    <!-- Nice Select JS -->
-    <script src="~/assets/js/plugins/jquery.nice-select.js"></script>
-    <!-- Sticky Sidebar JS -->
-    <script src="~/assets/js/plugins/jquery.sticky-sidebar.js"></script>
-    <!-- Jquery-ui JS -->
-    <script src="~/assets/js/plugins/jquery-ui.min.js"></script>
-    <script src="~/assets/js/plugins/jquery.ui.touch-punch.min.js"></script>
-    <!-- Lightgallery JS -->
-    <script src="~/assets/js/plugins/lightgallery.min.js"></script>
-    <!-- Scroll Top JS -->
-    <script src="~/assets/js/plugins/scroll-top.js"></script>
-    <!-- Theia Sticky Sidebar JS -->
-    <script src="~/assets/js/plugins/theia-sticky-sidebar.min.js"></script>
-    <!-- Waypoints JS -->
-    <script src="~/assets/js/plugins/waypoints.min.js"></script>
-    <!-- jQuery Zoom JS -->
-    <script src="~/assets/js/plugins/jquery.zoom.min.js"></script>
-    <script src="~/assets/js/main.js"></script>
-    <!-- Đoạn mã JavaScript để hiển thị popup tự động -->
+    <div class="main-wrapper">
+        <!-- Header -->
+        <header class="main-header">
+            @Html.Partial("_PartialHeader")
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            @RenderBody()
+        </main>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            @Html.Partial("_PartialFooter")
+        </footer>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- jQuery (if needed for compatibility) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Hide loading overlay
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            setTimeout(() => {
+                loadingOverlay.style.opacity = '0';
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                }, 300);
+            }, 500);
+
+            // Back to top button functionality
+            const backToTopBtn = document.getElementById('backToTop');
+
+            window.addEventListener('scroll', function () {
+                if (window.pageYOffset > 300) {
+                    backToTopBtn.classList.add('show');
+                } else {
+                    backToTopBtn.classList.remove('show');
+                }
+            });
+
+            backToTopBtn.addEventListener('click', function () {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            // Initialize all tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Initialize all popovers
+            var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl);
+            });
+
+            // Smooth scrolling for internal links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        const headerOffset = 80;
+                        const elementPosition = target.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: "smooth"
+                        });
+                    }
+                });
+            });
+
+            // Lazy loading for images
+            const images = document.querySelectorAll('img[data-src]');
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.remove('loading');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+
+            images.forEach(img => imageObserver.observe(img));
+
+            // Animation on scroll
+            const animatedElements = document.querySelectorAll('.animate-on-scroll');
+            const elementObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate__animated', 'animate__fadeInUp');
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+
+            animatedElements.forEach(el => elementObserver.observe(el));
+        });
+
+        // Global error handler
+        window.addEventListener('error', function (e) {
+            console.error('Error occurred:', e.error);
+        });
+
+        // Performance monitoring
+        window.addEventListener('load', function () {
+            const loadTime = performance.now();
+            console.log(`Page loaded in ${loadTime.toFixed(2)}ms`);
+        });
+    </script>
+
+    <!-- Voucher Popup -->
     @if (ViewBag.Voucher != null)
     {
-        var voucher = ViewBag.Voucher as IEnumerable<TMDTLaptop.Models.Class.Voucher>; // Ép kiểu về Voucher
+        var voucher = ViewBag.Voucher as IEnumerable<TMDTLaptop.Models.Class.Voucher>;
         @Html.Partial("_VoucherPopup", voucher)
     }
 </body>

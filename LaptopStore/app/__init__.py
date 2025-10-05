@@ -11,7 +11,7 @@ from app.routes.voucher import voucher_routes
 from app.routes.user import user_routes
 from app.routes.revenue import revenue_routes
 from app.routes.banner import banner_routes
-from app.routes.phieunhap import phieunhap_routes
+#from app.routes.phieunhap import phieunhap_routes
 from flask_cors import CORS 
 def create_app():
     load_dotenv()
@@ -29,6 +29,6 @@ def create_app():
     app.register_blueprint(voucher_routes)
     app.register_blueprint(user_routes)
     app.register_blueprint(revenue_routes)
-    app.register_blueprint(phieunhap_routes)
+  #  app.register_blueprint(phieunhap_routes)
     app.register_blueprint(banner_routes)
     return app

@@ -1,0 +1,23 @@
+﻿@{
+    ViewBag.Title = "Đang xử lý đăng nhập...";
+}
+
+<h2>Đang xử lý đăng nhập...</h2>
+
+@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Lỗi:</strong> @ViewBag.ErrorMessage
+    </div>
+    <p><a href="@Url.Action("Login", "Home")">Thử lại</a> hoặc quay về <a href="@Url.Action("Index", "Home")">trang chủ</a>.</p>
+}
+else
+{
+    <p>Nếu bạn không được chuyển hướng, hãy <a href="@Url.Action("Index", "Home")">bấm vào đây</a>.</p>
+
+    <script>
+        setTimeout(function () {
+            window.location.href = "@Url.Action("Index", "Home")";
+        }, 2000); // Tự động chuyển hướng sau 2 giây
+    </script>
+}

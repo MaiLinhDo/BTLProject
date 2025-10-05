@@ -2,210 +2,1209 @@
     ViewBag.Title = "Home Page";
     Layout = "~/Views/Shared/_LayoutHome.cshtml";
 }
-
-<div class="uren-slider_area">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="main-slider slider-navigation_style-2">
-                    @foreach (var banner in ViewBag.Banners)
-                    {
-                        <div class="single-slide">
-                            <div class="banner-image">
-                                <img src="~/assets/images/banner/@banner.HinhAnh" alt="Banner" class="img-fluid w-100 h-100" />
-                            </div>
-                            <div class="slider-content">
-                                <h3>@banner.MoTa</h3>
-                               
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<script>
-    $(document).ready(function () {
-        $('.main-slider').slick({
-            dots: true, // Hiện điểm điều hướng
-            infinite: true, // Cuộn liên tục
-            speed: 500, // Tốc độ chuyển động
-            fade: true, // Hiệu ứng mờ khi chuyển đổi
-            cssEase: 'linear' // Hiệu ứng chuyển động
-        });
-    });
-</script>
-<style>
-    .uren-slider_area {
-        position: relative;
-        overflow: hidden;
-    }
-
-    .single-slide {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        height: 400px; /* Đặt chiều cao cho banner */
-    }
-
-    .banner-image {
-        width: 100%;
-        height: 100%; /* Đảm bảo chiều cao toàn bộ */
-        overflow: hidden; /* Giúp ẩn hình ảnh vượt quá kích thước tối đa */
-    }
-
-        .banner-image img {
-            width: 100%; /* Ảnh chiếm toàn bộ chiều rộng của div chứa */
-            height: 100%; /* Đảm bảo chiều cao chiếm toàn bộ */
-            object-fit: cover; /* Đảm bảo tỉ lệ của ảnh được giữ nguyên mà không bị méo */
-            transition: transform 0.5s ease; /* Hiệu ứng khi hover */
-        }
-
-            .banner-image img:hover {
-                transform: scale(1.05); /* Phóng to ảnh khi hover */
+@using System.Linq
+<!-- Hero Slider Section -->
+<section class="hero-section">
+    <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
+        <div class="carousel-indicators">
+            @{int bannerIndex = 0;}
+            @foreach (var banner in ViewBag.Banners)
+            {
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="@bannerIndex"
+                        class="@(bannerIndex == 0 ? "active" : "")"
+                        aria-current="@(bannerIndex == 0 ? "true" : "false")"
+                        aria-label="Slide @(bannerIndex + 1)"></button>
+                bannerIndex++;
             }
+        </div>
 
-    .slider-content {
-        padding: 15px;
-        position: absolute;
-        bottom: 20px; /* Đặt nội dung gần đáy ảnh */
-        left: 50%; /* Căn giữa nội dung */
-        transform: translateX(-50%); /* Căn giữa chính xác */
-    }
-</style>
-<div class="uren-shipping_area">
-    <div class="container-fluid">
-        <div class="shipping-nav">
-            <div class="row no-gutters">
-                <div class="shipping-grid">
-                    <div class="shipping-item">
-                        <div class="shipping-icon">
-                            <i class="ion-ios-paperplane-outline"></i>
-                        </div>
-                        <div class="shipping-content">
-                            <h6>Free Ship</h6>
-                            <p>Miễn phí vận trong TP Cần Thơ</p>
-                        </div>
+        <div class="carousel-inner">
+            @{int slideIndex = 0;}
+            @foreach (var banner in ViewBag.Banners)
+            {
+                <div class="carousel-item @(slideIndex == 0 ? "active" : "")">
+                    <div class="hero-slide position-relative">
+                        <img src="~/assets/images/banner/@banner.HinhAnh" class="d-block w-100 hero-image" alt="Banner @(slideIndex + 1)">
+                        <div class="hero-overlay position-absolute top-0 start-0 w-100 h-100"></div>
+
                     </div>
                 </div>
-                <div class="shipping-grid">
-                    <div class="shipping-item">
-                        <div class="shipping-icon">
-                            <i class="ion-ios-help-outline"></i>
-                        </div>
-                        <div class="shipping-content">
-                            <h6>Hỗ Trợ 24/7</h6>
-                            <p>Liên hệ với chúng tôi 24/7</p>
+                slideIndex++;
+            }
+        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section py-5 bg-light">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg col-md-6">
+                <div class="feature-card card border-0 shadow-sm h-100 text-center p-4 hover-lift">
+                    <div class="feature-icon mb-3">
+                        <div class="icon-circle bg-primary bg-gradient d-inline-flex align-items-center justify-content-center rounded-circle">
+                            <i class="fas fa-shipping-fast fa-2x text-white"></i>
                         </div>
                     </div>
+                    <h5 class="card-title fw-bold">Miễn Phí Vận Chuyển</h5>
+                    <p class="card-text text-muted">Miễn phí vận chuyển trong TP Hà Nội</p>
                 </div>
-                <div class="shipping-grid">
-                    <div class="shipping-item">
-                        <div class="shipping-icon">
-                            <i class="ion-ios-refresh-empty"></i>
-                        </div>
-                        <div class="shipping-content">
-                            <h6>Hoàn Tiền 100%</h6>
-                            <p>Bạn có 30 ngày để trả lại hàng</p>
+            </div>
+
+            <div class="col-lg col-md-6">
+                <div class="feature-card card border-0 shadow-sm h-100 text-center p-4 hover-lift">
+                    <div class="feature-icon mb-3">
+                        <div class="icon-circle bg-success bg-gradient d-inline-flex align-items-center justify-content-center rounded-circle">
+                            <i class="fas fa-headset fa-2x text-white"></i>
                         </div>
                     </div>
+                    <h5 class="card-title fw-bold">Hỗ Trợ 24/7</h5>
+                    <p class="card-text text-muted">Liên hệ với chúng tôi bất cứ lúc nào</p>
                 </div>
-                <div class="shipping-grid">
-                    <div class="shipping-item">
-                        <div class="shipping-icon">
-                            <i class="ion-ios-undo-outline"></i>
-                        </div>
-                        <div class="shipping-content">
-                            <h6>Trả Lại Trong 90 Ngày</h6>
-                            <p>Nếu hàng gặp vấn đề</p>
+            </div>
+
+            <div class="col-lg col-md-6">
+                <div class="feature-card card border-0 shadow-sm h-100 text-center p-4 hover-lift">
+                    <div class="feature-icon mb-3">
+                        <div class="icon-circle bg-warning bg-gradient d-inline-flex align-items-center justify-content-center rounded-circle">
+                            <i class="fas fa-money-check-alt fa-2x text-white"></i>
                         </div>
                     </div>
+                    <h5 class="card-title fw-bold">Hoàn Tiền 100%</h5>
+                    <p class="card-text text-muted">30 ngày đổi trả miễn phí</p>
                 </div>
-                <div class="shipping-grid">
-                    <div class="shipping-item">
-                        <div class="shipping-icon">
-                            <i class="ion-ios-locked-outline"></i>
-                        </div>
-                        <div class="shipping-content last-child">
-                            <h6>Thanh Toán An Toàn</h6>
-                            <p>Chúng tôi đảm bảo thanh toán an toàn</p>
+            </div>
+
+            <div class="col-lg col-md-6">
+                <div class="feature-card card border-0 shadow-sm h-100 text-center p-4 hover-lift">
+                    <div class="feature-icon mb-3">
+                        <div class="icon-circle bg-info bg-gradient d-inline-flex align-items-center justify-content-center rounded-circle">
+                            <i class="fas fa-sync-alt fa-2x text-white"></i>
                         </div>
                     </div>
+                    <h5 class="card-title fw-bold">Đổi Trả 90 Ngày</h5>
+                    <p class="card-text text-muted">Nếu sản phẩm gặp lỗi</p>
+                </div>
+            </div>
+
+            <div class="col-lg col-md-6">
+                <div class="feature-card card border-0 shadow-sm h-100 text-center p-4 hover-lift">
+                    <div class="feature-icon mb-3">
+                        <div class="icon-circle bg-danger bg-gradient d-inline-flex align-items-center justify-content-center rounded-circle">
+                            <i class="fas fa-shield-alt fa-2x text-white"></i>
+                        </div>
+                    </div>
+                    <h5 class="card-title fw-bold">Thanh Toán An Toàn</h5>
+                    <p class="card-text text-muted">Bảo mật thông tin tuyệt đối</p>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<div class="uren-product_area">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="section-title_area">
-                    <span>Sản phẩm mới</span>
-                    <h3>Chào mừng bạn đến với những sản phẩm mới nhất</h3>
+</section>
+
+<!-- Products Section -->
+<section class="products-section py-5" id="featured-products">
+    <div class="container">
+        <!-- Section Header -->
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill mb-3">SẢN PHẨM MỚI</span>
+                <h2 class="display-5 fw-bold mb-3">Khám Phá Bộ Sưu Tập Mới Nhất</h2>
+                <p class="lead text-muted">Những sản phẩm chất lượng cao được tuyển chọn đặc biệt dành cho bạn</p>
+            </div>
+        </div>
+
+        <!-- Featured Products Grid (First 6 products) -->
+        <div class="row g-4 mb-5">
+            @{int productCount = 0;}
+            @foreach (var product in Model)
+            {
+                if (productCount < 6)
+                {
+                    <div class="col-xl-4 col-lg-4 col-md-6">
+                        <div class="product-card card border-0 shadow-sm h-100 overflow-hidden hover-lift">
+                            <!-- Product Image -->
+                            <div class="product-image position-relative overflow-hidden">
+                                <img src="~/assets/images/product/@product.MaSanPham/@product.HinhAnh"
+                                     class="card-img-top product-img"
+                                     alt="@product.TenSanPham">
+
+                                <!-- Product Badges -->
+                                <div class="product-badges position-absolute top-0 start-0 m-3">
+                                    <span class="badge bg-success rounded-pill">Mới</span>
+                                    @if (product.GiaMoi != null)
+                                    {
+                                        <span class="badge bg-danger rounded-pill ms-1">Giảm giá</span>
+                                    }
+                                </div>
+
+                                <!-- Product Actions -->
+                                <div class="product-actions position-absolute top-0 end-0 m-3 d-flex flex-column gap-2">
+                                    <button class="btn btn-light btn-sm rounded-circle shadow-sm wishlist-btn" data-bs-toggle="tooltip" title="Yêu thích">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
+                                    <button class="btn btn-light btn-sm rounded-circle shadow-sm compare-btn" data-bs-toggle="tooltip" title="So sánh">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </button>
+                                    <a href="@Url.Action("ChiTietSanPham","Home",new {id=product.MaSanPham})"
+                                       class="btn btn-light btn-sm rounded-circle shadow-sm" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+
+                                <!-- Quick View Overlay -->
+                                <div class="product-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+                                    <a href="@Url.Action("ChiTietSanPham","Home",new {id=product.MaSanPham})"
+                                       class="btn btn-primary btn-lg rounded-pill px-4">
+                                        <i class="fas fa-eye me-2"></i>
+                                        Xem Chi Tiết
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Product Details -->
+                            <div class="card-body p-4">
+                                <h5 class="card-title mb-2">
+                                    <a href="@Url.Action("ChiTietSanPham","Home",new {id=product.MaSanPham})"
+                                       class="text-decoration-none text-dark product-title">
+                                        @product.TenSanPham
+                                    </a>
+                                </h5>
+
+                                <!-- Product Rating với dữ liệu thực -->
+                                <div class="product-rating mb-3" data-product-id="@product.MaSanPham">
+                                    @{
+                                        // Giả sử bạn đã thêm TrungBinhSao và SoLuongDanhGia vào model
+                                        var rating = product.TrungBinhSao ?? 0;
+                                        var reviewCount = product.SoLuongDanhGia ?? 0;
+                                        var fullStars = (int)Math.Floor(rating);
+                                        var hasHalfStar = (rating % 1) >= 0.5;
+                                        var emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+                                    }
+
+                                    <div class="star-rating mb-1">
+                                        @for (int i = 0; i < fullStars; i++)
+                                        {
+                                            <i class="fas fa-star star filled"></i>
+                                        }
+
+                                        @if (hasHalfStar)
+                                        {
+                                            <i class="fas fa-star-half-alt star filled"></i>
+                                        }
+
+                                        @for (int i = 0; i < emptyStars; i++)
+                                        {
+                                            <i class="far fa-star star"></i>
+                                        }
+                                    </div>
+
+                                    <div class="rating-info">
+                                        @if (rating > 0)
+                                        {
+                                            <span class="rating-score">@rating.ToString("F1")</span>
+                                            <span class="rating-count">(@reviewCount đánh giá)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="no-ratings">Chưa có đánh giá</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- Product Price -->
+                                <div class="product-price mb-3">
+                                    @if (product.GiaMoi != null)
+                                    {
+                                        <span class="text-muted text-decoration-line-through me-2">@product.Gia.ToString("N0")₫</span>
+                                        <span class="h5 text-danger fw-bold">@product.GiaMoi.ToString("N0")₫</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="h5 text-primary fw-bold">@product.Gia.ToString("N0")₫</span>
+                                    }
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                }
+                productCount++;
+            }
+        </div>
+
+        <!-- Enhanced Products Slider Section -->
+        @if (Model.Count > 6)
+        {
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold">Sản Phẩm Nổi Bật</h3>
+                        <div class="d-flex align-items-center gap-3">
+                            <small class="text-muted">Tự động chuyển slide</small>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="autoScrollToggle" checked>
+                                <label class="form-check-label" for="autoScrollToggle">
+                                    <i class="fas fa-play" id="autoScrollIcon"></i>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="product-slider uren-slick-slider slider-navigation_style-1 img-hover-effect_area" data-slick-options='{
-                        "slidesToShow": 6,
-                        "arrows" : true
-                        }' data-slick-responsive='[
-                                                {"breakpoint":1501, "settings": {"slidesToShow": 4}},
-                                                {"breakpoint":1200, "settings": {"slidesToShow": 3}},
-                                                {"breakpoint":992, "settings": {"slidesToShow": 2}},
-                                                {"breakpoint":767, "settings": {"slidesToShow": 1}},
-                                                {"breakpoint":480, "settings": {"slidesToShow": 1}}
-                                            ]'>
+            </div>
 
-                    @foreach (var product in Model)
-                    {
-                        <div class="product-slide_item">
-                            <div class="inner-slide">
-                                <div class="single-product">
-                                    <div class="product-img">
-                                        <a>
-                                            <img class="primary-img" style="width: 100%; height: 200px;" src="~/assets/images/product/@product.MaSanPham/@product.HinhAnh" alt="@product.TenSanPham">
-                                            <img class="secondary-img" style="width: 100%; height: 200px;" src="~/assets/images/product/@product.MaSanPham/@product.HinhAnh" alt="@product.TenSanPham">
-                                        </a>
-                                        <div class="sticker">
-                                            <span class="sticker">New</span>
+            <div class="products-slider-wrapper">
+                <div class="products-slider-container position-relative">
+                    <!-- Auto-scroll progress bar -->
+                    <div class="auto-scroll-progress" id="autoScrollProgress"></div>
+
+                    <!-- Auto-scroll indicator -->
+                    <div class="auto-scroll-indicator" id="autoScrollIndicator">
+                        <i class="fas fa-play" style="font-size: 10px;"></i>
+                        <span>Auto</span>
+                        <div class="pause-icon" onclick="toggleAutoScroll()">
+                            <i class="fas fa-pause" style="font-size: 10px;"></i>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <button class="slider-nav-btn prev" id="prevProduct" aria-label="Previous products">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="slider-nav-btn next" id="nextProduct" aria-label="Next products">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+
+                    <div class="products-slider d-flex" id="productsSlider">
+                        @{int sliderIndex = 0;}
+                        @for (int i = 6; i < Model.Count; i++)
+                        {
+                            var product = Model[i];
+                            <div class="slider-item flex-shrink-0" style="width: calc(100% / 4);">
+                                <div class="product-card card border-0 shadow-sm h-100 overflow-hidden hover-lift">
+                                    <!-- Product Image -->
+                                    <div class="product-image position-relative overflow-hidden">
+                                        <img src="~/assets/images/product/@product.MaSanPham/@product.HinhAnh"
+                                             class="card-img-top product-img"
+                                             alt="@product.TenSanPham">
+
+                                        <!-- Product Badges -->
+                                        <div class="product-badges position-absolute top-0 start-0 m-3">
+                                            <span class="badge bg-success rounded-pill">Mới</span>
+                                            @if (product.GiaMoi != null)
+                                            {
+                                                <span class="badge bg-danger rounded-pill ms-1">Giảm giá</span>
+                                            }
                                         </div>
-                                        <div class="add-actions">
-                                            <ul>
 
-                                                <li class="quick-view-btn" data-toggle="modal" data-target="#exampleModalCenter">
-                                                    <a href="@Url.Action("ChiTietSanPham","Home",new {id=product.MaSanPham})" data-toggle="tooltip" data-placement="top" title="Quick View">
-                                                        <i class="ion-android-open"></i>
-                                                    </a>
-                                                </li>
-                                            </ul>
+                                        <!-- Product Actions -->
+                                        <div class="product-actions position-absolute top-0 end-0 m-3 d-flex flex-column gap-2">
+                                            <button class="btn btn-light btn-sm rounded-circle shadow-sm wishlist-btn" data-bs-toggle="tooltip" title="Yêu thích">
+                                                <i class="fas fa-heart"></i>
+                                            </button>
+                                            <button class="btn btn-light btn-sm rounded-circle shadow-sm compare-btn" data-bs-toggle="tooltip" title="So sánh">
+                                                <i class="fas fa-chart-bar"></i>
+                                            </button>
+                                            <a href="@Url.Action("ChiTietSanPham","Home",new {id=product.MaSanPham})"
+                                               class="btn btn-light btn-sm rounded-circle shadow-sm" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+
+                                        <!-- Quick View Overlay -->
+                                        <div class="product-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+                                            <a href="@Url.Action("ChiTietSanPham","Home",new {id=product.MaSanPham})"
+                                               class="btn btn-primary btn-lg rounded-pill px-4">
+                                                <i class="fas fa-eye me-2"></i>
+                                                Xem Chi Tiết
+                                            </a>
                                         </div>
                                     </div>
-                                    <div class="product-content">
-                                        <div class="product-desc_info">
-                                            <h6><a class="product-name" href="single-product.html">@product.TenSanPham</a></h6>
-                                            <div class="price-box">
-                                                @if (product.GiaMoi != null)
+
+                                    <!-- Product Details -->
+                                    <div class="card-body p-4">
+                                        <h5 class="card-title mb-2">
+                                            <a href="@Url.Action("ChiTietSanPham","Home",new {id=product.MaSanPham})"
+                                               class="text-decoration-none text-dark product-title">
+                                                @product.TenSanPham
+                                            </a>
+                                        </h5>
+
+                                        <!-- Product Rating với dữ liệu thực -->
+                                        <div class="product-rating mb-3" data-product-id="@product.MaSanPham">
+                                            @{
+                                                var sliderRating = product.TrungBinhSao ?? 0;
+                                                var sliderReviewCount = product.SoLuongDanhGia ?? 0;
+                                                var sliderFullStars = (int)Math.Floor(sliderRating);
+                                                var sliderHasHalfStar = (sliderRating % 1) >= 0.5;
+                                                var sliderEmptyStars = 5 - sliderFullStars - (sliderHasHalfStar ? 1 : 0);
+                                            }
+
+                                            <div class="star-rating mb-1">
+                                                @for (int j = 0; j < sliderFullStars; j++)
                                                 {
-                                                    <span class="old-price">@product.Gia.ToString("N0") đ</span>
-                                                    <span class="new-price">@product.GiaMoi.ToString("N0") đ</span>
+                                                    <i class="fas fa-star star filled"></i>
+                                                }
+
+                                                @if (sliderHasHalfStar)
+                                                {
+                                                    <i class="fas fa-star-half-alt star filled"></i>
+                                                }
+
+                                                @for (int j = 0; j < sliderEmptyStars; j++)
+                                                {
+                                                    <i class="far fa-star star"></i>
+                                                }
+                                            </div>
+
+                                            <div class="rating-info">
+                                                @if (sliderRating > 0)
+                                                {
+                                                    <span class="rating-score">@sliderRating.ToString("F1")</span>
+                                                    <span class="rating-count">(@sliderReviewCount đánh giá)</span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="new-price">@product.Gia.ToString("N0") đ</span>
+                                                    <span class="no-ratings">Chưa có đánh giá</span>
                                                 }
-
-
                                             </div>
                                         </div>
+
+                                        <!-- Product Price -->
+                                        <div class="product-price mb-3">
+                                            @if (product.GiaMoi != null)
+                                            {
+                                                <span class="text-muted text-decoration-line-through me-2">@product.Gia.ToString("N0")₫</span>
+                                                <span class="h5 text-danger fw-bold">@product.GiaMoi.ToString("N0")₫</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="h5 text-primary fw-bold">@product.Gia.ToString("N0")₫</span>
+                                            }
+                                        </div>
+
+
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    }
+                            sliderIndex++;
+                        }
+                    </div>
                 </div>
             </div>
-        </div>
+        }
     </div>
-</div>
+</section>
+
+<style>
+    /* Custom CSS for Bootstrap enhancement */
+    :root {
+        --primary-color: #0d6efd;
+        --secondary-color: #6c757d;
+        --success-color: #198754;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #0dcaf0;
+        --transition: all 0.3s ease;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        margin-bottom: 4rem;
+    }
+
+    .hero-image {
+        height: 70vh;
+        min-height: 500px;
+        object-fit: cover;
+    }
+
+    .hero-overlay {
+        background: linear-gradient(135deg, rgba(13, 110, 253, 0.7), rgba(220, 53, 69, 0.3));
+    }
+
+    .hero-content {
+        max-width: 800px;
+    }
+
+    .hero-title {
+        text-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+    }
+
+    /* Animations */
+    .animate__animated {
+        animation-duration: 1s;
+    }
+
+    .animate__delay-1s {
+        animation-delay: 1s;
+    }
+
+    /* Features Section */
+    .feature-card {
+        transition: var(--transition);
+        border-radius: 15px !important;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+    }
+
+    .icon-circle {
+        width: 70px;
+        height: 70px;
+        transition: var(--transition);
+    }
+
+    .feature-card:hover .icon-circle {
+        transform: scale(1.1);
+    }
+
+    /* Products Section */
+    .products-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .product-card {
+        transition: var(--transition);
+        border-radius: 20px !important;
+    }
+
+    .product-image {
+        height: 280px;
+        background: #f8f9fa;
+    }
+
+    .product-img {
+        height: 100%;
+        object-fit: cover;
+        transition: var(--transition);
+    }
+
+    .product-card:hover .product-img {
+        transform: scale(1.05);
+    }
+
+    /* Star Rating Styles */
+    .product-rating {
+        margin-bottom: 1rem;
+    }
+
+    .star-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .star {
+        font-size: 0.9rem;
+        color: #ddd;
+        transition: color 0.2s ease;
+    }
+
+        .star.filled {
+            color: #ffc107;
+        }
+
+    .rating-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .rating-score {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .rating-count {
+        color: var(--secondary-color);
+    }
+
+    .no-ratings {
+        color: var(--secondary-color);
+        font-style: italic;
+        font-size: 0.875rem;
+    }
+
+    .product-overlay {
+        background: rgba(0,0,0,0.7);
+        opacity: 0;
+        transition: var(--transition);
+    }
+
+    .product-card:hover .product-overlay {
+        opacity: 1;
+    }
+
+    .product-title {
+        transition: var(--transition);
+    }
+
+        .product-title:hover {
+            color: var(--primary-color) !important;
+        }
+
+    .product-actions {
+        opacity: 0;
+        transform: translateX(20px);
+        transition: var(--transition);
+    }
+
+    .product-card:hover .product-actions {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    /* Enhanced Products Slider */
+    .products-slider-wrapper {
+        position: relative;
+        padding: 0 60px;
+        margin: 0 -60px;
+    }
+
+    .products-slider-container {
+        overflow: hidden;
+        border-radius: 15px;
+        position: relative;
+    }
+
+    .products-slider {
+        display: flex;
+        transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        will-change: transform;
+    }
+
+    .slider-item {
+        min-width: 0;
+        flex-shrink: 0;
+        padding: 0 10px;
+    }
+
+    /* Enhanced Navigation Buttons */
+    .slider-nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 50px;
+        height: 50px;
+        border: none;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color), #0056b3);
+        color: white;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+        z-index: 10;
+    }
+
+        .slider-nav-btn:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 6px 20px rgba(13, 110, 253, 0.5);
+            background: linear-gradient(135deg, #0056b3, var(--primary-color));
+        }
+
+        .slider-nav-btn:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        .slider-nav-btn.prev {
+            left: 10px;
+        }
+
+        .slider-nav-btn.next {
+            right: 10px;
+        }
+
+        .slider-nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: translateY(-50%) scale(0.9);
+        }
+
+            .slider-nav-btn:disabled:hover {
+                transform: translateY(-50%) scale(0.9);
+                box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+            }
+
+    /* Auto-scroll indicator */
+    .auto-scroll-indicator {
+        position: absolute;
+        bottom: 10px;
+        right: 15px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        z-index: 10;
+        transition: opacity 0.3s ease;
+    }
+
+    .auto-scroll-paused .auto-scroll-indicator {
+        opacity: 0.5;
+    }
+
+    .auto-scroll-indicator .pause-icon {
+        cursor: pointer;
+        padding: 2px;
+        border-radius: 3px;
+        transition: background-color 0.3s ease;
+    }
+
+        .auto-scroll-indicator .pause-icon:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+    /* Progress bar for auto-scroll */
+    .auto-scroll-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary-color), #0056b3);
+        transition: width 0.1s linear;
+        z-index: 10;
+    }
+
+    /* Add to Cart Button Animation */
+    .add-to-cart-btn {
+        position: relative;
+        overflow: hidden;
+        transition: var(--transition);
+    }
+
+        .add-to-cart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(13, 110, 253, 0.3);
+        }
+
+        .add-to-cart-btn.loading .btn-text {
+            opacity: 0;
+        }
+
+        .add-to-cart-btn.loading .spinner-border {
+            display: inline-block !important;
+        }
+
+        .add-to-cart-btn.success {
+            background-color: var(--success-color) !important;
+            border-color: var(--success-color) !important;
+        }
+
+    /* Carousel Enhancements */
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        width: 3rem;
+        height: 3rem;
+        background-size: 60%;
+    }
+
+    .carousel-indicators [data-bs-target] {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        border: 0;
+        background-color: rgba(255,255,255,0.5);
+        transition: var(--transition);
+    }
+
+    .carousel-indicators .active {
+        background-color: white;
+        transform: scale(1.2);
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 1200px) {
+        .slider-item {
+            width: calc(100% / 3) !important;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .products-slider-wrapper {
+            padding: 0 50px;
+            margin: 0 -50px;
+        }
+
+        .slider-nav-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 14px;
+        }
+
+            .slider-nav-btn.prev {
+                left: 5px;
+            }
+
+            .slider-nav-btn.next {
+                right: 5px;
+            }
+
+        .slider-item {
+            width: calc(100% / 2) !important;
+        }
+
+        .hero-image {
+            height: 50vh;
+            min-height: 400px;
+        }
+
+        .hero-title {
+            font-size: 2rem !important;
+        }
+
+        .product-actions {
+            opacity: 1;
+            transform: none;
+            position: static !important;
+            flex-direction: row !important;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .product-overlay {
+            display: none !important;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .products-slider-wrapper {
+            padding: 0 45px;
+            margin: 0 -45px;
+        }
+
+        .slider-item {
+            width: 100% !important;
+        }
+
+        .slider-nav-btn {
+            width: 35px;
+            height: 35px;
+            font-size: 12px;
+        }
+
+        .hero-title {
+            font-size: 1.75rem !important;
+        }
+
+        .display-5 {
+            font-size: 2rem !important;
+        }
+    }
+
+    /* Wishlist and comparison active states */
+    .wishlist-btn.active,
+    .compare-btn.active {
+        background-color: var(--primary-color) !important;
+        color: white !important;
+    }
+
+        .wishlist-btn.active:hover,
+        .compare-btn.active:hover {
+            background-color: var(--primary-color) !important;
+            opacity: 0.9;
+        }
+
+    /* Toast enhancements */
+    .toast-container {
+        max-width: 350px;
+    }
+
+    .toast {
+        margin-bottom: 0.5rem;
+    }
+
+    /* Image error state */
+    .image-error {
+        filter: grayscale(100%);
+        opacity: 0.5;
+    }
+
+    /* Animation for smooth transitions */
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .slider-item.entering {
+        animation: slideIn 0.6s ease-out;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Enhanced Products Slider with Auto-scroll
+        let currentSlide = 0;
+        let isAutoScrollEnabled = true;
+        let autoScrollInterval;
+        let progressInterval;
+        let progressWidth = 0;
+
+        const slider = document.getElementById('productsSlider');
+        const sliderItems = document.querySelectorAll('.slider-item');
+        const totalSlides = sliderItems.length;
+        const prevBtn = document.getElementById('prevProduct');
+        const nextBtn = document.getElementById('nextProduct');
+        const autoScrollToggle = document.getElementById('autoScrollToggle');
+        const autoScrollIcon = document.getElementById('autoScrollIcon');
+        const autoScrollIndicator = document.getElementById('autoScrollIndicator');
+        const autoScrollProgress = document.getElementById('autoScrollProgress');
+        const sliderWrapper = document.querySelector('.products-slider-wrapper');
+
+        let itemsPerView = 4;
+        const autoScrollDuration = 4000; // 4 seconds per slide
+        const progressUpdateInterval = 50; // Update progress every 50ms
+
+        // Update items per view based on screen size
+        function updateItemsPerView() {
+            if (window.innerWidth <= 576) {
+                itemsPerView = 1;
+            } else if (window.innerWidth <= 768) {
+                itemsPerView = 2;
+            } else if (window.innerWidth <= 1200) {
+                itemsPerView = 3;
+            } else {
+                itemsPerView = 4;
+            }
+
+            // Update slider item widths
+            sliderItems.forEach(item => {
+                item.style.width = `calc(100% / ${itemsPerView})`;
+            });
+        }
+
+        function updateSlider(animate = true) {
+            if (slider) {
+                const translateX = -(currentSlide * (100 / itemsPerView));
+                if (animate) {
+                    slider.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                } else {
+                    slider.style.transition = 'none';
+                }
+                slider.style.transform = `translateX(${translateX}%)`;
+
+                // Update navigation button states
+                updateNavigationButtons();
+
+                // Add entering animation to visible items
+                setTimeout(() => {
+                    const visibleItems = Array.from(sliderItems).slice(currentSlide, currentSlide + itemsPerView);
+                    visibleItems.forEach((item, index) => {
+                        setTimeout(() => {
+                            item.classList.add('entering');
+                            setTimeout(() => item.classList.remove('entering'), 600);
+                        }, index * 100);
+                    });
+                }, 100);
+            }
+        }
+
+        function updateNavigationButtons() {
+            const maxSlide = Math.max(0, totalSlides - itemsPerView);
+
+            if (prevBtn) {
+                prevBtn.disabled = currentSlide <= 0;
+                prevBtn.style.opacity = currentSlide <= 0 ? '0.5' : '1';
+            }
+
+            if (nextBtn) {
+                nextBtn.disabled = currentSlide >= maxSlide;
+                nextBtn.style.opacity = currentSlide >= maxSlide ? '0.5' : '1';
+            }
+        }
+
+        function nextSlide() {
+            const maxSlide = Math.max(0, totalSlides - itemsPerView);
+            if (currentSlide < maxSlide) {
+                currentSlide++;
+            } else {
+                currentSlide = 0; // Loop back to start
+            }
+            updateSlider();
+            resetProgress();
+        }
+
+        function prevSlide() {
+            const maxSlide = Math.max(0, totalSlides - itemsPerView);
+            if (currentSlide > 0) {
+                currentSlide--;
+            } else {
+                currentSlide = maxSlide; // Loop to end
+            }
+            updateSlider();
+            resetProgress();
+        }
+
+        function startAutoScroll() {
+            if (!isAutoScrollEnabled) return;
+
+            stopAutoScroll(); // Clear any existing interval
+
+            autoScrollInterval = setInterval(() => {
+                if (isAutoScrollEnabled) {
+                    nextSlide();
+                }
+            }, autoScrollDuration);
+
+            startProgress();
+        }
+
+        function stopAutoScroll() {
+            if (autoScrollInterval) {
+                clearInterval(autoScrollInterval);
+                autoScrollInterval = null;
+            }
+            stopProgress();
+        }
+
+        function startProgress() {
+            stopProgress(); // Clear any existing progress interval
+            progressWidth = 0;
+
+            progressInterval = setInterval(() => {
+                if (isAutoScrollEnabled && autoScrollProgress) {
+                    progressWidth += (100 * progressUpdateInterval) / autoScrollDuration;
+                    if (progressWidth >= 100) {
+                        progressWidth = 0;
+                    }
+                    autoScrollProgress.style.width = progressWidth + '%';
+                }
+            }, progressUpdateInterval);
+        }
+
+        function stopProgress() {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+        }
+
+        function resetProgress() {
+            progressWidth = 0;
+            if (autoScrollProgress) {
+                autoScrollProgress.style.width = '0%';
+            }
+            if (isAutoScrollEnabled) {
+                startProgress();
+            }
+        }
+
+        function toggleAutoScroll() {
+            isAutoScrollEnabled = !isAutoScrollEnabled;
+            if (autoScrollToggle) {
+                autoScrollToggle.checked = isAutoScrollEnabled;
+            }
+
+            if (isAutoScrollEnabled) {
+                if (autoScrollIcon) autoScrollIcon.className = 'fas fa-pause';
+                if (autoScrollIndicator) autoScrollIndicator.querySelector('i').className = 'fas fa-play';
+                if (sliderWrapper) sliderWrapper.classList.remove('auto-scroll-paused');
+                startAutoScroll();
+            } else {
+                if (autoScrollIcon) autoScrollIcon.className = 'fas fa-play';
+                if (autoScrollIndicator) autoScrollIndicator.querySelector('i').className = 'fas fa-pause';
+                if (sliderWrapper) sliderWrapper.classList.add('auto-scroll-paused');
+                stopAutoScroll();
+            }
+        }
+
+        // Event listeners
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                nextSlide();
+                if (isAutoScrollEnabled) {
+                    startAutoScroll(); // Restart auto-scroll timer
+                }
+            });
+        }
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                prevSlide();
+                if (isAutoScrollEnabled) {
+                    startAutoScroll(); // Restart auto-scroll timer
+                }
+            });
+        }
+
+        if (autoScrollToggle) {
+            autoScrollToggle.addEventListener('change', toggleAutoScroll);
+        }
+
+        // Pause auto-scroll on hover
+        if (sliderWrapper) {
+            sliderWrapper.addEventListener('mouseenter', () => {
+                if (isAutoScrollEnabled) {
+                    stopAutoScroll();
+                    sliderWrapper.classList.add('auto-scroll-paused');
+                }
+            });
+
+            sliderWrapper.addEventListener('mouseleave', () => {
+                if (isAutoScrollEnabled) {
+                    sliderWrapper.classList.remove('auto-scroll-paused');
+                    startAutoScroll();
+                }
+            });
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', debounce(() => {
+            updateItemsPerView();
+            currentSlide = Math.min(currentSlide, Math.max(0, totalSlides - itemsPerView));
+            updateSlider(false); // Update without animation on resize
+        }, 250));
+
+        // Add to cart button animation
+        document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+            button.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                // Add loading state
+                this.classList.add('loading');
+                this.querySelector('.spinner-border').classList.remove('d-none');
+                this.disabled = true;
+
+                // Simulate API call
+                setTimeout(() => {
+                    // Remove loading state
+                    this.classList.remove('loading');
+                    this.querySelector('.spinner-border').classList.add('d-none');
+
+                    // Add success state
+                    this.classList.add('success');
+                    this.querySelector('.btn-text').textContent = 'Đã Thêm!';
+
+                    // Reset after 2 seconds
+                    setTimeout(() => {
+                        this.classList.remove('success');
+                        this.querySelector('.btn-text').textContent = 'Thêm Vào Giỏ';
+                        this.disabled = false;
+                    }, 2000);
+                }, 1000);
+            });
+        });
+
+        // Wishlist functionality
+        let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+
+        document.querySelectorAll('.wishlist-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const productCard = this.closest('.product-card');
+                const productId = productCard.querySelector('.add-to-cart-btn').getAttribute('data-product-id');
+
+                if (wishlist.includes(productId)) {
+                    wishlist = wishlist.filter(id => id !== productId);
+                    this.classList.remove('active');
+                    this.querySelector('i').className = 'fas fa-heart';
+                    showToast('Đã xóa khỏi danh sách yêu thích', 'info');
+                } else {
+                    wishlist.push(productId);
+                    this.classList.add('active');
+                    this.querySelector('i').className = 'fas fa-heart text-danger';
+                    showToast('Đã thêm vào danh sách yêu thích', 'success');
+                }
+
+                localStorage.setItem('wishlist', JSON.stringify(wishlist));
+            });
+        });
+
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            let toastContainer = document.querySelector('#toastContainer');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toastContainer';
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                document.body.appendChild(toastContainer);
+            }
+
+            const toastId = 'toast-' + Date.now();
+            const bgClass = type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-info';
+
+            const toastHTML = `
+                <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+
+            toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, {
+                autohide: true,
+                delay: 3000
+            });
+            toast.show();
+
+            toastElement.addEventListener('hidden.bs.toast', () => {
+                toastElement.remove();
+            });
+        }
+
+        // Utility function for debouncing
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Initialize
+        if (totalSlides > 0) {
+            updateItemsPerView();
+            updateSlider(false);
+            startAutoScroll();
+        }
+
+        // Global function for pause button in indicator
+        window.toggleAutoScroll = toggleAutoScroll;
+
+        console.log('Enhanced product slider with ratings initialized successfully!');
+    });
+</script>

@@ -306,6 +306,61 @@ namespace TMDTLaptop.Controllers
 
             return View();
         }
+
+        public ActionResult DangKy()
+        {
+            ViewBag.Message = "Your application description page.";
+
+            return View();
+        }
+        [HttpPost]
+        public ActionResult DangKy(TaiKhoan model, string XacNhanMatKhau)
+        {
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://127.0.0.1:5000/");
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var postData = new
+                {
+                    Username = model.Username,
+                    Password = model.Password,
+                    Email = model.Email,
+                    XacNhanMatKhau = XacNhanMatKhau,
+                    HoTen = model.HoTen,
+                    DiaChi = model.DiaChi,
+                    SoDienThoai = model.SoDienThoai,
+                };
+
+                var json = JsonConvert.SerializeObject(postData);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = client.PostAsync("api/dangky", content).Result;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<dynamic>(response.Content.ReadAsStringAsync().Result);
+
+                    if (result.success == true)
+                    {
+                        TempData["SuccessMessage"] = "Đăng ký thành công.";
+                        return RedirectToAction("DangNhap", "Home");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", result.message.ToString());
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Lỗi gọi API.");
+                }
+            }
+
+            return View(model);
+        }
+
         public async Task<ActionResult> DangXuat()
         {
             string username = Session["Username"] as string;

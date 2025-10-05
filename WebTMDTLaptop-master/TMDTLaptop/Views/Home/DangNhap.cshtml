@@ -1,79 +1,824 @@
-
 @{
     ViewBag.Title = "DangNhap";
     Layout = "~/Views/Shared/_LayoutHome.cshtml";
 }
-<style>
-    .breadcrumb-area {
-        background-image: url('@Url.Content("~/assets/images/banner/banner3.jpg")'); /* Đường dẫn tới hình ảnh */
-    }
-</style>
+
+<!-- Success/Error Messages -->
 @if (TempData["SuccessMessage"] != null)
 {
-    <script>
-        alert('@Html.Raw(TempData["SuccessMessage"])');
-    </script>
+    <div class="alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3"
+         style="z-index: 9999; max-width: 500px;" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        @Html.Raw(TempData["SuccessMessage"])
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 }
 
-<div class="breadcrumb-area">
-    <div class="container">
-        <div class="breadcrumb-content">
-            <h2>Đăng nhập</h2>
-            <ul>
-                <li><a href="@Url.Action("Index","Home")">Trang chủ</a></li>
-                <li class="active">Đăng nhập</li>
-            </ul>
-        </div>
-    </div>
-</div>
 @if (ViewBag.ErrorMessage != null)
 {
-    <script>
-        alert('@Html.Raw(ViewBag.ErrorMessage)');
-    </script>
+    <div class="alert alert-danger alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3"
+         style="z-index: 9999; max-width: 500px;" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        @Html.Raw(ViewBag.ErrorMessage)
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 }
-<!-- Uren's Breadcrumb Area End Here -->
-<!-- Begin Uren's Login Register Area -->
-<div class="uren-login-register_area" style="margin-left:30%">
-    <div class="container-fluid">
-        <div class="col-sm-12 col-md-12 col-xs-12 col-lg-6">
-            <!-- Login Form -->
-            <form action="@Url.Action("DangNhap", "Home")" method="post">
-                <div class="login-form">
-                    <h4 class="login-title">Đăng nhập</h4>
-                    @if (!ViewData.ModelState.IsValid)
-                    {
-                        <div class="alert alert-danger">
-                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                        </div>
-                    }
-                    <div class="row">
-                        <div class="col-md-12 col-12">
-                            <label>Tên đăng nhập*</label>
-                            <input type="text" name="text" placeholder="Vui lòng nhập Email" required>
-                        </div>
-                        <div class="col-12 mb--20">
-                            <label>Mật khẩu</label>
-                            <input type="password" name="MatKhau" placeholder="Vui lòng nhập mật khẩu" required>
-                        </div>
-                        <div class="col-md-12">
-                            <button type="submit" class="uren-login_btn">Đăng nhập</button>
-                        </div>
-                        <div class="col-md-12 mt-2">
-                            <a href="@Url.Action("GoogleLogin", "Home")" class="btn btn-danger">
-                                <i class="fa fa-google"></i> Đăng nhập bằng Google
-                            </a>
-                            <a href="@Url.Action("FacebookLogin", "Home")" class="btn btn-danger">
-                                <i class="fa fa-google"></i> Đăng nhập bằng Facebook
-                            </a>
-                        </div>
 
+<!-- Breadcrumb Section -->
+<section class="breadcrumb-section position-relative overflow-hidden">
+    <div class="breadcrumb-bg"></div>
+    <div class="breadcrumb-overlay"></div>
+    <div class="container position-relative">
+        <div class="row">
+            <div class="col-12">
+                <div class="breadcrumb-content text-white text-center">
+                    <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInUp">Đăng nhập</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center mb-0 animate__animated animate__fadeInUp animate__delay-1s">
+                            <li class="breadcrumb-item">
+                                <a href="@Url.Action("Index","Home")" class="text-white-50 text-decoration-none">
+                                    <i class="fas fa-home me-1"></i>Trang chủ
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active text-white" aria-current="page">
+                                Đăng nhập
+                            </li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
+<!-- Login Section -->
+<section class="login-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-5 col-md-8">
+                <div class="login-card card border-0 shadow-lg">
+                    <!-- Login Header -->
+                    <div class="card-header bg-primary text-white text-center p-4">
+                        <div class="login-icon mb-3">
+                            <i class="fas fa-user-circle fa-3x"></i>
+                        </div>
+                        <h3 class="mb-0 fw-bold">Chào mừng trở lại!</h3>
+                        <p class="mb-0 mt-2 opacity-75">Đăng nhập để truy cập tài khoản của bạn</p>
+                    </div>
+
+                    <div class="card-body p-5">
+                        <!-- Validation Summary -->
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Thông tin đăng nhập không chính xác:
+                                </h6>
+                                @Html.ValidationSummary(true, "", new { @class = "mb-0" })
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        }
+
+                        <!-- Login Form -->
+                        <form action="@Url.Action("DangNhap", "Home")" method="post" id="loginForm" novalidate>
+                            <!-- Username/Email Field -->
+                            <div class="form-floating mb-4">
+                                <input type="text" class="form-control form-control-lg" id="Username" name="text"
+                                       placeholder="Nhập tên đăng nhập hoặc email" required value="@ViewData["Username"]">
+                                <label for="Username">
+                                    <i class="fas fa-user me-2 text-primary"></i>Tên đăng nhập hoặc Email
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="invalid-feedback">
+                                    Vui lòng nhập tên đăng nhập hoặc email.
+                                </div>
+                            </div>
+
+                            <!-- Password Field -->
+                            <div class="form-floating mb-4">
+                                <input type="password" class="form-control form-control-lg" id="Password" name="MatKhau"
+                                       placeholder="Nhập mật khẩu" required>
+                                <label for="Password">
+                                    <i class="fas fa-lock me-2 text-primary"></i>Mật khẩu
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="invalid-feedback">
+                                    Vui lòng nhập mật khẩu.
+                                </div>
+                                <!-- Show/Hide Password Toggle -->
+                                <button type="button" class="btn btn-outline-secondary position-absolute end-0 top-50 translate-middle-y me-3 password-toggle"
+                                        style="border: none; background: none;" data-bs-toggle="tooltip" title="Hiện/Ẩn mật khẩu">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+
+                            <!-- Remember Me & Forgot Password -->
+                            <div class="row mb-4">
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="RememberMe" name="RememberMe">
+                                        <label class="form-check-label" for="RememberMe">
+                                            Ghi nhớ đăng nhập
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <a href="#" class="text-primary text-decoration-none forgot-password-link">
+                                        Quên mật khẩu?
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Login Button -->
+                            <div class="d-grid mb-4">
+                                <button class="btn btn-primary btn-lg py-3 login-btn" type="submit" id="loginBtn">
+                                    <i class="fas fa-sign-in-alt me-2"></i>
+                                    <span class="btn-text">Đăng nhập</span>
+                                    <span class="spinner-border spinner-border-sm d-none ms-2" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </span>
+                                </button>
+                            </div>
+
+                            <!-- Divider -->
+                            <div class="divider my-4">
+                                <span class="divider-text">hoặc đăng nhập bằng</span>
+                            </div>
+
+                            <!-- Social Login Buttons -->
+                            <div class="social-login">
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <a href="@Url.Action("GoogleLogin", "Home")" class="btn btn-danger btn-lg w-100 social-btn google-btn">
+                                            <i class="fab fa-google me-2"></i>
+                                            Google
+                                        </a>
+                                    </div>
+                                    <div class="col-6">
+                                        <a href="@Url.Action("FacebookLogin", "Home")" class="btn btn-primary btn-lg w-100 social-btn facebook-btn">
+                                            <i class="fab fa-facebook-f me-2"></i>
+                                            Facebook
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Register Link -->
+                            <div class="text-center mt-4">
+                                <p class="mb-0">
+                                    Chưa có tài khoản?
+                                    <a href="@Url.Action("DangKy", "Home")" class="text-primary text-decoration-none fw-bold register-link">
+                                        Đăng ký ngay
+                                    </a>
+                                </p>
+                            </div>
+                        </form>
                     </div>
                 </div>
-            </form>
+
+                <!-- Quick Features -->
+                <div class="quick-features mt-4">
+                    <div class="row g-3 text-center">
+                        <div class="col-4">
+                            <div class="feature-item">
+                                <i class="fas fa-shield-alt fa-2x text-success mb-2"></i>
+                                <p class="small mb-0">Bảo mật cao</p>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="feature-item">
+                                <i class="fas fa-bolt fa-2x text-warning mb-2"></i>
+                                <p class="small mb-0">Đăng nhập nhanh</p>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="feature-item">
+                                <i class="fas fa-mobile-alt fa-2x text-info mb-2"></i>
+                                <p class="small mb-0">Đa nền tảng</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Forgot Password Modal -->
+<div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="forgotPasswordModalLabel">
+                    <i class="fas fa-key me-2"></i>Quên mật khẩu
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-4">Nhập email của bạn để nhận link đặt lại mật khẩu</p>
+                <form id="forgotPasswordForm">
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control" id="forgotEmail" placeholder="Nhập email" required>
+                        <label for="forgotEmail">
+                            <i class="fas fa-envelope me-2"></i>Địa chỉ email
+                        </label>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Gửi link đặt lại
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
+<style>
+/* Login Page Custom Styles */
+:root {
+    --primary-color: #0d6efd;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #0dcaf0;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --facebook-color: #1877f2;
+    --google-color: #ea4335;
+    --transition: all 0.3s ease;
+}
 
+/* Breadcrumb Section */
+.breadcrumb-section {
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+}
+
+.breadcrumb-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('@Url.Content("~/assets/images/banner/banner3.jpg")') center/cover no-repeat;
+    z-index: -2;
+}
+
+.breadcrumb-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.8), rgba(25, 135, 84, 0.4));
+    z-index: -1;
+}
+
+/* Login Section */
+.login-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+}
+
+/* Login Card */
+.login-card {
+    border-radius: 20px !important;
+    overflow: hidden;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.login-card .card-header {
+    background: linear-gradient(135deg, var(--primary-color), #0056b3) !important;
+    border-bottom: none;
+}
+
+.login-card .card-body {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.login-icon {
+    animation: pulse 2s infinite;
+}
+
+keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Form Controls */
+.form-floating > .form-control {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    transition: var(--transition);
+    font-size: 1.1rem;
+    padding-right: 4rem;
+}
+
+.form-floating > .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    transform: translateY(-2px);
+}
+
+.form-floating > label {
+    padding: 1rem 0.75rem;
+    font-weight: 500;
+    color: var(--dark-color);
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+    color: var(--primary-color);
+}
+
+/* Password Toggle */
+.password-toggle {
+    z-index: 10;
+    color: var(--dark-color);
+    transition: var(--transition);
+}
+
+.password-toggle:hover {
+    color: var(--primary-color);
+    transform: scale(1.1);
+}
+
+/* Form Check */
+.form-check-input {
+    border-radius: 6px;
+    border: 2px solid #dee2e6;
+    transition: var(--transition);
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Forgot Password Link */
+.forgot-password-link {
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+.forgot-password-link:hover {
+    text-decoration: underline !important;
+    color: #0056b3 !important;
+}
+
+/* Login Button */
+.login-btn {
+    border-radius: 50px !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.login-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(13, 110, 253, 0.3);
+}
+
+.login-btn.loading .btn-text {
+    opacity: 0;
+}
+
+.login-btn.loading .spinner-border {
+    display: inline-block !important;
+}
+
+/* Divider */
+.divider {
+    position: relative;
+    text-align: center;
+}
+
+.divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #dee2e6;
+}
+
+.divider-text {
+    background: white;
+    padding: 0 1rem;
+    color: var(--dark-color);
+    font-size: 0.9rem;
+    font-weight: 500;
+    opacity: 0.7;
+}
+
+/* Social Login Buttons */
+.social-btn {
+    border-radius: 12px !important;
+    font-weight: 600;
+    transition: var(--transition);
+    border: 2px solid transparent;
+}
+
+.social-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.google-btn {
+    background-color: var(--google-color) !important;
+    border-color: var(--google-color) !important;
+}
+
+.google-btn:hover {
+    background-color: #d33b2c !important;
+    border-color: #d33b2c !important;
+}
+
+.facebook-btn {
+    background-color: var(--facebook-color) !important;
+    border-color: var(--facebook-color) !important;
+}
+
+.facebook-btn:hover {
+    background-color: #166fe5 !important;
+    border-color: #166fe5 !important;
+}
+
+/* Register Link */
+.register-link {
+    transition: var(--transition);
+}
+
+.register-link:hover {
+    text-decoration: underline !important;
+    color: #0056b3 !important;
+}
+
+/* Quick Features */
+.quick-features {
+    opacity: 0.8;
+    transition: var(--transition);
+}
+
+.quick-features:hover {
+    opacity: 1;
+}
+
+.feature-item {
+    padding: 1rem;
+    border-radius: 10px;
+    transition: var(--transition);
+}
+
+.feature-item:hover {
+    background: white;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+/* Modal Enhancements */
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    color: white;
+    border-radius: 15px 15px 0 0;
+}
+
+/* Form Validation */
+.was-validated .form-control:valid,
+.form-control.is-valid {
+    border-color: var(--success-color);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='m2.3 6.73.94-.94 1.78 1.78 3.58-3.58.94.94-4.52 4.52z'/%3e%3c/svg%3e");
+}
+
+.was-validated .form-control:invalid,
+.form-control.is-invalid {
+    border-color: var(--danger-color);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 4.6 2.4 2.4M8.2 4.6 5.8 7'/%3e%3c/svg%3e");
+}
+
+/* Animations */
+keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate__animated {
+    animation-duration: 1s;
+    animation-fill-mode: both;
+}
+
+.animate__fadeInUp {
+    animation-name: fadeInUp;
+}
+
+.animate__delay-1s {
+    animation-delay: 1s;
+}
+
+/* Responsive Design */
+media (max-width: 768px) {
+    .breadcrumb-section {
+        min-height: 200px;
+    }
+
+    .login-card .card-body {
+        padding: 2rem !important;
+    }
+
+    .login-card .card-header {
+        padding: 2rem !important;
+    }
+
+    .social-login .row {
+        flex-direction: column;
+    }
+
+    .social-btn {
+        margin-bottom: 0.75rem;
+    }
+}
+
+media (max-width: 576px) {
+    .breadcrumb-content h1 {
+        font-size: 2rem;
+    }
+
+    .login-card .card-body {
+        padding: 1.5rem !important;
+    }
+
+    .login-card .card-header {
+        padding: 1.5rem !important;
+    }
+
+    .form-floating > .form-control {
+        font-size: 1rem;
+    }
+
+    .quick-features {
+        margin-top: 2rem;
+    }
+
+    .feature-item {
+        padding: 0.5rem;
+    }
+}
+
+/* Loading Animation */
+keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Success Animation */
+keyframes checkmark {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.success-icon {
+    animation: checkmark 0.6s ease-in-out;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-hide alert messages
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 5000);
+    });
+
+    // Form validation
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Password toggle functionality
+    const passwordToggle = document.querySelector('.password-toggle');
+    const passwordInput = document.getElementById('Password');
+
+    if (passwordToggle && passwordInput) {
+        passwordToggle.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+
+            const icon = this.querySelector('i');
+            if (type === 'text') {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+                this.setAttribute('title', 'Ẩn mật khẩu');
+            } else {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+                this.setAttribute('title', 'Hiện mật khẩu');
+            }
+        });
+    }
+
+    // Form submission handling
+    if (loginForm && loginBtn) {
+        loginForm.addEventListener('submit', function(e) {
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+                showToast('Vui lòng điền đầy đủ thông tin đăng nhập', 'error');
+            } else {
+                // Add loading state
+                loginBtn.classList.add('loading');
+                loginBtn.querySelector('.spinner-border').classList.remove('d-none');
+                loginBtn.disabled = true;
+            }
+
+            this.classList.add('was-validated');
+        });
+    }
+
+    // Real-time validation
+    const inputs = loginForm.querySelectorAll('input[required]');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            validateField(this);
+        });
+
+        input.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid')) {
+                validateField(this);
+            }
+        });
+    });
+
+    // Email validation for username field
+    const usernameInput = document.getElementById('Username');
+    if (usernameInput) {
+        usernameInput.addEventListener('input', function() {
+            const value = this.value.trim();
+
+            if (value && value.includes('@@')) {
+                // Validate as email
+                const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+                if (!emailRegex.test(value)) {
+                    this.setCustomValidity('Vui lòng nhập email hợp lệ');
+                } else {
+                    this.setCustomValidity('');
+                }
+            } else {
+                // Validate as username
+                if (value.length > 0 && value.length < 3) {
+                    this.setCustomValidity('Tên đăng nhập phải có ít nhất 3 ký tự');
+                } else {
+                    this.setCustomValidity('');
+                }
+            }
+        });
+    }
+
+    // Forgot password modal
+    const forgotPasswordLink = document.querySelector('.forgot-password-link');
+    const forgotPasswordModal = new bootstrap.Modal(document.getElementById('forgotPasswordModal'));
+
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            forgotPasswordModal.show();
+        });
+    }
+
+    // Forgot password form submission
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+    if (forgotPasswordForm) {
+        forgotPasswordForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('forgotEmail').value;
+
+            if (email) {
+                // Simulate sending reset email
+                showToast('Link đặt lại mật khẩu đã được gửi đến email của bạn', 'success');
+                forgotPasswordModal.hide();
+                this.reset();
+            }
+        });
+    }
+
+    // Social login button enhancements
+    document.querySelectorAll('.social-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang kết nối...';
+            this.disabled = true;
+
+            // Reset after 3 seconds if still on page (fallback)
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            }, 3000);
+        });
+    });
+
+    // Remember me functionality
+    const rememberCheckbox = document.getElementById('RememberMe');
+    const usernameField = document.getElementById('Username');
+
+    // Load remembered username
+    if (localStorage.getItem('rememberedUsername')) {
+        usernameField.value = localStorage.getItem('rememberedUsername');
+        rememberCheckbox.checked = true;
+    }
+
+    // Save/remove username on checkbox change
+    if (rememberCheckbox) {
+        rememberCheckbox.addEventListener('change', function() {
+            if (this.checked && usernameField.value) {
+                localStorage.setItem('rememberedUsername', usernameField.value);
+            } else {
+                localStorage.removeItem('rememberedUsername');
+            }
+        });
+    }
+
+    // Quick features animation
+    const featureItems = document.querySelectorAll('.feature-item');
+    featureItems.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(20px)';
+
+        setTimeout(() => {
+            item.style.transition = 'all 0.6s ease';
+            item.style.opacity = '1';
+            item.style.transform = 'translateY(0)';
+        }, 500 + (index * 200));
+    });
+});
+
+// Validate individual field
+function validateField(field) {
+    if (field.checkValidity()) {
+        field.classList.remove('is-invalid');
+        field.classList.add('is-valid');
+    } else {
+        field.classList.remove('is-valid');
+        field.classList.add('is-invalid');
+    }
+}
+
+// Toast notification function
+    function showToast(message, type = 'info') {
+        let toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            document.body.appendChild(toastContainer);
+        }
+
+        const toastId = 'toast-' + Date.now();
+        const iconClass = type === 'success' ? 'fa-check-circle text-success' :
+            type === 'error' ? 'fa-exclamation-circle text-danger' :''
+       }  
+   
+    </script>

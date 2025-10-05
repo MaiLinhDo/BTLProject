@@ -361,6 +361,16 @@
     <Content Include="assets\images\product\7\laptop5.png" />
     <Content Include="assets\images\product\8\laptop4.jpg" />
     <Content Include="assets\images\product\9\laptop5.jpg" />
+    <Content Include="assets\images\returns\3\150b3dbde9b043ad9641da5584aee389.png" />
+    <Content Include="assets\images\returns\3\7d402ffbe94e4704882b4aefee58fd8b.png" />
+    <Content Include="assets\images\returns\3\8bb71f54b2464a18b544471d1a6fa631.png" />
+    <Content Include="assets\images\returns\3\e94cd41d3a8245a7a34695aa076525cf.png" />
+    <Content Include="assets\images\warranty\2\4b0cecb474e84913a540aca7c136c532.png" />
+    <Content Include="assets\images\warranty\3\339edadb6de442cf886d03f7e409a267.png" />
+    <Content Include="assets\images\warranty\4\518cf10cb8064a11b4d4ca2a98c72148.png" />
+    <Content Include="assets\images\warranty\4\6d341a09cb584befab7014826bae88fb.png" />
+    <Content Include="assets\images\warranty\4\f1880fdc42d84b4bbe7c5361f1cec309.png" />
+    <Content Include="assets\images\warranty\4\fc9b73b0c3bb4909a2a0b0386d85c68c.png" />
     <Content Include="assets\js\main.js" />
     <Content Include="assets\js\plugins\jquery-ui.min.js" />
     <Content Include="assets\js\plugins\jquery.barrating.min.js" />
@@ -496,9 +506,13 @@
     <Content Include="Views\Admin\ThongTinCaNhan.cshtml" />
     <Content Include="Views\Home\DatHangThanhCong.cshtml" />
     <Content Include="Views\Home\DonHangCuaToi.cshtml" />
+    <Content Include="Views\Home\GoogleLoginCallback.cshtml" />
+    <Content Include="Views\Shared\_ReturnDetailPartial.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="assets\images\product\26\" />
+    <Folder Include="assets\images\product\27\" />
     <Folder Include="bin\" />
     <Folder Include="obj\Debug\TempPE\" />
   </ItemGroup>

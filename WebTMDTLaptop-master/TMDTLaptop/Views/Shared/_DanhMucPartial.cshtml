@@ -1,7 +1,91 @@
-﻿<ul class="hm-dropdown">
+﻿<!-- Category Dropdown for GetDanhMuc Action -->
+@model IEnumerable<TMDTLaptop.Models.Class.DanhMucSanPham>
+
+<div class="hm-dropdown">
     @foreach (var item in Model)
     {
-        <li><a href="@Url.Action("CuaHang", "Home", new { id = item.MaDanhMuc })">@item.TenDanhMuc</a></li>
+        <li>
+            <a class="dropdown-item" href="@Url.Action("CuaHang", "Home", new { id = item.MaDanhMuc })">
+                <i class="fas fa-laptop me-2"></i>@item.TenDanhMuc
+            </a>
+        </li>
     }
-</ul>
+</div>
 
+<style>
+    /* Category Dropdown Styles */
+    .hm-dropdown {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        .hm-dropdown li {
+            margin: 0;
+        }
+
+        .hm-dropdown .dropdown-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #000 !important;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0.25rem 0.5rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            background-color: transparent;
+        }
+
+            .hm-dropdown .dropdown-item:hover {
+                background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(13, 110, 253, 0.05));
+                color: #0d6efd !important;
+                transform: translateX(5px);
+                box-shadow: 0 2px 10px rgba(13, 110, 253, 0.2);
+            }
+
+            .hm-dropdown .dropdown-item i {
+                color: var(--primary-color);
+                width: 20px;
+                text-align: center;
+                transition: all 0.3s ease;
+            }
+
+            .hm-dropdown .dropdown-item:hover i {
+                transform: scale(1.2);
+            }
+
+        /* Animation */
+        .hm-dropdown li {
+            animation: slideInLeft 0.3s ease forwards;
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+            .hm-dropdown li:nth-child(1) {
+                animation-delay: 0.1s;
+            }
+
+            .hm-dropdown li:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+
+            .hm-dropdown li:nth-child(3) {
+                animation-delay: 0.3s;
+            }
+
+            .hm-dropdown li:nth-child(4) {
+                animation-delay: 0.4s;
+            }
+
+            .hm-dropdown li:nth-child(5) {
+                animation-delay: 0.5s;
+            }
+
+    @@keyframes slideInLeft {
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+</style>

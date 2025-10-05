@@ -3,6 +3,12 @@ import requests
 from app.services.home_service import add_user_to_db
 
 login_api = Blueprint('login_api', __name__)
+# Cấu hình
+client_id = "612988759993-1sbf3oa0uanaq6ckmcka0m25qvtk5c4e.apps.googleusercontent.com"
+client_secret = "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"
+redirect_uri = "https://localhost:44373/Home/GoogleLoginCallback"
+token_endpoint = "https://oauth2.googleapis.com/token"
+user_info_endpoint = "https://www.googleapis.com/oauth2/v2/userinfo"
 
 
 # API Google Login: Trả về URL đăng nhập Google
