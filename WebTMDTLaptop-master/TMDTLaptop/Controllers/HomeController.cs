@@ -790,6 +790,11 @@ namespace TMDTLaptop.Controllers
             ViewBag.CurrentPage = page;
             return View();
         }
+        public ActionResult Chat()
+        {
+            return View();
+        }
+
 
 
     }
