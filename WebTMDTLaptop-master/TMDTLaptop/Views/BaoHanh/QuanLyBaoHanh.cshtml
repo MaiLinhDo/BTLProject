@@ -1,0 +1,253 @@
+﻿@{
+    ViewBag.Title = "Quản Lý Bảo Hành";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+@using TMDTLaptop.Controllers
+<div class="container">
+    <h2 class="mt-4 mb-4">Quản Lý Bảo Hành</h2>
+    <!-- Thanh tìm kiếm và lọc -->
+    <form class="mb-3" method="get" action="@Url.Action("QuanLyBaoHanh")">
+        <div class="row">
+            <div class="col-md-4">
+                <input type="text" name="searchString" class="form-control"
+                       placeholder="Tìm kiếm theo tên sản phẩm, khách hàng..."
+                       value="@ViewBag.SearchString">
+            </div>
+            <div class="col-md-3">
+                <select name="trangThai" class="form-control">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Chờ xử lý" @(ViewBag.TrangThai == "Chờ xử lý" ? "selected" : "")>Chờ xử lý</option>
+                    <option value="Đã duyệt" @(ViewBag.TrangThai == "Đã duyệt" ? "selected" : "")>Đã duyệt</option>
+                    <option value="Chờ lấy hàng bảo hành" @(ViewBag.TrangThai == "Chờ lấy hàng bảo hành" ? "selected" : "")>Chờ lấy hàng</option>
+                    <option value="Đang bảo hành" @(ViewBag.TrangThai == "Đang bảo hành" ? "selected" : "")>Đang bảo hành</option>
+                    <option value="Hoàn tất" @(ViewBag.TrangThai == "Hoàn tất" ? "selected" : "")>Hoàn tất</option>
+                    <option value="Từ chối" @(ViewBag.TrangThai == "Từ chối" ? "selected" : "")>Từ chối</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+            </div>
+            <div class="col-md-3 text-right">
+                <a href="@Url.Action("ThongKeBaoHanh")" class="btn btn-info">
+                    <i class="fas fa-chart-bar"></i> Thống kê
+                </a>
+            </div>
+        </div>
+    </form>
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover table-bordered">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Mã Phiếu BH</th>
+                        <th scope="col">Đơn Hàng</th>
+                        <th scope="col">Khách Hàng</th>
+                        <th scope="col">Sản Phẩm</th>
+                        <th scope="col">Ngày Tạo</th>
+                        <th scope="col">Hạn BH</th>
+                        <th scope="col">Trạng Thái</th>
+                        <th scope="col">Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null)
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.MaPhieuBH</td>
+                                <td><a href="@Url.Action("ChiTietDonHang", new { id = item.MaDonHang })">#@item.MaDonHang</a></td>
+                                <td>@item.TenKhachHang</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="~/assest/images/product/@(item.HinhAnhSP ?? "/Content/images/no-image.png")"
+                                             alt="Product" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;" class="me-2"
+                                             onerror="this.src='/Content/images/no-image.png'">
+                                        <span>@item.TenSanPham</span>
+                                    </div>
+                                </td>
+                                <td>@item.NgayTao</td>
+                                <td>
+                                    @if ((bool)item.ConBaoHanh)
+                                    {
+                                        <span class="text-success">
+                                            <i class="fas fa-shield-alt"></i>
+                                            Còn @item.SoNgayConLai ngày
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger">
+                                            <i class="fas fa-shield-alt"></i>
+                                            Hết hạn
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @{
+                                        string statusClass = "";
+                                        switch (item.TrangThai?.ToString() ?? "")
+                                        {
+                                            case "Chờ xử lý": statusClass = "bg-warning"; break;
+                                            case "Đã duyệt": statusClass = "bg-info"; break;
+                                            case "Chờ lấy hàng bảo hành": statusClass = "bg-primary"; break;
+                                            case "Đang vận chuyển": statusClass = "bg-info"; break;
+                                            case "Đang bảo hành": statusClass = "bg-warning"; break;
+                                            case "Bảo hành hoàn tất": statusClass = "bg-success"; break;
+                                            case "Chờ trả hàng": statusClass = "bg-primary"; break;
+                                            case "Đã trả hàng": statusClass = "bg-success"; break;
+                                            case "Hoàn tất": statusClass = "bg-success"; break;
+                                            case "Từ chối": statusClass = "bg-danger"; break;
+                                            default: statusClass = "bg-secondary"; break;
+                                        }
+                                    }
+                                    <span class="badge @statusClass text-white">
+                                        @item.TrangThai
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <!-- Thay đổi từ onclick modal sang href để mở trang mới -->
+                                        <a href="@Url.Action("ChiTietBaoHanh", new { id = item.MaPhieuBH })"
+                                           class="btn btn-info btn-sm" target="_blank">
+                                            <i class="fas fa-eye"></i> Chi tiết
+                                        </a>
+                                        @if (item.TrangThai == "Chờ xử lý")
+                                        {
+                                            <button type="button" class="btn btn-success btn-sm" onclick="updateWarrantyStatus(@item.MaPhieuBH, 'Đã duyệt')">
+                                                <i class="fas fa-check"></i> Duyệt
+                                            </button>
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="rejectWarranty(@item.MaPhieuBH)">
+                                                <i class="fas fa-times"></i> Từ chối
+                                            </button>
+                                        }
+                                        else if (item.TrangThai == "Đã duyệt")
+                                        {
+                                            <button type="button" class="btn btn-primary btn-sm" onclick="updateWarrantyStatus(@item.MaPhieuBH, 'Chờ lấy hàng bảo hành')">
+                                                <i class="fas fa-shipping-fast"></i> Chờ lấy hàng
+                                            </button>
+                                        }
+                                        else if (item.TrangThai == "Chờ lấy hàng bảo hành")
+                                        {
+                                            <button type="button" class="btn btn-warning btn-sm" onclick="updateWarrantyStatus(@item.MaPhieuBH, 'Đang bảo hành')">
+                                                <i class="fas fa-tools"></i> Đang BH
+                                            </button>
+                                        }
+                                        else if (item.TrangThai == "Đang bảo hành")
+                                        {
+                                            <button type="button" class="btn btn-success btn-sm" onclick="completeWarranty(@item.MaPhieuBH)">
+                                                <i class="fas fa-check-circle"></i> Hoàn tất
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- Phân trang -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            @for (var i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("QuanLyBaoHanh", new { page = i, searchString = ViewBag.SearchString, trangThai = ViewBag.TrangThai })">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+</div>
+
+<!-- Chỉ giữ lại Modal từ chối -->
+<div class="modal fade" id="rejectModal" tabindex="-1" role="dialog" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectModalLabel">Từ chối phiếu bảo hành</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="rejectForm">
+                    <div class="form-group">
+                        <label for="rejectReason">Lý do từ chối:</label>
+                        <textarea class="form-control" id="rejectReason" rows="3" placeholder="Nhập lý do từ chối..." required></textarea>
+                    </div>
+                    <input type="hidden" id="rejectWarrantyId" value="" />
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" onclick="confirmReject()">Từ chối</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Đã bỏ function viewWarrantyDetail vì không cần modal nữa
+
+// Cập nhật trạng thái bảo hành
+function updateWarrantyStatus(warrantyId, newStatus) {
+    if (confirm('Bạn có chắc chắn muốn cập nhật trạng thái này không?')) {
+        $.post('@Url.Action("CapNhatTrangThai")', {
+            maPhieuBH: warrantyId,
+            trangThai: newStatus
+        }, function(result) {
+            if (result.success) {
+                alert('Cập nhật trạng thái thành công!');
+                location.reload();
+            } else {
+                alert('Có lỗi: ' + result.message);
+            }
+        }).fail(function() {
+            alert('Lỗi kết nối server!');
+        });
+    }
+}
+
+// Hiển thị modal từ chối
+function rejectWarranty(warrantyId) {
+    $('#rejectWarrantyId').val(warrantyId);
+    $('#rejectReason').val('');
+    $('#rejectModal').modal('show');
+}
+
+// Xác nhận từ chối
+function confirmReject() {
+    const warrantyId = $('#rejectWarrantyId').val();
+    const reason = $('#rejectReason').val().trim();
+
+    if (!reason) {
+        alert('Vui lòng nhập lý do từ chối!');
+        return;
+    }
+
+    $.post('@Url.Action("CapNhatTrangThai")', {
+        maPhieuBH: warrantyId,
+        trangThai: 'Từ chối',
+        lyDoTuChoi: reason
+    }, function(result) {
+        if (result.success) {
+            alert('Từ chối phiếu bảo hành thành công!');
+            $('#rejectModal').modal('hide');
+            location.reload();
+        } else {
+            alert('Có lỗi: ' + result.message);
+        }
+    }).fail(function() {
+        alert('Lỗi kết nối server!');
+    });
+}
+
+// Hoàn tất bảo hành
+function completeWarranty(warrantyId) {
+    if (confirm('Xác nhận hoàn tất bảo hành?')) {
+        updateWarrantyStatus(warrantyId, 'Hoàn tất');
+    }
+}
+</script>

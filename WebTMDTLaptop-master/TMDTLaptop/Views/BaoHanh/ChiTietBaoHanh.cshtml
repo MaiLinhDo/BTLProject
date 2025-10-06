@@ -1,0 +1,376 @@
+﻿@{
+    ViewBag.Title = "Chi tiết Phiếu Bảo hành";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+<!-- Bootstrap 5 CSS (nếu chưa có trong layout) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-bottom: 20px;
+        border-left: 2px solid #e9ecef;
+    }
+
+        .timeline-item:before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #007bff;
+        }
+
+    .timeline-content {
+        margin-left: 20px;
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4>Chi tiết Phiếu Bảo hành #@ViewBag.ChiTiet.MaPhieuBH</h4>
+                    <div>
+                        <a href="@Url.Action("QuanLyBaoHanh")" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                        @if (ViewBag.ChiTiet.TrangThai == "Chờ xử lý")
+                        {
+                            <button class="btn btn-success" onclick="updateStatus('@ViewBag.ChiTiet.MaPhieuBH', 'Đã duyệt')">
+                                <i class="fas fa-check"></i> Duyệt
+                            </button>
+                            <button class="btn btn-danger" onclick="rejectWarranty('@ViewBag.ChiTiet.MaPhieuBH')">
+                                <i class="fas fa-times"></i> Từ chối
+                            </button>
+                        }
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Thông tin cơ bản -->
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6><i class="fas fa-info-circle"></i> Thông tin cơ bản</h6>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td><strong>Mã phiếu BH:</strong></td>
+                                            <td>@ViewBag.ChiTiet.MaPhieuBH</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Đơn hàng:</strong></td>
+                                            <td><a href="@Url.Action("ChiTietDonHang", new { id = ViewBag.ChiTiet.MaDonHang })">#@ViewBag.ChiTiet.MaDonHang</a></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Khách hàng:</strong></td>
+                                            <td>@ViewBag.ChiTiet.TenKhachHang</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>SĐT:</strong></td>
+                                            <td>@ViewBag.ChiTiet.SoDienThoai</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Email:</strong></td>
+                                            <td>@ViewBag.ChiTiet.Email</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Địa chỉ:</strong></td>
+                                            <td>@ViewBag.ChiTiet.DiaChiGiaoHang</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Ngày tạo:</strong></td>
+                                            <td>@ViewBag.ChiTiet.NgayTao</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Trạng thái:</strong></td>
+                                            <td>
+                                                <span class="badge @GetStatusBadgeClass(ViewBag.ChiTiet.TrangThai?.ToString())">
+                                                    @ViewBag.ChiTiet.TrangThai
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        @if (!string.IsNullOrEmpty((string)ViewBag.ChiTiet.LyDoTuChoi))
+                                        {
+                                            <tr>
+                                                <td><strong>Lý do từ chối:</strong></td>
+                                                <td><span class="text-danger">@ViewBag.ChiTiet.LyDoTuChoi</span></td>
+                                            </tr>
+                                        }
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin sản phẩm -->
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6><i class="fas fa-laptop"></i> Thông tin sản phẩm</h6>
+                                </div>
+                                <div class="card-body text-center">
+                                    <img src="~/assets/images/product/@ViewBag.ChiTiet.MaSanPham/@(ViewBag.ChiTiet.HinhAnhSP ?? "/Content/images/no-image.png")"
+                                         alt="Product" class="img-fluid mb-3" style="max-height: 200px;">
+
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td><strong>Tên sản phẩm:</strong></td>
+                                            <td>@ViewBag.ChiTiet.TenSanPham</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Số lượng BH:</strong></td>
+                                            <td>@ViewBag.ChiTiet.SoLuongBH</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Ngày mua:</strong></td>
+                                            <td>@ViewBag.ChiTiet.NgayMua</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Hạn bảo hành:</strong></td>
+                                            <td>@ViewBag.ChiTiet.NgayKetThucBH</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Tình trạng:</strong></td>
+                                            <td>
+                                                @if ((bool)ViewBag.ChiTiet.ConBaoHanh)
+                                                {
+                                                    <span class="text-success">
+                                                        <i class="fas fa-shield-alt"></i>
+                                                        Còn @ViewBag.ChiTiet.SoNgayConLai ngày
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-danger">
+                                                        <i class="fas fa-shield-alt"></i>
+                                                        Hết hạn
+                                                    </span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mô tả lỗi -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6><i class="fas fa-exclamation-triangle"></i> Mô tả lỗi</h6>
+                        </div>
+                        <div class="card-body">
+                            <p>@ViewBag.ChiTiet.MoTaLoi</p>
+                        </div>
+                    </div>
+
+                    <!-- Hình ảnh lỗi -->
+                    @if (ViewBag.ChiTiet.HinhAnhLoi != null && ViewBag.ChiTiet.HinhAnhLoi.Count > 0)
+                    {
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6><i class="fas fa-images"></i> Hình ảnh lỗi</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    @foreach (var image in ViewBag.ChiTiet.HinhAnhLoi)
+                                    {
+                                        <div class="col-md-3 mb-3">
+                                            <img src="~/assets/images/warranty/@ViewBag.ChiTiet.MaPhieuBH/@image" class="img-fluid rounded"
+                                                 style="cursor: pointer;" onclick="showImageModal('@image')">
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Lịch sử xử lý -->
+                    @if (ViewBag.ChiTiet.LichSu != null && ViewBag.ChiTiet.LichSu.Count > 0)
+                    {
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6><i class="fas fa-history"></i> Lịch sử xử lý</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="timeline">
+                                    @foreach (var item in ViewBag.ChiTiet.LichSu)
+                                    {
+                                        <div class="timeline-item">
+                                            <div class="timeline-content">
+                                                <h6>@item.TrangThaiMoi</h6>
+                                                <p class="mb-1">@item.MoTa</p>
+                                                <small class="text-muted">@item.NgayCapNhat</small>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Thông tin vận chuyển -->
+                    @if (ViewBag.ChiTiet.VanChuyen != null && ViewBag.ChiTiet.VanChuyen.Count > 0)
+                    {
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6><i class="fas fa-shipping-fast"></i> Thông tin vận chuyển</h6>
+                            </div>
+                            <div class="card-body">
+                                @foreach (var vc in ViewBag.ChiTiet.VanChuyen)
+                                {
+                                    <div class="border rounded p-3 mb-2">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p><strong>Loại:</strong> @vc.LoaiVanChuyen</p>
+                                                <p><strong>Đơn vị:</strong> @vc.DonViVanChuyen</p>
+                                                <p><strong>Mã vận đơn:</strong> @vc.MaVanDon</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p><strong>Ngày lấy:</strong> @vc.NgayLayHang</p>
+                                                <p><strong>Ngày giao:</strong> @vc.NgayGiaoHang</p>
+                                                <p>
+                                                    <strong>Trạng thái:</strong>
+                                                    <span class="badge badge-info">@vc.TrangThaiVanChuyen</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(vc.GhiChu))
+                                        {
+                                            <p><strong>Ghi chú:</strong> @vc.GhiChu</p>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Xử lý từ nhà sản xuất -->
+                    @if (ViewBag.ChiTiet.XuLyNhaSanXuat != null && ViewBag.ChiTiet.XuLyNhaSanXuat.Count > 0)
+                    {
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6><i class="fas fa-industry"></i> Xử lý từ nhà sản xuất</h6>
+                            </div>
+                            <div class="card-body">
+                                @foreach (var nsx in ViewBag.ChiTiet.XuLyNhaSanXuat)
+                                {
+                                    <div class="border rounded p-3 mb-2">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p><strong>Nhà sản xuất:</strong> @nsx.TenNhaSanXuat</p>
+                                                <p><strong>Mã phiếu NSX:</strong> @nsx.MaPhieuNSX</p>
+                                                <p><strong>Hình thức xử lý:</strong> @nsx.HinhThucXuLy</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p><strong>Ngày gửi:</strong> @nsx.NgayGui</p>
+                                                <p><strong>Ngày nhận:</strong> @nsx.NgayNhan</p>
+                                                <p><strong>Ngày hoàn tất:</strong> @nsx.NgayHoanTat</p>
+                                            </div>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(nsx.MoTaXuLy))
+                                        {
+                                            <p><strong>Mô tả xử lý:</strong> @nsx.MoTaXuLy</p>
+                                        }
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span><strong>Chi phí:</strong> @string.Format("{0:N0} đ", nsx.ChiPhi)</span>
+                                            <span class="badge badge-@(nsx.TrangThai == "Hoàn tất" ? "success" : "warning")">@nsx.TrangThai</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public static string GetStatusBadgeClass(string status)
+    {
+        switch (status)
+        {
+            case "Chờ xử lý": return "badge-warning";
+            case "Đã duyệt": return "badge-info";
+            case "Chờ lấy hàng bảo hành": return "badge-primary";
+            case "Đang vận chuyển": return "badge-info";
+            case "Đang bảo hành": return "badge-warning";
+            case "Bảo hành hoàn tất": return "badge-success";
+            case "Chờ trả hàng": return "badge-primary";
+            case "Đã trả hàng": return "badge-success";
+            case "Hoàn tất": return "badge-success";
+            case "Từ chối": return "badge-danger";
+            default: return "badge-secondary";
+        }
+    }
+}
+
+<script>
+function updateStatus(warrantyId, status) {
+    if (confirm('Xác nhận cập nhật trạng thái?')) {
+        $.post('@Url.Action("CapNhatTrangThai")', {
+            maPhieuBH: warrantyId,
+            trangThai: status
+        }, function(result) {
+            if (result.success) {
+                alert('Cập nhật thành công!');
+                location.reload();
+            } else {
+                alert('Có lỗi: ' + result.message);
+            }
+        });
+    }
+}
+
+function rejectWarranty(warrantyId) {
+    const reason = prompt('Nhập lý do từ chối:');
+    if (reason) {
+        $.post('@Url.Action("CapNhatTrangThai")', {
+            maPhieuBH: warrantyId,
+            trangThai: 'Từ chối',
+            lyDoTuChoi: reason
+        }, function(result) {
+            if (result.success) {
+                alert('Từ chối thành công!');
+                location.reload();
+            } else {
+                alert('Có lỗi: ' + result.message);
+            }
+        });
+    }
+}
+
+function showImageModal(imageSrc) {
+    const modal = `
+        <div class="modal fade" id="imageModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-body text-center">
+                        <img src="${imageSrc}" class="img-fluid">
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    $('body').append(modal);
+    $('#imageModal').modal('show').on('hidden.bs.modal', function() {
+        $(this).remove();
+    });
+}
+</script>

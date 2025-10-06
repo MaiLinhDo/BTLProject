@@ -1,0 +1,269 @@
+﻿@{
+    ViewBag.Title = "Thống Kê Bảo Hành";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4>Thống Kê Bảo Hành</h4>
+                    <div>
+                        <button class="btn btn-success" onclick="exportReport()">
+                            <i class="fas fa-file-excel"></i> Xuất Excel
+                        </button>
+                        <a href="@Url.Action("QuanLyBaoHanh")" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Bộ lọc thời gian -->
+                    <form class="mb-4" method="get" action="@Url.Action("ThongKeBaoHanh")">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="startDate" class="form-label">Từ ngày</label>
+                                <input type="date" class="form-control" id="startDate" name="startDate"
+                                       value="@(ViewBag.StartDate != null ? ((DateTime)ViewBag.StartDate).ToString("yyyy-MM-dd") : "")">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="endDate" class="form-label">Đến ngày</label>
+                                <input type="date" class="form-control" id="endDate" name="endDate"
+                                       value="@(ViewBag.EndDate != null ? ((DateTime)ViewBag.EndDate).ToString("yyyy-MM-dd") : "")">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">&nbsp;</label>
+                                <div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-chart-line"></i> Xem thống kê
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    @if (ViewBag.ThongKe != null)
+                    {
+                        <!-- Thống kê tổng quan -->
+                        <div class="row mb-4">
+                            <div class="col-md-2">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body text-center">
+                                        <h4>@ViewBag.ThongKe.tongPhieuBH</h4>
+                                        <p class="mb-0">Tổng phiếu BH</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="card bg-warning text-white">
+                                    <div class="card-body text-center">
+                                        <h4>@ViewBag.ThongKe.choXuLy</h4>
+                                        <p class="mb-0">Chờ xử lý</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body text-center">
+                                        <h4>@ViewBag.ThongKe.dangBaoHanh</h4>
+                                        <p class="mb-0">Đang bảo hành</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <h4>@ViewBag.ThongKe.hoanTat</h4>
+                                        <p class="mb-0">Hoàn tất</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="card bg-danger text-white">
+                                    <div class="card-body text-center">
+                                        <h4>@ViewBag.ThongKe.tuChoi</h4>
+                                        <p class="mb-0">Từ chối</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="card bg-secondary text-white">
+                                    <div class="card-body text-center">
+                                        <h4>@string.Format("{0:N0}", ViewBag.ThongKe.tongChiPhi)đ</h4>
+                                        <p class="mb-0">Tổng chi phí</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Biểu đồ và bảng -->
+                        <div class="row">
+                            <!-- Biểu đồ theo tháng -->
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>Biểu đồ phiếu bảo hành theo tháng</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="monthlyChart" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Top sản phẩm lỗi -->
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>Top sản phẩm bảo hành nhiều nhất</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        @if (ViewBag.ThongKe.topSanPhamLoi != null)
+                                        {
+                                            <div class="list-group list-group-flush">
+                                                @foreach (var item in ViewBag.ThongKe.topSanPhamLoi)
+                                                {
+                                                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                                        <div>
+                                                            <h6 class="mb-1">@item.TenSanPham</h6>
+                                                            <small class="text-muted">Tỷ lệ: @item.TiLeBaoHanh%</small>
+                                                        </div>
+                                                        <span class="badge bg-danger text-white">@item.SoLuongBH</span>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <p class="text-muted text-center">Chưa có dữ liệu</p>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bảng chi tiết theo tháng -->
+                        if (ViewBag.ThongKe.bieuDoThang != null && ViewBag.ThongKe.bieuDoThang.Count > 0)
+                        {
+                            <div class="card mt-4">
+                                <div class="card-header">
+                                    <h6>Chi tiết theo tháng</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Tháng/Năm</th>
+                                                    <th>Số lượng phiếu BH</th>
+                                                    <th>Chi phí (đ)</th>
+                                                    <th>Chi phí TB/phiếu</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in ViewBag.ThongKe.bieuDoThang)
+                                                {
+                                                    <tr>
+                                                        <td>@item.Thang/@item.Nam</td>
+                                                        <td>@item.SoLuongBH</td>
+                                                        <td>@string.Format("{0:N0}", item.ChiPhi)</td>
+                                                        <td>@string.Format("{0:N0}", item.SoLuongBH > 0 ? item.ChiPhi / item.SoLuongBH : 0)</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+// Khởi tạo biểu đồ
+document.addEventListener('DOMContentLoaded', function() {
+    @if (ViewBag.ThongKe != null && ViewBag.ThongKe.bieuDoThang != null)
+    {
+        <text>
+        // Dữ liệu biểu đồ
+        var chartData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.ThongKe.bieuDoThang));
+
+        var ctx = document.getElementById('monthlyChart').getContext('2d');
+        var monthlyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartData.map(item => item.Thang + '/' + item.Nam),
+                datasets: [{
+                    label: 'Số lượng phiếu BH',
+                    data: chartData.map(item => item.SoLuongBH),
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1
+                }, {
+                    label: 'Chi phí (triệu đ)',
+                    data: chartData.map(item => item.ChiPhi / 1000000),
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    yAxisID: 'y1',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Tháng'
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Số lượng phiếu'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Chi phí (triệu đ)'
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                    }
+                }
+            }
+        });
+        </text>
+    }
+});
+
+function exportReport() {
+    var startDate = document.getElementById('startDate').value;
+    var endDate = document.getElementById('endDate').value;
+
+    if (!startDate || !endDate) {
+        alert('Vui lòng chọn khoảng thời gian');
+        return;
+    }
+
+    window.location.href = '@Url.Action("ExportBaoCao")?startDate=' + startDate + '&endDate=' + endDate + '&format=excel';
+}
+</script>
