@@ -8,7 +8,180 @@ def get_connection():
     return pyodbc.connect(Config.SQL_SERVER_CONN)
 
 warranty_routes = Blueprint('warranty_routes', __name__)
-
+# 1. Tạo phiếu bảo hành (FIXED)
+@warranty_routes.route('/api/tao_phieu_bao_hanh', methods=['POST'])
+def tao_phieu_bao_hanh():
+    data = request.json
+    ma_don_hang = data.get("MaDonHang")
+    ma_san_pham = data.get("MaSanPham")
+    so_luong_bh = data.get("SoLuongBH", 1)
+    mo_ta_loi = data.get("MoTaLoi")
+    hinh_anh_loi = data.get("HinhAnhLoi", [])  # Danh sách tên file từ C#
+    
+    if not all([ma_don_hang, ma_san_pham, mo_ta_loi]):
+        return jsonify({"success": False, "message": "Thiếu thông tin bắt buộc"}), 400
+    
+    # CONVERT SANG INTEGER VÀ VALIDATE
+    try:
+        ma_don_hang = int(ma_don_hang)
+        ma_san_pham = int(ma_san_pham)
+        so_luong_bh = int(so_luong_bh)
+        
+        if so_luong_bh <= 0:
+            return jsonify({"success": False, "message": "Số lượng bảo hành phải lớn hơn 0"}), 400
+            
+    except (ValueError, TypeError):
+        return jsonify({"success": False, "message": "Dữ liệu đầu vào không hợp lệ"}), 400
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # Kiểm tra đơn hàng và sản phẩm
+        cursor.execute("""
+            SELECT DH.MaTaiKhoan, DH.NgayDatHang, DH.TrangThai, CT.SoLuong
+            FROM DonHang DH
+            INNER JOIN ChiTietDonHang CT ON DH.MaDonHang = CT.MaDonHang
+            WHERE DH.MaDonHang = ? AND CT.MaSanPham = ?
+        """, (ma_don_hang, ma_san_pham))
+        
+        don_hang_info = cursor.fetchone()
+        if not don_hang_info:
+            return jsonify({"success": False, "message": "Không tìm thấy đơn hàng hoặc sản phẩm"}), 404
+        
+        ma_tai_khoan, ngay_dat_hang, trang_thai_dh, so_luong_mua = don_hang_info
+        
+        # CONVERT so_luong_mua SANG INT NẾU CẦN
+        so_luong_mua = int(so_luong_mua) if so_luong_mua else 0
+        
+        # Kiểm tra đơn hàng đã giao
+        if trang_thai_dh != "Đã giao":
+            return jsonify({"success": False, "message": "Đơn hàng chưa được giao, không thể tạo phiếu bảo hành"}), 400
+        
+        # XỬ LÝ NGÀY THÁNG AN TOÀN HƠN
+        try:
+            if isinstance(ngay_dat_hang, str):
+                ngay_dat_hang = datetime.strptime(ngay_dat_hang, "%Y-%m-%d")
+            elif not isinstance(ngay_dat_hang, datetime):
+                ngay_dat_hang = datetime.now()
+        except:
+            ngay_dat_hang = datetime.now()
+        
+        # Kiểm tra còn trong thời hạn bảo hành (1 năm)
+        ngay_het_han = ngay_dat_hang + timedelta(days=365)
+        if datetime.now() > ngay_het_han:
+            return jsonify({"success": False, "message": "Sản phẩm đã hết hạn bảo hành"}), 400
+        
+        # Kiểm tra số lượng hợp lệ - SAFE COMPARISON
+        if so_luong_bh > so_luong_mua:
+            return jsonify({
+                "success": False, 
+                "message": f"Số lượng bảo hành ({so_luong_bh}) không được vượt quá số lượng đã mua ({so_luong_mua})"
+            }), 400
+        
+        # Kiểm tra đã tạo phiếu bảo hành chưa
+        cursor.execute("""
+            SELECT COUNT(*) FROM PhieuBaoHanh 
+            WHERE MaDonHang = ? AND MaSanPham = ? AND TrangThai NOT IN (N'Từ chối', N'Hoàn tất')
+        """, (ma_don_hang, ma_san_pham))
+        
+        if cursor.fetchone()[0] > 0:
+            return jsonify({"success": False, "message": "Đã có phiếu bảo hành đang xử lý cho sản phẩm này"}), 400
+        
+        # XỬ LÝ HÌNH ẢNH AN TOÀN HƠN
+        hinh_anh_json = None
+        if hinh_anh_loi and isinstance(hinh_anh_loi, list) and len(hinh_anh_loi) > 0:
+            # Lọc bỏ các giá trị không hợp lệ
+            hinh_anh_filtered = [img for img in hinh_anh_loi if img and isinstance(img, str) and img.strip()]
+            if hinh_anh_filtered:
+                hinh_anh_json = json.dumps(hinh_anh_filtered)
+        
+        # Tạo phiếu bảo hành
+        cursor.execute("""
+            INSERT INTO PhieuBaoHanh (MaDonHang, MaTaiKhoan, MaSanPham, SoLuongBH, MoTaLoi, 
+                                     HinhAnhLoi, NgayBatDauBH, NgayKetThucBH, TrangThai)
+            OUTPUT INSERTED.MaPhieuBH
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, N'Chờ xử lý')
+        """, (ma_don_hang, ma_tai_khoan, ma_san_pham, so_luong_bh, mo_ta_loi, 
+              hinh_anh_json, ngay_dat_hang, ngay_het_han))
+        
+        ma_phieu_bh = cursor.fetchone()[0]
+        
+        # THÊM LỊCH SỬ XỬ LÝ
+        cursor.execute("""
+            INSERT INTO LichSuBaoHanh (MaPhieuBH, TrangThaiCu, TrangThaiMoi, MoTa, NgayCapNhat)
+            VALUES (?, NULL, N'Chờ xử lý', N'Phiếu bảo hành được tạo bởi khách hàng', GETDATE())
+        """, (ma_phieu_bh,))
+        
+        conn.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": "Tạo phiếu bảo hành thành công",
+            "maPhieuBH": ma_phieu_bh,
+            "ngayHetHan": ngay_het_han.strftime("%Y-%m-%d"),
+            "soHinhAnh": len(hinh_anh_loi) if hinh_anh_loi else 0
+        })
+        
+    except Exception as e:
+        conn.rollback()
+        print(f"Error in tao_phieu_bao_hanh: {str(e)}")
+        return jsonify({"success": False, "message": f"Lỗi hệ thống: {str(e)}"}), 500
+    finally:
+        conn.close()
+# API để cập nhật hình ảnh sau khi C# đã lưu file (IMPROVED)
+@warranty_routes.route('/api/cap_nhat_hinh_anh_bao_hanh', methods=['POST'])
+def cap_nhat_hinh_anh_bao_hanh():
+    data = request.json
+    ma_phieu_bh = data.get("MaPhieuBH")
+    hinh_anh_loi = data.get("HinhAnhLoi", [])
+    
+    if not ma_phieu_bh:
+        return jsonify({"success": False, "message": "Thiếu mã phiếu bảo hành"}), 400
+    
+    # VALIDATE MA_PHIEU_BH
+    try:
+        ma_phieu_bh = int(ma_phieu_bh)
+    except (ValueError, TypeError):
+        return jsonify({"success": False, "message": "Mã phiếu bảo hành không hợp lệ"}), 400
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # KIỂM TRA PHIẾU BẢO HÀNH TỒN TẠI
+        cursor.execute("SELECT MaPhieuBH FROM PhieuBaoHanh WHERE MaPhieuBH = ?", (ma_phieu_bh,))
+        if not cursor.fetchone():
+            return jsonify({"success": False, "message": "Không tìm thấy phiếu bảo hành"}), 404
+        
+        # XỬ LÝ HÌNH ẢNH AN TOÀN
+        hinh_anh_json = None
+        if hinh_anh_loi and isinstance(hinh_anh_loi, list):
+            # Lọc bỏ các giá trị không hợp lệ+-
+            hinh_anh_filtered = [img for img in hinh_anh_loi if img and isinstance(img, str) and img.strip()]
+            if hinh_anh_filtered:
+                hinh_anh_json = json.dumps(hinh_anh_filtered)
+        
+        # Cập nhật hình ảnh vào database
+        cursor.execute("""
+            UPDATE PhieuBaoHanh 
+            SET HinhAnhLoi = ?
+            WHERE MaPhieuBH = ?
+        """, (hinh_anh_json, ma_phieu_bh))
+        
+        conn.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": f"Cập nhật {len(hinh_anh_loi) if hinh_anh_loi else 0} hình ảnh thành công"
+        })
+        
+    except Exception as e:
+        conn.rollback()
+        print(f"Error in cap_nhat_hinh_anh_bao_hanh: {str(e)}")
+        return jsonify({"success": False, "message": f"Lỗi hệ thống: {str(e)}"}), 500
+    finally:
+        conn.close()
 # 2. Lấy danh sách phiếu bảo hành
 @warranty_routes.route('/api/get_phieu_bao_hanh', methods=['POST'])
 def get_phieu_bao_hanh():
@@ -435,6 +608,89 @@ def thong_ke_bao_hanh():
             "tongChiPhi": float(tong_chi_phi),
             "topSanPhamLoi": top_san_pham,
             "bieuDoThang": bieu_do_thang
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+    # 8. Kiểm tra điều kiện bảo hành
+@warranty_routes.route('/api/kiem_tra_dieu_kien_bao_hanh', methods=['POST'])
+def kiem_tra_dieu_kien_bao_hanh():
+    data = request.json
+    ma_don_hang = data.get("MaDonHang")
+    ma_san_pham = data.get("MaSanPham")
+    
+    if not ma_don_hang or not ma_san_pham:
+        return jsonify({"success": False, "message": "Thiếu thông tin đơn hàng hoặc sản phẩm"}), 400
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # Kiểm tra thông tin đơn hàng
+        cursor.execute("""
+            SELECT DH.NgayDatHang, DH.TrangThai, CT.SoLuong, SP.TenSanPham
+            FROM DonHang DH
+            INNER JOIN ChiTietDonHang CT ON DH.MaDonHang = CT.MaDonHang
+            INNER JOIN SanPham SP ON CT.MaSanPham = SP.MaSanPham
+            WHERE DH.MaDonHang = ? AND CT.MaSanPham = ?
+        """, (ma_don_hang, ma_san_pham))
+        
+        don_hang_info = cursor.fetchone()
+        if not don_hang_info:
+            return jsonify({
+                "success": True,
+                "coTheBaoHanh": False,
+                "lyDo": "Không tìm thấy đơn hàng hoặc sản phẩm"
+            })
+        
+        ngay_dat_hang, trang_thai, so_luong_mua, ten_san_pham = don_hang_info
+        
+        # Kiểm tra đã giao hàng
+        if trang_thai != "Đã giao":
+            return jsonify({
+                "success": True,
+                "coTheBaoHanh": False,
+                "lyDo": "Đơn hàng chưa được giao"
+            })
+        
+        # Kiểm tra thời hạn bảo hành
+        ngay_het_han = ngay_dat_hang + timedelta(days=365)  # 1 năm
+        con_bao_hanh = datetime.now() <= ngay_het_han
+        so_ngay_con_lai = (ngay_het_han - datetime.now()).days if con_bao_hanh else 0
+        
+        if not con_bao_hanh:
+            return jsonify({
+                "success": True,
+                "coTheBaoHanh": False,
+                "lyDo": f"Sản phẩm đã hết hạn bảo hành ({ngay_het_han.strftime('%d/%m/%Y')})",
+                "ngayHetHan": ngay_het_han.strftime("%Y-%m-%d")
+            })
+        
+        # Kiểm tra đã có phiếu bảo hành chưa
+        cursor.execute("""
+            SELECT COUNT(*) FROM PhieuBaoHanh 
+            WHERE MaDonHang = ? AND MaSanPham = ? AND TrangThai NOT IN (N'Từ chối', N'Hoàn tất')
+        """, (ma_don_hang, ma_san_pham))
+        
+        da_co_phieu = cursor.fetchone()[0] > 0
+        
+        if da_co_phieu:
+            return jsonify({
+                "success": True,
+                "coTheBaoHanh": False,
+                "lyDo": "Đã có phiếu bảo hành đang xử lý cho sản phẩm này"
+            })
+        
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "coTheBaoHanh": True,
+            "tenSanPham": ten_san_pham,
+            "soLuongMua": so_luong_mua,
+            "ngayMua": ngay_dat_hang.strftime("%Y-%m-%d"),
+            "ngayHetHan": ngay_het_han.strftime("%Y-%m-%d"),
+            "soNgayConLai": max(0, so_ngay_con_lai)
         })
         
     except Exception as e:

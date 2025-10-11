@@ -1,0 +1,687 @@
+﻿@{
+    ViewBag.Title = "Tạo yêu cầu bảo hành";
+    Layout = "~/Views/Shared/_LayoutHome.cshtml";
+}
+
+<style>
+    .breadcrumb-area {
+        background: #f8f9fa;
+        padding: 40px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .breadcrumb-content {
+        text-align: center;
+    }
+
+    .breadcrumb-content h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #212529;
+    }
+
+    .breadcrumb-content ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.9rem;
+    }
+
+    .breadcrumb-content ul li {
+        color: #6c757d;
+    }
+
+    .breadcrumb-content ul li a {
+        color: #0d6efd;
+        text-decoration: none;
+    }
+
+    .breadcrumb-content ul li a:hover {
+        text-decoration: underline;
+    }
+
+    .breadcrumb-content ul li::after {
+        content: '/';
+        margin-left: 12px;
+        color: #dee2e6;
+    }
+
+    .breadcrumb-content ul li:last-child::after {
+        display: none;
+    }
+
+    .page-content {
+        padding: 60px 0;
+        background: #ffffff;
+        min-height: 80vh;
+    }
+
+    .warranty-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        overflow: hidden;
+        border: 1px solid #e9ecef;
+    }
+
+    .card-header {
+        background: #fff;
+        border-bottom: 1px solid #e9ecef;
+        padding: 24px 32px;
+    }
+
+    .card-header h4 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #212529;
+    }
+
+    .card-body {
+        padding: 32px;
+    }
+
+    .order-info {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 32px;
+        border: 1px solid #e9ecef;
+    }
+
+    .order-info h5 {
+        color: #212529;
+        font-weight: 600;
+        margin-bottom: 20px;
+        font-size: 1.1rem;
+    }
+
+    .order-info p {
+        margin-bottom: 12px;
+        color: #495057;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .order-info strong {
+        color: #212529;
+        font-weight: 600;
+        min-width: 130px;
+    }
+
+    .warranty-status {
+        background: #d4edda;
+        color: #155724;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        display: inline-block;
+    }
+
+    .warranty-expired {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .warranty-form {
+        background: #fff;
+        border-radius: 8px;
+        padding: 24px;
+        border: 1px solid #e9ecef;
+    }
+
+    .warranty-form h5 {
+        color: #212529;
+        font-weight: 600;
+        margin-bottom: 24px;
+        font-size: 1.1rem;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-label {
+        color: #212529;
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 1rem;
+    }
+
+    .form-label.required::after {
+        content: '*';
+        color: #dc3545;
+        margin-left: 4px;
+    }
+
+    .form-control {
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        transition: border-color 0.15s ease;
+        width: 100%;
+        background: #fff;
+    }
+
+    .form-control:focus {
+        border-color: #0d6efd;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25);
+    }
+
+    .warranty-notice {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 6px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+
+    .warranty-notice h6 {
+        color: #856404;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+    .warranty-notice ul {
+        margin: 0;
+        padding-left: 20px;
+        font-size: 0.9rem;
+        color: #856404;
+    }
+
+    .warranty-notice li {
+        margin-bottom: 6px;
+        line-height: 1.4;
+    }
+
+    .form-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 32px;
+    }
+
+    .btn-submit {
+        background: #28a745;
+        border: 1px solid #28a745;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-align: center;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+        background: #218838;
+        border-color: #1e7e34;
+    }
+
+    .btn-submit:disabled {
+        background: #6c757d;
+        border-color: #6c757d;
+        cursor: not-allowed;
+        opacity: 0.65;
+    }
+
+    .btn-cancel {
+        background: #fff;
+        border: 1px solid #6c757d;
+        color: #6c757d;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        transition: all 0.15s ease;
+    }
+
+    .btn-cancel:hover {
+        background: #6c757d;
+        color: white;
+        text-decoration: none;
+    }
+
+    .image-preview {
+        border: 2px dashed #dee2e6;
+        border-radius: 6px;
+        padding: 20px;
+        text-align: center;
+        margin-top: 8px;
+        transition: border-color 0.15s ease;
+        cursor: pointer;
+    }
+
+    .image-preview:hover {
+        border-color: #0d6efd;
+    }
+
+    .image-preview.drag-over {
+        border-color: #0d6efd;
+        background-color: #f8f9ff;
+    }
+
+    .preview-images {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .preview-image {
+        position: relative;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1px solid #dee2e6;
+    }
+
+    .preview-image img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+    }
+
+    .remove-image {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .char-counter {
+        text-align: right;
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 4px;
+    }
+
+    .char-counter.warning {
+        color: #fd7e14;
+    }
+
+    .char-counter.error {
+        color: #dc3545;
+    }
+
+    .error-message {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 4px;
+        font-weight: 500;
+        display: none;
+    }
+
+    .form-control.invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+    }
+
+    .form-control.valid {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.15);
+    }
+
+    @@media (max-width: 768px) {
+        .card-body {
+            padding: 24px 20px;
+        }
+
+        .order-info,
+        .warranty-form {
+            padding: 20px;
+        }
+
+        .form-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="breadcrumb-area">
+    <div class="container">
+        <div class="breadcrumb-content">
+            <h2>Tạo yêu cầu bảo hành</h2>
+            <ul>
+                <li><a href="@Url.Action("Index","Home")">Trang chủ</a></li>
+                <li><a href="@Url.Action("DonHangCuaToi","Home")">Đơn hàng của tôi</a></li>
+                <li class="active">Tạo yêu cầu bảo hành</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<main class="page-content">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-9 col-xl-8">
+                <div class="card warranty-card">
+                    <div class="card-header">
+                        <h4>Tạo phiếu bảo hành - Đơn hàng #@ViewBag.MaDonHang</h4>
+                    </div>
+                    <div class="card-body">
+                        @if (ViewBag.KiemTra != null && (bool)ViewBag.KiemTra.coTheBaoHanh)
+                        {
+                            <!-- Product Information -->
+                            <div class="order-info">
+                                <h5>Thông tin sản phẩm</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Tên sản phẩm:</strong> @ViewBag.KiemTra.tenSanPham</p>
+                                        <p><strong>Số lượng đã mua:</strong> @ViewBag.KiemTra.soLuongMua</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Ngày mua:</strong> @ViewBag.KiemTra.ngayMua</p>
+                                        <p>
+                                            <strong>Hạn bảo hành:</strong>
+                                            <span class="warranty-status">@ViewBag.KiemTra.ngayHetHan (@ViewBag.KiemTra.soNgayConLai ngày)</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Warranty Form -->
+                    <div class="warranty-form">
+                        <h5>Tạo phiếu bảo hành</h5>
+                        @using (Html.BeginForm("TaoBaoHanh", "BaoHanh", FormMethod.Post, new { @class = "warranty-request-form", enctype = "multipart/form-data" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="MaDonHang" value="@ViewBag.MaDonHang" />
+                            <input type="hidden" name="MaSanPham" value="@ViewBag.MaSanPham" />
+
+                            <div class="form-group">
+                                <label for="soLuongBH" class="form-label required">Số lượng bảo hành</label>
+                                <input type="number" name="SoLuongBH" id="soLuongBH" class="form-control"
+                                       min="1" max="@ViewBag.KiemTra.soLuongMua" value="1" required>
+                                <div class="error-message" id="soLuongBH-error"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="moTaLoi" class="form-label required">Mô tả chi tiết lỗi</label>
+                                <textarea name="MoTaLoi" id="moTaLoi" class="form-control" rows="6"
+                                          placeholder="Vui lòng mô tả chi tiết lỗi của sản phẩm, tình trạng hiện tại và ảnh hưởng đến việc sử dụng..."
+                                          maxlength="1000" required></textarea>
+                                <div class="char-counter">
+                                    <span id="char-count">0</span>/1000 ký tự
+                                </div>
+                                <div class="error-message" id="moTaLoi-error"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="hinhAnhLoi" class="form-label">Hình ảnh minh chứng (tối đa 5 ảnh)</label>
+                                <input type="file" name="HinhAnhLoi" id="hinhAnhLoi" class="form-control"
+                                       accept="image/*" multiple>
+                                <div class="form-text">Chọn hình ảnh để minh chứng tình trạng lỗi của sản phẩm</div>
+
+                                <div class="image-preview" id="imagePreview">
+                                    <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                                    <p class="text-muted mb-0">Kéo thả ảnh vào đây hoặc click để chọn</p>
+                                </div>
+
+                                <div class="preview-images" id="previewImages"></div>
+                            </div>
+
+                            <div class="warranty-notice">
+                                <h6>Điều kện bảo hành:</h6>
+                                <ul>
+                                    <li>Sản phẩm còn trong thời hạn bảo hành (1 năm từ ngày mua)</li>
+                                    <li>Lỗi phát sinh do nhà sản xuất, không do tác động bên ngoài</li>
+                                    <li>Sản phẩm còn tem bảo hành và không bị can thiệp bởi bên thứ ba</li>
+                                    <li>Chúng tôi sẽ liên hệ trong vòng 24h để xác nhận và hướng dẫn gửi hàng</li>
+                                    <li>Thời gian bảo hành từ 5-15 ngày tùy thuộc vào mức độ lỗi</li>
+                                </ul>
+                            </div>
+
+                            <div class="form-actions">
+                                <button class="btn-submit" type="submit" id="submitBtn" disabled>
+                                    Tạo phiếu bảo hành
+                                </button>
+                                <a href="@Url.Action("DonHangCuaToi","Home")" class="btn-cancel">
+                                    Hủy
+                                </a>
+                            </div>
+                        }
+                    </div>
+                        }
+                        else if (ViewBag.KiemTra != null)
+                        {
+                            <div class="alert alert-danger">
+                                <h5>Không thể tạo phiếu bảo hành</h5>
+                                <p>@ViewBag.KiemTra.lyDo</p>
+                                <a href="@Url.Action("DonHangCuaToi","Home")" class="btn btn-secondary">Quay lại</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="warranty-form">
+                                <h5>Kiểm tra điều kiện bảo hành</h5>
+                                <form id="checkForm">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="maDonHang" class="form-label required">Mã đơn hàng</label>
+                                                <input type="number" id="maDonHang" class="form-control" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="maSanPham" class="form-label required">Mã sản phẩm</label>
+                                                <input type="number" id="maSanPham" class="form-control" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-primary" onclick="checkWarranty()">
+                                        Kiểm tra điều kiện
+                                    </button>
+                                </form>
+                                <div id="checkResult"></div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('.warranty-request-form');
+    const moTaTextarea = document.getElementById('moTaLoi');
+    const charCount = document.getElementById('char-count');
+    const charCounter = document.querySelector('.char-counter');
+    const submitBtn = document.getElementById('submitBtn');
+    const fileInput = document.getElementById('hinhAnhLoi');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImages = document.getElementById('previewImages');
+
+    let selectedFiles = [];
+
+    // Character counter
+    if (moTaTextarea) {
+        moTaTextarea.addEventListener('input', function () {
+            const currentLength = this.value.length;
+            charCount.textContent = currentLength;
+
+            if (currentLength > 800) {
+                charCounter.classList.add('error');
+                charCounter.classList.remove('warning');
+            } else if (currentLength > 600) {
+                charCounter.classList.add('warning');
+                charCounter.classList.remove('error');
+            } else {
+                charCounter.classList.remove('warning', 'error');
+            }
+
+            checkFormValidity();
+        });
+    }
+
+    // File upload handling
+    if (fileInput && imagePreview) {
+        imagePreview.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        imagePreview.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('drag-over');
+        });
+
+        imagePreview.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+        });
+
+        imagePreview.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', function(e) {
+            handleFiles(e.target.files);
+        });
+    }
+
+    function handleFiles(files) {
+        if (selectedFiles.length + files.length > 5) {
+            alert('Chỉ được chọn tối đa 5 hình ảnh');
+            return;
+        }
+
+        Array.from(files).forEach(file => {
+            if (file.type.startsWith('image/')) {
+                selectedFiles.push(file);
+                displayImagePreview(file, selectedFiles.length - 1);
+            }
+        });
+
+        updateImagePreviewUI();
+    }
+
+    function displayImagePreview(file, index) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const div = document.createElement('div');
+            div.className = 'preview-image';
+            div.innerHTML = `
+                <img src="${e.target.result}" alt="Preview">
+                <button type="button" class="remove-image" onclick="removeImage(${index})">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            previewImages.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    window.removeImage = function(index) {
+        selectedFiles.splice(index, 1);
+        updateImagePreviewUI();
+        refreshPreviews();
+    }
+
+    function refreshPreviews() {
+        previewImages.innerHTML = '';
+        selectedFiles.forEach((file, index) => {
+            displayImagePreview(file, index);
+        });
+    }
+
+    function updateImagePreviewUI() {
+        if (selectedFiles.length > 0) {
+            imagePreview.style.display = 'none';
+        } else {
+            imagePreview.style.display = 'block';
+        }
+    }
+
+    // Form validation
+    function checkFormValidity() {
+        const soLuong = document.getElementById('soLuongBH')?.value;
+        const moTa = moTaTextarea?.value.trim();
+
+        if (soLuong && moTa && moTa.length >= 10) {
+            if (submitBtn) submitBtn.disabled = false;
+        } else {
+            if (submitBtn) submitBtn.disabled = true;
+        }
+    }
+
+    // Form submission
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const soLuong = document.getElementById('soLuongBH').value;
+            const moTa = moTaTextarea.value.trim();
+
+            if (!soLuong || soLuong < 1) {
+                alert('Vui lòng nhập số lượng bảo hành hợp lệ');
+                return;
+            }
+
+            if (moTa.length < 10) {
+                alert('Mô tả lỗi phải có ít nhất 10 ký tự');
+                return;
+            }
+
+            if (confirm('Bạn có chắc chắn muốn tạo phiếu bảo hành không?')) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Đang tạo phiếu...';
+                this.submit();
+            }
+        });
+
+        // Check form validity on input
+        const inputs = form.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('input', checkFormValidity);
+            input.addEventListener('change', checkFormValidity);
+        });
+    }
+});
+
+// Check warranty eligibility
+function checkWarranty() {
+    const maDonHang = document.getElementById('maDonHang').value;
+    const maSanPham = document.getElementById('maSanPham').value;
+
+    if (!maDonHang || !maSanPham) {
+        alert('Vui lòng nhập đầy đủ mã đơn hàng và mã sản phẩm');
+        return;
+    }
+
+    const resultDiv = document.getElementById('checkResult');
+    resultDiv.innerHTML = '<div class="alert alert-info">Đang kiểm tra...</div>';
+
+    // Redirect to check warranty page
+    window.location.href = '@Url.Action("TaoBaoHanh")?maDonHang=' + maDonHang + '&maSanPham=' + maSanPham;
+}
+</script>

@@ -258,7 +258,9 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AdminController.cs" />
+    <Compile Include="Controllers\BaoHanhController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\LoginController.cs" />
     <Compile Include="Controllers\ThanhToanController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -508,6 +510,12 @@
     <Content Include="Views\Home\DonHangCuaToi.cshtml" />
     <Content Include="Views\Home\GoogleLoginCallback.cshtml" />
     <Content Include="Views\Shared\_ReturnDetailPartial.cshtml" />
+    <Content Include="Views\BaoHanh\ChiTietBaoHanh.cshtml" />
+    <Content Include="Views\BaoHanh\QuanLyBaoHanh.cshtml" />
+    <Content Include="Views\BaoHanh\ThongKeBaoHanh.cshtml" />
+    <Content Include="Views\BaoHanh\ChiTietBaoHanhUser.cshtml" />
+    <Content Include="Views\BaoHanh\DanhSachBaoHanhKhachHang.cshtml" />
+    <Content Include="Views\BaoHanh\TaoBaoHanh.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -1,0 +1,856 @@
+﻿@{
+    ViewBag.Title = "Chi tiết Phiếu Bảo hành";
+    Layout = "~/Views/Shared/_LayoutHome.cshtml";
+}
+
+<style>
+    .breadcrumb-area {
+        background: #f8f9fa;
+        padding: 40px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .breadcrumb-content {
+        text-align: center;
+    }
+    .breadcrumb-content h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #212529;
+    }
+    .breadcrumb-content ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.9rem;
+    }
+    .breadcrumb-content ul li {
+        color: #6c757d;
+    }
+    .breadcrumb-content ul li a {
+        color: #0d6efd;
+        text-decoration: none;
+    }
+    .breadcrumb-content ul li::after {
+        content: '/';
+        margin-left: 12px;
+        color: #dee2e6;
+    }
+    .breadcrumb-content ul li:last-child::after {
+        display: none;
+    }
+    .page-content {
+        padding: 60px 0;
+        background: #ffffff;
+        min-height: 80vh;
+    }
+    .warranty-detail-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        overflow: hidden;
+        margin-bottom: 30px;
+    }
+    .warranty-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+    .warranty-header h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    .warranty-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+    .warranty-status-banner {
+        padding: 20px 30px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    .status-waiting { background: #fff3cd; color: #856404; }
+    .status-approved { background: #d1ecf1; color: #0c5460; }
+    .status-processing { background: #cce5ff; color: #004085; }
+    .status-completed { background: #d4edda; color: #155724; }
+    .status-rejected { background: #f8d7da; color: #721c24; }
+    .warranty-content {
+        padding: 30px;
+    }
+    .info-section {
+        margin-bottom: 40px;
+    }
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .section-title i {
+        color: #667eea;
+    }
+    .info-row {
+        display: flex;
+        margin-bottom: 15px;
+        align-items: flex-start;
+    }
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+        min-width: 150px;
+        margin-right: 20px;
+    }
+    .info-value {
+        color: #212529;
+        flex: 1;
+    }
+    .product-showcase {
+        display: flex;
+        gap: 25px;
+        align-items: center;
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    .product-image {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+    }
+    .product-details {
+        flex: 1;
+    }
+    .product-name {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 15px;
+    }
+    .warranty-validity {
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-align: center;
+        margin: 15px 0;
+    }
+    .warranty-valid {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    .warranty-expired {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    .warranty-warning {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+    .error-description {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        border-left: 4px solid #dc3545;
+        margin: 20px 0;
+    }
+    .error-images {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .error-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+        border: 2px solid #e9ecef;
+    }
+    .error-image:hover {
+        transform: scale(1.05);
+    }
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    .timeline-item {
+        position: relative;
+        padding-bottom: 25px;
+        border-left: 3px solid #e9ecef;
+    }
+    .timeline-item:before {
+        content: '';
+        position: absolute;
+        left: -8px;
+        top: 0;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #667eea;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px #667eea;
+    }
+    .timeline-content {
+        margin-left: 25px;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border: 1px solid #e9ecef;
+    }
+    .timeline-content h6 {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    .timeline-content p {
+        margin-bottom: 8px;
+        color: #495057;
+    }
+    .timeline-content small {
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+    .shipping-info, .manufacturer-info {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+    }
+    .shipping-info h6, .manufacturer-info h6 {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .action-buttons {
+        text-align: center;
+        padding: 30px;
+        background: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+    }
+    .btn-back {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+    }
+    .btn-back:hover {
+        background: #5a6268;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+    .cost-info {
+        background: #e7f3ff;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #0d6efd;
+        margin-top: 15px;
+    }
+    .cost-amount {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #0d6efd;
+    }
+    @@media (max-width: 768px) {
+        .warranty-content {
+            padding: 20px;
+        }
+        .product-showcase {
+            flex-direction: column;
+            text-align: center;
+        }
+        .product-image {
+            width: 120px;
+            height: 120px;
+        }
+        .info-row {
+            flex-direction: column;
+        }
+        .info-label {
+            min-width: auto;
+            margin-bottom: 5px;
+        }
+        .error-images {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+    }
+</style>
+
+<div class="breadcrumb-area">
+    <div class="container">
+        <div class="breadcrumb-content">
+            <h2>Chi tiết Phiếu Bảo hành</h2>
+            <ul>
+                <li><a href="@Url.Action("Index","Home")">Trang chủ</a></li>
+                <li><a href="@Url.Action("DanhSachBaoHanh","BaoHanh")">Bảo hành của tôi</a></li>
+                <li class="active">Chi tiết phiếu</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<main class="page-content">
+    <div class="container">
+        <div class="warranty-detail-card">
+            <!-- Header -->
+            <div class="warranty-header">
+                <h1>Phiếu Bảo hành #<span id="warrantyId"></span></h1>
+                <p>Theo dõi tình trạng xử lý phiếu bảo hành của bạn</p>
+            </div>
+
+            <!-- Status Banner -->
+            <div id="statusBanner" class="warranty-status-banner">
+                <i class="fas fa-clock"></i> <span id="statusText">Đang tải...</span>
+            </div>
+
+            <!-- Content -->
+            <div class="warranty-content">
+                <!-- Thông tin sản phẩm -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-laptop"></i>
+                        Thông tin sản phẩm
+                    </h3>
+                    <div id="productShowcase" class="product-showcase">
+                        <!-- Product info will be loaded here -->
+                    </div>
+                    <div id="productDetails">
+                        <!-- Additional product details -->
+                    </div>
+                </div>
+
+                <!-- Thông tin phiếu bảo hành -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-file-alt"></i>
+                        Thông tin phiếu bảo hành
+                    </h3>
+                    <div id="warrantyInfo">
+                        <!-- Warranty info will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Mô tả lỗi -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Mô tả sự cố
+                    </h3>
+                    <div id="errorDescription" class="error-description">
+                        <!-- Error description will be loaded here -->
+                    </div>
+                    <div id="errorImages" class="error-images">
+                        <!-- Error images will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Lịch sử xử lý -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-history"></i>
+                        Lịch sử xử lý
+                    </h3>
+                    <div id="timeline" class="timeline">
+                        <!-- Timeline will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Thông tin vận chuyển -->
+                <div id="shippingSection" class="info-section" style="display: none;">
+                    <h3 class="section-title">
+                        <i class="fas fa-shipping-fast"></i>
+                        Thông tin vận chuyển
+                    </h3>
+                    <div id="shippingInfo">
+                        <!-- Shipping info will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Xử lý từ nhà sản xuất -->
+                <div id="manufacturerSection" class="info-section" style="display: none;">
+                    <h3 class="section-title">
+                        <i class="fas fa-industry"></i>
+                        Xử lý từ nhà sản xuất
+                    </h3>
+                    <div id="manufacturerInfo">
+                        <!-- Manufacturer info will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="@Url.Action("DanhSachBaoHanh", "BaoHanh")" class="btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                    Quay lại danh sách
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get warranty ID from URL
+    const urlParts = window.location.pathname.split('/');
+    const warrantyId = urlParts[urlParts.length - 1];
+
+    if (warrantyId) {
+        loadWarrantyDetail(warrantyId);
+    }
+
+    async function loadWarrantyDetail(maPhieuBH) {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/api/get_chi_tiet_bao_hanh', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    MaPhieuBH: parseInt(maPhieuBH)
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                displayWarrantyDetail(data.chiTiet);
+            } else {
+                showError('Không thể tải chi tiết phiếu bảo hành');
+            }
+        } catch (error) {
+            console.error('Error loading warranty detail:', error);
+            showError('Lỗi kết nối khi tải chi tiết phiếu bảo hành');
+        }
+    }
+
+    function displayWarrantyDetail(detail) {
+        // Update warranty ID
+        document.getElementById('warrantyId').textContent = detail.MaPhieuBH;
+
+        // Update status banner
+        updateStatusBanner(detail.TrangThai);
+
+        // Display product showcase
+        displayProductShowcase(detail);
+
+        // Display product details
+        displayProductDetails(detail);
+
+        // Display warranty info
+        displayWarrantyInfo(detail);
+
+        // Display error description
+        displayErrorDescription(detail);
+
+        // Display error images
+        displayErrorImages(detail.HinhAnhLoi, detail.MaPhieuBH);
+
+        // Display timeline
+        displayTimeline(detail.LichSu);
+
+        // Display shipping info if available
+        if (detail.VanChuyen && detail.VanChuyen.length > 0) {
+            displayShippingInfo(detail.VanChuyen);
+        }
+
+        // Display manufacturer info if available
+        if (detail.XuLyNhaSanXuat && detail.XuLyNhaSanXuat.length > 0) {
+            displayManufacturerInfo(detail.XuLyNhaSanXuat);
+        }
+    }
+
+    function updateStatusBanner(status) {
+        const banner = document.getElementById('statusBanner');
+        const statusText = document.getElementById('statusText');
+
+        statusText.textContent = status;
+
+        // Remove all status classes
+        banner.className = 'warranty-status-banner';
+
+        // Add appropriate status class
+        switch (status) {
+            case 'Chờ xử lý':
+                banner.classList.add('status-waiting');
+                break;
+            case 'Đã duyệt':
+            case 'Chờ lấy hàng bảo hành':
+            case 'Đang vận chuyển':
+            case 'Đang bảo hành':
+                banner.classList.add('status-processing');
+                break;
+            case 'Hoàn tất':
+            case 'Đã trả hàng':
+            case 'Bảo hành hoàn tất':
+                banner.classList.add('status-completed');
+                break;
+            case 'Từ chối':
+                banner.classList.add('status-rejected');
+                break;
+            default:
+                banner.classList.add('status-waiting');
+        }
+    }
+
+    function displayProductShowcase(detail) {
+        const container = document.getElementById('productShowcase');
+        const warrantyStatus = detail.ConBaoHanh ?
+            (detail.SoNgayConLai > 30 ?
+                `<div class="warranty-validity warranty-valid">
+                    <i class="fas fa-shield-alt"></i> Còn ${detail.SoNgayConLai} ngày bảo hành
+                </div>` :
+                `<div class="warranty-validity warranty-warning">
+                    <i class="fas fa-shield-alt"></i> Còn ${detail.SoNgayConLai} ngày bảo hành
+                </div>`
+            ) :
+            `<div class="warranty-validity warranty-expired">
+                <i class="fas fa-shield-alt"></i> Hết hạn bảo hành
+            </div>`;
+
+        container.innerHTML = `
+            <img src="/assets/images/product/${detail.MaSanPham}/${detail.HinhAnhSP || 'no-image.png'}"
+                 alt="Product" class="product-image">
+            <div class="product-details">
+                <h4 class="product-name">${detail.TenSanPham || 'Không có tên sản phẩm'}</h4>
+                <div class="info-row">
+                    <span class="info-label">Số lượng bảo hành:</span>
+                    <span class="info-value">${detail.SoLuongBH}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Ngày mua:</span>
+                    <span class="info-value">${formatDate(detail.NgayMua)}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Hạn bảo hành:</span>
+                    <span class="info-value">${formatDate(detail.NgayKetThucBH)}</span>
+                </div>
+                ${warrantyStatus}
+            </div>
+        `;
+    }
+
+    function displayProductDetails(detail) {
+        const container = document.getElementById('productDetails');
+        container.innerHTML = `
+            <div class="info-row">
+                <span class="info-label">Mã sản phẩm:</span>
+                <span class="info-value">${detail.MaSanPham}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Đơn hàng liên quan:</span>
+                <span class="info-value">#${detail.MaDonHang}</span>
+            </div>
+        `;
+    }
+
+    function displayWarrantyInfo(detail) {
+        const container = document.getElementById('warrantyInfo');
+        let rejectReason = '';
+        if (detail.LyDoTuChoi) {
+            rejectReason = `
+                <div class="info-row">
+                    <span class="info-label">Lý do từ chối:</span>
+                    <span class="info-value text-danger"><strong>${detail.LyDoTuChoi}</strong></span>
+                </div>
+            `;
+        }
+
+        container.innerHTML = `
+            <div class="info-row">
+                <span class="info-label">Mã phiếu:</span>
+                <span class="info-value">${detail.MaPhieuBH}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Ngày tạo:</span>
+                <span class="info-value">${formatDateTime(detail.NgayTao)}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Trạng thái:</span>
+                <span class="info-value">
+                    <span class="badge ${getStatusBadgeClass(detail.TrangThai)}">${detail.TrangThai}</span>
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Khách hàng:</span>
+                <span class="info-value">${detail.TenKhachHang}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Số điện thoại:</span>
+                <span class="info-value">${detail.SoDienThoai}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value">${detail.Email}</span>
+            </div>
+            ${rejectReason}
+        `;
+    }
+
+    function displayErrorDescription(detail) {
+        const container = document.getElementById('errorDescription');
+        container.innerHTML = `
+            <h6><i class="fas fa-bug"></i> Mô tả chi tiết sự cố</h6>
+            <p>${detail.MoTaLoi}</p>
+        `;
+    }
+
+    function displayErrorImages(images,maphieuBH) {
+        const container = document.getElementById('errorImages');
+        if (!images || images.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        let html = '';
+        images.forEach(image => {
+            html += `
+                <img src="/assets/images/warranty/${maphieuBH}/${image}" class="error-image" onclick="showImageModal('${image}')" alt="Hình ảnh lỗi">
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function displayTimeline(history) {
+        const container = document.getElementById('timeline');
+        if (!history || history.length === 0) {
+            container.innerHTML = '<p class="text-muted">Chưa có lịch sử xử lý</p>';
+            return;
+        }
+
+        let html = '';
+        history.forEach(item => {
+            html += `
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h6>${item.TrangThaiMoi}</h6>
+                        <p>${item.MoTa}</p>
+                        <small><i class="fas fa-clock"></i> ${formatDateTime(item.NgayCapNhat)}</small>
+                        ${item.NguoiCapNhat ? `<br><small><i class="fas fa-user"></i> ${item.NguoiCapNhat}</small>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function displayShippingInfo(shipping) {
+        const section = document.getElementById('shippingSection');
+        const container = document.getElementById('shippingInfo');
+
+        let html = '';
+        shipping.forEach(item => {
+            html += `
+                <div class="shipping-info">
+                    <h6><i class="fas fa-truck"></i> ${item.LoaiVanChuyen}</h6>
+                    <div class="info-row">
+                        <span class="info-label">Đơn vị vận chuyển:</span>
+                        <span class="info-value">${item.DonViVanChuyen}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Mã vận đơn:</span>
+                        <span class="info-value"><strong>${item.MaVanDon}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Ngày lấy hàng:</span>
+                        <span class="info-value">${formatDateTime(item.NgayLayHang)}</span>
+                    </div>
+                    ${item.NgayGiaoHang ? `
+                    <div class="info-row">
+                        <span class="info-label">Ngày giao hàng:</span>
+                        <span class="info-value">${formatDateTime(item.NgayGiaoHang)}</span>
+                    </div>` : ''}
+                    <div class="info-row">
+                        <span class="info-label">Trạng thái:</span>
+                        <span class="info-value">
+                            <span class="badge bg-info">${item.TrangThaiVanChuyen}</span>
+                        </span>
+                    </div>
+                    ${item.GhiChu ? `
+                    <div class="info-row">
+                        <span class="info-label">Ghi chú:</span>
+                        <span class="info-value">${item.GhiChu}</span>
+                    </div>` : ''}
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+        section.style.display = 'block';
+    }
+
+    function displayManufacturerInfo(manufacturers) {
+        const section = document.getElementById('manufacturerSection');
+        const container = document.getElementById('manufacturerInfo');
+
+        let html = '';
+        manufacturers.forEach(item => {
+            html += `
+                <div class="manufacturer-info">
+                    <h6><i class="fas fa-industry"></i> ${item.TenNhaSanXuat}</h6>
+                    <div class="info-row">
+                        <span class="info-label">Mã phiếu NSX:</span>
+                        <span class="info-value"><strong>${item.MaPhieuNSX}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Hình thức xử lý:</span>
+                        <span class="info-value">${item.HinhThucXuLy}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Ngày gửi:</span>
+                        <span class="info-value">${formatDate(item.NgayGui)}</span>
+                    </div>
+                    ${item.NgayNhan ? `
+                    <div class="info-row">
+                        <span class="info-label">Ngày nhận:</span>
+                        <span class="info-value">${formatDate(item.NgayNhan)}</span>
+                    </div>` : ''}
+                    ${item.NgayHoanTat ? `
+                    <div class="info-row">
+                        <span class="info-label">Ngày hoàn tất:</span>
+                        <span class="info-value">${formatDate(item.NgayHoanTat)}</span>
+                    </div>` : ''}
+                    ${item.MoTaXuLy ? `
+                    <div class="info-row">
+                        <span class="info-label">Mô tả xử lý:</span>
+                        <span class="info-value">${item.MoTaXuLy}</span>
+                    </div>` : ''}
+                    <div class="info-row">
+                        <span class="info-label">Trạng thái:</span>
+                        <span class="info-value">
+                            <span class="badge ${item.TrangThai === 'Hoàn tất' ? 'bg-success' : 'bg-warning'}">${item.TrangThai}</span>
+                        </span>
+                    </div>
+                    ${item.ChiPhi > 0 ? `
+                    <div class="cost-info">
+                        <div class="info-row">
+                            <span class="info-label">Chi phí xử lý:</span>
+                            <span class="cost-amount">${formatCurrency(item.ChiPhi)}</span>
+                        </div>
+                    </div>` : ''}
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+        section.style.display = 'block';
+    }
+
+    // Helper functions
+    function getStatusBadgeClass(status) {
+        const statusClasses = {
+            'Chờ xử lý': 'bg-warning',
+            'Đã duyệt': 'bg-info',
+            'Chờ lấy hàng bảo hành': 'bg-primary',
+            'Đang vận chuyển': 'bg-info',
+            'Đang bảo hành': 'bg-warning',
+            'Bảo hành hoàn tất': 'bg-success',
+            'Chờ trả hàng': 'bg-primary',
+            'Đã trả hàng': 'bg-success',
+            'Hoàn tất': 'bg-success',
+            'Từ chối': 'bg-danger'
+        };
+        return statusClasses[status] || 'bg-secondary';
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return 'Chưa có thông tin';
+        return new Date(dateString).toLocaleDateString('vi-VN');
+    }
+
+    function formatDateTime(dateTimeString) {
+        if (!dateTimeString) return 'Chưa có thông tin';
+        return new Date(dateTimeString).toLocaleString('vi-VN');
+    }
+
+    function formatCurrency(amount) {
+        if (!amount) return '0 đ';
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(amount);
+    }
+
+    function showImageModal(imageSrc) {
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.id = 'imageModal';
+        modal.innerHTML = `
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Hình ảnh lỗi</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="${imageSrc}" class="img-fluid" alt="Hình ảnh lỗi">
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Initialize Bootstrap modal
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+
+        // Remove modal from DOM when hidden
+        modal.addEventListener('hidden.bs.modal', function() {
+            document.body.removeChild(modal);
+        });
+    }
+
+    function showError(message) {
+        // Create error alert
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+        alertDiv.innerHTML = `
+            <strong>Lỗi!</strong> ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        // Insert at the beginning of page content
+        const pageContent = document.querySelector('.page-content .container');
+        pageContent.insertBefore(alertDiv, pageContent.firstChild);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+});
+</script>
