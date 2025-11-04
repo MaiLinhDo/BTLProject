@@ -1,0 +1,952 @@
+﻿@{
+    ViewBag.Title = "Tạo yêu cầu đổi trả";
+    Layout = "~/Views/Shared/_LayoutHome.cshtml";
+}
+
+<!-- CSS giữ nguyên như cũ, chỉ thêm CSS cho upload hình -->
+<style>
+    /* CSS cũ của bạn ở đây... */
+    .breadcrumb-area {
+        background: #f8f9fa;
+        padding: 40px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .breadcrumb-content {
+        text-align: center;
+    }
+
+        .breadcrumb-content h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #212529;
+        }
+
+        .breadcrumb-content ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+
+            .breadcrumb-content ul li {
+                color: #6c757d;
+            }
+
+                .breadcrumb-content ul li a {
+                    color: #0d6efd;
+                    text-decoration: none;
+                }
+
+                    .breadcrumb-content ul li a:hover {
+                        text-decoration: underline;
+                    }
+
+                .breadcrumb-content ul li::after {
+                    content: '/';
+                    margin-left: 12px;
+                    color: #dee2e6;
+                }
+
+                .breadcrumb-content ul li:last-child::after {
+                    display: none;
+                }
+
+    .page-content {
+        padding: 60px 0;
+        background: #ffffff;
+        min-height: 80vh;
+    }
+
+    .return-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        overflow: hidden;
+        border: 1px solid #e9ecef;
+    }
+
+    .card-header {
+        background: #fff;
+        border-bottom: 1px solid #e9ecef;
+        padding: 24px 32px;
+    }
+
+        .card-header h4 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #212529;
+        }
+
+    .card-body {
+        padding: 32px;
+    }
+
+    .order-info {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 32px;
+        border: 1px solid #e9ecef;
+    }
+
+        .order-info h5 {
+            color: #212529;
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .order-info p {
+            margin-bottom: 12px;
+            color: #495057;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .order-info strong {
+            color: #212529;
+            font-weight: 600;
+            min-width: 110px;
+        }
+
+    .status-badge {
+        background: #198754;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        display: inline-block;
+    }
+
+    .order-products {
+        background: #fff;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 32px;
+        border: 1px solid #e9ecef;
+    }
+
+        .order-products h5 {
+            color: #212529;
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+    .product-item {
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        border-left: 3px solid #0d6efd;
+    }
+
+        .product-item:last-child {
+            margin-bottom: 0;
+        }
+
+    .product-name {
+        color: #212529;
+        font-weight: 600;
+        font-size: 1rem;
+        margin-bottom: 6px;
+    }
+
+    .product-details {
+        color: #6c757d;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .product-total {
+        color: #0d6efd;
+        font-weight: 600;
+        font-size: 1.1rem;
+        text-align: right;
+    }
+
+    .return-form {
+        background: #fff;
+        border-radius: 8px;
+        padding: 24px;
+        border: 1px solid #e9ecef;
+    }
+
+        .return-form h5 {
+            color: #212529;
+            font-weight: 600;
+            margin-bottom: 24px;
+            font-size: 1.1rem;
+        }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-label {
+        color: #212529;
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 1rem;
+    }
+
+        .form-label.required::after {
+            content: '*';
+            color: #dc3545;
+            margin-left: 4px;
+        }
+
+    .form-control {
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        transition: border-color 0.15s ease;
+        width: 100%;
+        background: #fff;
+    }
+
+        .form-control:focus {
+            border-color: #0d6efd;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25);
+        }
+
+        .form-control textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+
+    /* CSS cho upload hình ảnh */
+    .image-upload-section {
+        background: #f8f9fa;
+        border: 2px dashed #ced4da;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+        .image-upload-section:hover {
+            border-color: #0d6efd;
+            background: #e3f2fd;
+        }
+
+        .image-upload-section.dragover {
+            border-color: #0d6efd;
+            background: #e3f2fd;
+            transform: scale(1.02);
+        }
+
+    .upload-icon {
+        font-size: 3rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+
+    .upload-text {
+        color: #495057;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .upload-hint {
+        color: #6c757d;
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+    }
+
+    .file-input {
+        display: none;
+    }
+
+    .upload-btn {
+        background: #0d6efd;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+        .upload-btn:hover {
+            background: #0b5ed7;
+        }
+
+    .image-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .image-preview-item {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .preview-image {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+    }
+
+    .remove-image {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(220, 53, 69, 0.8);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        transition: all 0.3s ease;
+    }
+
+        .remove-image:hover {
+            background: #dc3545;
+            transform: scale(1.1);
+        }
+
+    .image-count {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+
+    .char-counter {
+        text-align: right;
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 4px;
+    }
+
+        .char-counter.warning {
+            color: #fd7e14;
+        }
+
+        .char-counter.error {
+            color: #dc3545;
+        }
+
+    .return-notice {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 6px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+
+        .return-notice h6 {
+            color: #856404;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .return-notice ul {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 0.9rem;
+            color: #856404;
+        }
+
+        .return-notice li {
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+    .form-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 32px;
+    }
+
+    .btn-submit {
+        background: #dc3545;
+        border: 1px solid #dc3545;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-align: center;
+    }
+
+        .btn-submit:hover:not(:disabled) {
+            background: #c82333;
+            border-color: #bd2130;
+        }
+
+        .btn-submit:disabled {
+            background: #6c757d;
+            border-color: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+
+    .btn-cancel {
+        background: #fff;
+        border: 1px solid #6c757d;
+        color: #6c757d;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        transition: all 0.15s ease;
+    }
+
+        .btn-cancel:hover {
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+        }
+
+    .form-control.invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+    }
+
+    .form-control.valid {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.15);
+    }
+
+    .error-message {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 4px;
+        font-weight: 500;
+        display: none;
+    }
+
+    @@media (max-width: 768px) {
+        .breadcrumb-content h2 {
+            font-size: 1.5rem;
+        }
+
+        .card-body {
+            padding: 24px 20px;
+        }
+
+        .order-info,
+        .order-products,
+        .return-form {
+            padding: 20px;
+        }
+
+        .form-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .product-total {
+            text-align: left;
+            margin-top: 8px;
+        }
+
+        .breadcrumb-content ul {
+            flex-wrap: wrap;
+        }
+
+        .image-preview-grid {
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        }
+
+        .preview-image {
+            height: 100px;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .page-content {
+            padding: 40px 0;
+        }
+
+        .breadcrumb-area {
+            padding: 32px 0;
+        }
+    }
+</style>
+
+<div class="breadcrumb-area">
+    <div class="container">
+        <div class="breadcrumb-content">
+            <h2>Tạo yêu cầu đổi/trả hàng</h2>
+            <ul>
+                <li><a href="@Url.Action("Index","Home")">Trang chủ</a></li>
+                <li><a href="@Url.Action("DonHangCuaToi","Home")">Đơn hàng của tôi</a></li>
+                <li class="active">Tạo yêu cầu đổi trả</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<main class="page-content">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-9 col-xl-8">
+                <div class="card return-card">
+                    <div class="card-header">
+                        <h4>Thông tin đơn hàng #@ViewBag.Order.MaDonHang</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Order Information -->
+                        <div class="order-info">
+                            <h5>Thông tin đơn hàng</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Ngày đặt:</strong> @ViewBag.Order.NgayDatHang</p>
+                                    <p><strong>Tổng tiền:</strong> @string.Format("{0:N0} đ", ViewBag.Order.TongTien)</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Trạng thái:</strong> <span class="status-badge">@ViewBag.Order.TrangThai</span></p>
+                                    <p><strong>Địa chỉ giao:</strong> @ViewBag.Order.DiaChiGiaoHang</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Order Products -->
+                        <div class="order-products">
+                            <h5>Sản phẩm trong đơn hàng</h5>
+                            @if (ViewBag.OrderDetails != null)
+                            {
+                                foreach (var detail in ViewBag.OrderDetails)
+                                {
+                                    <div class="product-item">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-8">
+                                                <div class="product-name">@detail.TenSanPham</div>
+                                                <div class="product-details">
+                                                    Số lượng: @detail.SoLuong × @string.Format("{0:N0} đ", detail.Gia)
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="product-total">
+                                                    @string.Format("{0:N0} đ", (detail.SoLuong * detail.Gia))
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+
+                        <!-- Return Form -->
+                        <div class="return-form">
+                            <h5>Tạo yêu cầu đổi/trả hàng</h5>
+                            @using (Html.BeginForm("TaoYeuCauDoiTra", "Home", FormMethod.Post, new { @class = "return-request-form", enctype = "multipart/form-data" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="orderId" value="@ViewBag.Order.MaDonHang" />
+
+                                <div class="form-group">
+                                    <label for="loaiYeuCau" class="form-label required">Loại yêu cầu</label>
+                                    <select name="loaiYeuCau" id="loaiYeuCau" class="form-control" required>
+                                        <option value="">Chọn loại yêu cầu</option>
+                                        <option value="Đổi">Đổi hàng</option>
+                                        <option value="Trả">Trả hàng</option>
+                                    </select>
+                                    <div class="error-message" id="loaiYeuCau-error"></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="lyDo" class="form-label required">Lý do</label>
+                                    <select name="lyDo" id="lyDo" class="form-control" required>
+                                        <option value="">Chọn lý do</option>
+                                        <option value="Sản phẩm lỗi">Sản phẩm lỗi</option>
+                                        <option value="Không đúng mô tả">Không đúng mô tả</option>
+                                        <option value="Giao sai hàng">Giao sai hàng</option>
+                                        <option value="Không vừa ý">Không vừa ý</option>
+                                        <option value="Hàng bị hỏng trong quá trình vận chuyển">Hàng bị hỏng trong vận chuyển</option>
+                                        <option value="Khác">Khác</option>
+                                    </select>
+                                    <div class="error-message" id="lyDo-error"></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="moTa" class="form-label required">Mô tả chi tiết</label>
+                                    <textarea name="moTa" id="moTa" class="form-control" rows="6"
+                                              placeholder="Vui lòng mô tả chi tiết vấn đề bạn gặp phải với sản phẩm..."
+                                              maxlength="1000" required></textarea>
+                                    <div class="char-counter">
+                                        <span id="char-count">0</span>/1000 ký tự
+                                    </div>
+                                    <div class="error-message" id="moTa-error"></div>
+                                </div>
+
+                                <!-- Image Upload Section -->
+                                <div class="form-group">
+                                    <label class="form-label">Hình ảnh minh chứng (tùy chọn)</label>
+                                    <div class="image-upload-section" id="imageUploadArea">
+                                        <div class="upload-icon">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                        </div>
+                                        <div class="upload-text">Kéo thả hình ảnh vào đây hoặc</div>
+                                        <button type="button" class="upload-btn" onclick="document.getElementById('imageInput').click()">
+                                            Chọn file
+                                        </button>
+                                        <div class="upload-hint">
+                                            Hỗ trợ: JPG, PNG, GIF, WEBP. Tối đa 5MB mỗi file. Tối đa 5 hình.
+                                        </div>
+                                        <input type="file" id="imageInput" name="HinhAnhLoi" class="file-input"
+                                               multiple accept=".jpg,.jpeg,.png,.gif,.webp" onchange="handleFileSelect(event)">
+                                    </div>
+
+                                    <!-- Image Preview Grid -->
+                                    <div id="imagePreviewGrid" class="image-preview-grid" style="display: none;">
+                                        <!-- Preview images will be added here -->
+                                    </div>
+
+                                    <div class="image-count" id="imageCount" style="display: none;">
+                                        Đã chọn: <span id="selectedCount">0</span>/5 hình
+                                    </div>
+                                </div>
+
+                                <div class="return-notice">
+                                    <h6>Lưu ý quan trọng:</h6>
+                                    <ul>
+                                        <li>Yêu cầu đổi/trả hàng chỉ được chấp nhận trong vòng 7 ngày kể từ ngày giao hàng</li>
+                                        <li>Sản phẩm phải còn nguyên vẹn, chưa sử dụng và còn đầy đủ bao bì</li>
+                                        <li>Chúng tôi sẽ liên hệ với bạn trong vòng 24h để xác nhận yêu cầu</li>
+                                        <li>Hình ảnh minh chứng sẽ giúp chúng tôi xử lý nhanh chóng hơn</li>
+                                        <li>Phí vận chuyển đổi trả sẽ được thông báo cụ thể</li>
+                                    </ul>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button class="btn-submit" type="submit" id="submitBtn" disabled>
+                                        Gửi yêu cầu
+                                    </button>
+                                    <a href="@Url.Action("DonHangCuaToi")" class="btn-cancel">
+                                        Hủy
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('.return-request-form');
+        const loaiYeuCauSelect = document.getElementById('loaiYeuCau');
+        const lyDoSelect = document.getElementById('lyDo');
+        const moTaTextarea = document.getElementById('moTa');
+        const charCount = document.getElementById('char-count');
+        const charCounter = document.querySelector('.char-counter');
+        const submitBtn = document.getElementById('submitBtn');
+        const imageInput = document.getElementById('imageInput');
+        const imageUploadArea = document.getElementById('imageUploadArea');
+        const imagePreviewGrid = document.getElementById('imagePreviewGrid');
+        const imageCount = document.getElementById('imageCount');
+        const selectedCount = document.getElementById('selectedCount');
+
+        let selectedFiles = [];
+        const maxFiles = 5;
+        const maxFileSize = 5 * 1024 * 1024; // 5MB
+
+        // Character counter for description
+        moTaTextarea.addEventListener('input', function () {
+            const currentLength = this.value.length;
+            charCount.textContent = currentLength;
+            if (currentLength > 800) {
+                charCounter.classList.add('error');
+                charCounter.classList.remove('warning');
+            } else if (currentLength > 600) {
+                charCounter.classList.add('warning');
+                charCounter.classList.remove('error');
+            } else {
+                charCounter.classList.remove('warning', 'error');
+            }
+            checkFormValidity();
+        });
+
+        // Dynamic placeholder update based on reason selection
+        lyDoSelect.addEventListener('change', function () {
+            const placeholders = {
+                'Khác': 'Vui lòng mô tả chi tiết lý do bạn muốn đổi/trả hàng và tình trạng cụ thể của sản phẩm...',
+                'Sản phẩm lỗi': 'Vui lòng mô tả chi tiết lỗi của sản phẩm: vị trí lỗi, tình trạng, ảnh hưởng đến việc sử dụng...',
+                'Giao sai hàng': 'Vui lòng mô tả sản phẩm bạn nhận được và sản phẩm bạn đã đặt để chúng tôi có thể xử lý nhanh chóng...',
+                'default': 'Vui lòng mô tả chi tiết vấn đề bạn gặp phải với sản phẩm...'
+            };
+            moTaTextarea.placeholder = placeholders[this.value] || placeholders['default'];
+            if (this.value === 'Khác') {
+                moTaTextarea.focus();
+            }
+            checkFormValidity();
+        });
+
+        // Image upload functionality
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            addFiles(files);
+        }
+
+        function addFiles(files) {
+            files.forEach(file => {
+                if (selectedFiles.length >= maxFiles) {
+                    alert(`Chỉ được chọn tối đa ${maxFiles} hình ảnh.`);
+                    return;
+                }
+
+                if (!validateFile(file)) {
+                    return;
+                }
+
+                selectedFiles.push(file);
+            });
+
+            updateImagePreview();
+            updateFileInput();
+        }
+
+        function validateFile(file) {
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+
+            if (!allowedTypes.includes(file.type)) {
+                alert(`File ${file.name} không đúng định dạng. Chỉ hỗ trợ: JPG, PNG, GIF, WEBP.`);
+                return false;
+            }
+
+            if (file.size > maxFileSize) {
+                alert(`File ${file.name} quá lớn. Kích thước tối đa là 5MB.`);
+                return false;
+            }
+
+            return true;
+        }
+
+        function updateImagePreview() {
+            imagePreviewGrid.innerHTML = '';
+
+            if (selectedFiles.length === 0) {
+                imagePreviewGrid.style.display = 'none';
+                imageCount.style.display = 'none';
+                return;
+            }
+
+            imagePreviewGrid.style.display = 'grid';
+            imageCount.style.display = 'block';
+            selectedCount.textContent = selectedFiles.length;
+
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'image-preview-item';
+
+                    previewItem.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview" class="preview-image">
+                    <button type="button" class="remove-image" onclick="removeImage(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+                    imagePreviewGrid.appendChild(previewItem);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function updateFileInput() {
+            const dt = new DataTransfer();
+            selectedFiles.forEach(file => dt.items.add(file));
+            imageInput.files = dt.files;
+        }
+
+        // Remove image function (global scope)
+        window.removeImage = function (index) {
+            selectedFiles.splice(index, 1);
+            updateImagePreview();
+            updateFileInput();
+        };
+
+        // Drag and drop functionality
+        imageUploadArea.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        imageUploadArea.addEventListener('dragleave', function (e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+
+        imageUploadArea.addEventListener('drop', function (e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+
+            const files = Array.from(e.dataTransfer.files);
+            addFiles(files);
+        });
+
+        // Real-time validation
+        function validateField(field, errorId, validationFn, errorMessage) {
+            const errorElement = document.getElementById(errorId);
+            field.addEventListener('blur', function () {
+                if (!validationFn(this.value)) {
+                    this.classList.add('invalid');
+                    this.classList.remove('valid');
+                    errorElement.textContent = errorMessage;
+                    errorElement.style.display = 'block';
+                } else {
+                    this.classList.remove('invalid');
+                    this.classList.add('valid');
+                    errorElement.style.display = 'none';
+                }
+            });
+
+            field.addEventListener('input', function () {
+                if (this.classList.contains('invalid') && validationFn(this.value)) {
+                    this.classList.remove('invalid');
+                    this.classList.add('valid');
+                    errorElement.style.display = 'none';
+                }
+            });
+        }
+
+        // Validation rules
+        validateField(loaiYeuCauSelect, 'loaiYeuCau-error',
+            value => value !== '',
+            'Vui lòng chọn loại yêu cầu');
+
+        validateField(lyDoSelect, 'lyDo-error',
+            value => value !== '',
+            'Vui lòng chọn lý do');
+
+        validateField(moTaTextarea, 'moTa-error',
+            value => value.trim().length >= 10,
+            'Mô tả chi tiết phải có ít nhất 10 ký tự');
+
+        // Form submission
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Validate all fields
+            const loaiYeuCau = loaiYeuCauSelect.value;
+            const lyDo = lyDoSelect.value;
+            const moTa = moTaTextarea.value.trim();
+            let isValid = true;
+
+            if (!loaiYeuCau) {
+                loaiYeuCauSelect.classList.add('invalid');
+                document.getElementById('loaiYeuCau-error').textContent = 'Vui lòng chọn loại yêu cầu';
+                document.getElementById('loaiYeuCau-error').style.display = 'block';
+                isValid = false;
+            }
+
+            if (!lyDo) {
+                lyDoSelect.classList.add('invalid');
+                document.getElementById('lyDo-error').textContent = 'Vui lòng chọn lý do';
+                document.getElementById('lyDo-error').style.display = 'block';
+                isValid = false;
+            }
+
+            if (moTa.length < 10) {
+                moTaTextarea.classList.add('invalid');
+                document.getElementById('moTa-error').textContent = 'Mô tả chi tiết phải có ít nhất 10 ký tự';
+                document.getElementById('moTa-error').style.display = 'block';
+                isValid = false;
+            }
+
+            if (!isValid) {
+                const firstError = document.querySelector('.form-control.invalid');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstError.focus();
+                }
+                return false;
+            }
+
+            // Show confirmation dialog
+            const imageText = selectedFiles.length > 0 ? ` với ${selectedFiles.length} hình ảnh đính kèm` : '';
+            const confirmMessage = `Bạn có chắc chắn muốn gửi yêu cầu ${loaiYeuCau.toLowerCase()} hàng với lý do "${lyDo}"${imageText} không?`;
+
+            if (confirm(confirmMessage)) {
+                // Disable submit button to prevent double submission
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.6';
+                submitBtn.textContent = 'Đang gửi...';
+
+                // Submit the form
+                this.submit();
+            }
+        });
+
+        // Enable/disable submit button based on form validity
+        function checkFormValidity() {
+            const loaiYeuCau = loaiYeuCauSelect.value;
+            const lyDo = lyDoSelect.value;
+            const moTa = moTaTextarea.value.trim();
+
+            if (loaiYeuCau && lyDo && moTa.length >= 10) {
+                submitBtn.disabled = false;
+            } else {
+                submitBtn.disabled = true;
+            }
+        }
+
+        // Check form validity on input
+        [loaiYeuCauSelect, lyDoSelect, moTaTextarea].forEach(field => {
+            field.addEventListener('input', checkFormValidity);
+            field.addEventListener('change', checkFormValidity);
+        });
+
+        // Initial form validity check
+        checkFormValidity();
+
+        // Expose handleFileSelect to global scope
+        window.handleFileSelect = handleFileSelect;
+    });
+
+</script>
+@if (TempData["SuccessMessage"] != null)
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            alert('@Html.Raw(TempData["SuccessMessage"])');
+        });
+    </script>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            alert('@Html.Raw(TempData["ErrorMessage"])');
+        });
+    </script>
+}

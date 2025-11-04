@@ -25,16 +25,34 @@ namespace TMDTLaptop.Controllers
 {
     public class HomeController : Controller
     {
-        
-      
+
+
         public async Task<ActionResult> Index()
         {
+            List<Voucher> vouchers = new List<Voucher>();
+            List<Banner> banners = new List<Banner>();
             List<SanPham> products = new List<SanPham>();
+
             using (var client = new HttpClient())
             {
                 client.BaseAddress = new Uri("http://127.0.0.1:5000/");
 
-               
+                // Gọi API Voucher
+                var voucherRes = await client.GetAsync("api/vouchers");
+                if (voucherRes.IsSuccessStatusCode)
+                {
+                    var data = await voucherRes.Content.ReadAsStringAsync();
+                    vouchers = JsonConvert.DeserializeObject<List<Voucher>>(data);
+                }
+
+                // Gọi API Banner
+                var bannerRes = await client.GetAsync("api/banners");
+                if (bannerRes.IsSuccessStatusCode)
+                {
+                    var data = await bannerRes.Content.ReadAsStringAsync();
+                    banners = JsonConvert.DeserializeObject<List<Banner>>(data);
+                }
+
                 // Gọi API Product
                 var productRes = await client.GetAsync("api/products");
                 if (productRes.IsSuccessStatusCode)
@@ -43,6 +61,10 @@ namespace TMDTLaptop.Controllers
                     products = JsonConvert.DeserializeObject<List<SanPham>>(data);
                 }
             }
+
+            ViewBag.Voucher = vouchers;
+            ViewBag.Banners = banners;
+
             return View(products);
         }
 

@@ -1,0 +1,832 @@
+﻿@{
+    ViewBag.Title = "Danh sách đổi trả của tôi";
+    Layout = "~/Views/Shared/_LayoutHome.cshtml";
+}
+
+<style>
+    /* Return List Page Custom Styles */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #0dcaf0;
+        --light-color: #f8f9fa;
+        --dark-color: #212529;
+        --transition: all 0.3s ease;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        min-height: 100vh;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, rgba(13, 110, 253, 0.8), rgba(108, 117, 125, 0.6));
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 2rem 0;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.3);
+    }
+
+    .page-header h1 {
+        color: white;
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-align: center;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        position: relative;
+        z-index: 2;
+    }
+
+    .breadcrumb {
+        display: flex;
+        justify-content: center;
+        margin-top: 1rem;
+        list-style: none;
+        gap: 1rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .breadcrumb li {
+        color: rgba(255, 255, 255, 0.8);
+        font-weight: 500;
+    }
+
+    .breadcrumb li a {
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .breadcrumb li a:hover {
+        color: #ffd700;
+    }
+
+    .breadcrumb li:not(:last-child)::after {
+        content: '>';
+        margin-left: 1rem;
+        opacity: 0.6;
+        color: rgba(255,255,255,0.7);
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .returns-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .return-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .return-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+    }
+
+    .return-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .return-id {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .return-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .return-date {
+        color: #6c757d;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .return-type {
+        font-size: 1rem;
+        font-weight: 600;
+        text-align: right;
+    }
+
+    .return-type.doi {
+        color: var(--info-color);
+    }
+
+    .return-type.tra {
+        color: var(--warning-color);
+    }
+
+    .return-status {
+        margin-top: 1rem;
+        text-align: center;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .status-cho-xu-ly {
+        background: var(--warning-color);
+        color: white;
+    }
+
+    .status-da-duyet {
+        background: var(--info-color);
+        color: white;
+    }
+
+    .status-dang-xu-ly {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .status-da-xu-ly {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .status-tu-choi {
+        background: var(--danger-color);
+        color: white;
+    }
+
+    .return-body {
+        padding: 1.5rem;
+    }
+
+    .return-reason {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .return-reason h6 {
+        color: #212529;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .return-reason p {
+        color: #495057;
+        font-size: 0.85rem;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .return-images {
+        margin-bottom: 1rem;
+    }
+
+    .return-images h6 {
+        color: #212529;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .image-gallery {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .image-thumbnail {
+        width: 60px;
+        height: 60px;
+        border-radius: 6px;
+        object-fit: cover;
+        border: 2px solid #e9ecef;
+        transition: var(--transition);
+        cursor: pointer;
+    }
+
+    .image-thumbnail:hover {
+        border-color: var(--primary-color);
+        transform: scale(1.1);
+    }
+
+    .image-count {
+        background: var(--dark-color);
+        color: white;
+        border-radius: 6px;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .return-actions {
+        display: flex;
+        gap: 0.75rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+        font-size: 0.9rem;
+        cursor: pointer;
+        flex: 1;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        text-decoration: none;
+    }
+
+    .btn-detail {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0b5ed7 100%);
+        color: white;
+    }
+
+    .btn-detail:hover {
+        background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+        color: white;
+    }
+
+    .empty-returns {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        margin: 2rem 0;
+    }
+
+    .empty-returns h3 {
+        color: #6c757d;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+
+    .empty-returns p {
+        color: #8e9297;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+
+    .btn-shop {
+        background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);
+        color: white;
+        padding: 1rem 2.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        text-decoration: none;
+        display: inline-block;
+        transition: var(--transition);
+        box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-shop:hover {
+        background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(40, 167, 69, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 3rem 0;
+        gap: 0.5rem;
+    }
+
+    .pagination-btn {
+        padding: 0.75rem 1rem;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 8px;
+        color: #495057;
+        text-decoration: none;
+        font-weight: 600;
+        transition: var(--transition);
+        min-width: 45px;
+        text-align: center;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .pagination-btn:hover:not(.disabled) {
+        background: white;
+        color: var(--primary-color);
+        transform: translateY(-2px);
+        text-decoration: none;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .pagination-btn.active {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0b5ed7 100%);
+        color: white;
+    }
+
+    .pagination-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .pagination-info {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+        margin: 0 1rem;
+        padding: 0.75rem;
+        background: rgba(13, 110, 253, 0.8);
+        border-radius: 8px;
+        backdrop-filter: blur(10px);
+    }
+
+    .loading {
+        text-align: center;
+        padding: 3rem;
+        color: var(--primary-color);
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .returns-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            padding: 0 1rem;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+        }
+
+        .container {
+            padding: 0 1rem;
+        }
+
+        .return-meta {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+
+        .return-type {
+            text-align: center;
+        }
+
+        .return-actions {
+            flex-direction: column;
+        }
+
+        .breadcrumb {
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .breadcrumb li:not(:last-child)::after {
+            content: '↓';
+            margin-left: 0;
+        }
+
+        .pagination {
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+
+        .pagination-info {
+            order: -1;
+            width: 100%;
+            text-align: center;
+            margin: 0 0 1rem 0;
+        }
+    }
+
+    /* Animation */
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .return-card {
+        animation: slideUp 0.6s ease-out;
+    }
+
+    /* Image Modal */
+    .image-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .image-modal img {
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 8px;
+    }
+
+    .image-modal .close-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+        font-weight: bold;
+    }
+</style>
+
+<div class="page-header">
+    <div class="container">
+        <h1>Danh sách đổi trả của tôi</h1>
+        <ul class="breadcrumb">
+            <li><a href="@Url.Action("Index","Home")">Trang chủ</a></li>
+            <li><a href="@Url.Action("DonHangCuaToi","Home")">Đơn hàng của tôi</a></li>
+            <li>Danh sách đổi trả</li>
+        </ul>
+    </div>
+</div>
+
+<main class="container">
+    <div id="loading" class="loading" style="display: none;">
+        Đang tải danh sách đổi trả...
+    </div>
+
+    <div id="returns-container">
+        <!-- Returns will be loaded here -->
+    </div>
+
+    <div id="pagination-container" class="pagination" style="display: none;">
+        <!-- Pagination will be generated here -->
+    </div>
+</main>
+
+<!-- Image Modal -->
+<div id="imageModal" class="image-modal">
+    <span class="close-btn">&times;</span>
+    <img id="modalImage" src="" alt="">
+</div>
+
+<script>
+let currentPage = 1;
+const returnsPerPage = 6;
+let totalPages = 1;
+let maTaiKhoan = null;
+
+// Khởi tạo khi trang load
+document.addEventListener('DOMContentLoaded', function() {
+    initializePage();
+});
+
+async function initializePage() {
+    try {
+        // Lấy thông tin user
+        maTaiKhoan = @ViewBag.MaTaiKhoan;
+        if (maTaiKhoan) {
+            await loadReturns(1);
+        } else {
+            showError('Không thể lấy thông tin tài khoản');
+        }
+    } catch (error) {
+        console.error('Error initializing page:', error);
+        showError('Có lỗi xảy ra khi tải trang');
+    }
+}
+
+async function loadReturns(page) {
+    try {
+        showLoading(true);
+
+        const response = await fetch(`http://127.0.0.1:5000/api/get_user_returns`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                maTaiKhoan: maTaiKhoan,
+                page: page,
+                pageSize: returnsPerPage
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                displayReturns(data.returns);
+                updatePagination(data.currentPage, data.totalPages, data.totalCount);
+                currentPage = data.currentPage;
+                totalPages = data.totalPages;
+            } else {
+                showEmptyReturns();
+            }
+        } else {
+            throw new Error('Failed to load returns');
+        }
+    } catch (error) {
+        console.error('Error loading returns:', error);
+        showError('Có lỗi xảy ra khi tải danh sách đổi trả');
+    } finally {
+        showLoading(false);
+    }
+}
+
+function displayReturns(returns) {
+    const container = document.getElementById('returns-container');
+
+    if (!returns || returns.length === 0) {
+        showEmptyReturns();
+        return;
+    }
+
+    const returnsGrid = document.createElement('div');
+    returnsGrid.className = 'returns-grid';
+
+    returns.forEach((returnItem, index) => {
+        const returnCard = createReturnCard(returnItem);
+        returnCard.style.animationDelay = `${index * 0.1}s`;
+        returnsGrid.appendChild(returnCard);
+    });
+
+    container.innerHTML = '';
+    container.appendChild(returnsGrid);
+}
+
+function createReturnCard(returnItem) {
+    const card = document.createElement('div');
+    card.className = 'return-card';
+
+    const statusClass = getStatusClass(returnItem.TrangThai);
+    const typeClass = returnItem.LoaiYeuCau === 'Đổi' ? 'doi' : 'tra';
+
+    // Xử lý hình ảnh
+    let imagesHtml = '';
+    if (returnItem.HinhAnhLoi && returnItem.HinhAnhLoi.length > 0) {
+        imagesHtml = `
+            <div class="return-images">
+                <h6>Hình ảnh đính kèm (${returnItem.HinhAnhLoi.length})</h6>
+                <div class="image-gallery">
+                    ${returnItem.HinhAnhLoi.slice(0, 3).map(img =>
+                        `<img src="/assets/images/returns/${returnItem.MaDoiTra}/${img}"
+                              alt="Hình ảnh lỗi" class="image-thumbnail"
+                              onclick="showImageModal('/assets/images/returns/${returnItem.MaDoiTra}/${img}')">`
+                    ).join('')}
+                    ${returnItem.HinhAnhLoi.length > 3 ?
+                        `<div class="image-count">+${returnItem.HinhAnhLoi.length - 3}</div>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    card.innerHTML = `
+        <div class="return-header">
+            <div class="return-id">Yêu cầu #${returnItem.MaDoiTra}</div>
+            <div class="return-meta">
+                <div class="return-date">${formatDate(returnItem.NgayTao)}</div>
+                <div class="return-type ${typeClass}">${returnItem.LoaiYeuCau} hàng</div>
+            </div>
+            <div class="return-status">
+                <span class="status-badge ${statusClass}">
+                    ${returnItem.TrangThai}
+                </span>
+            </div>
+        </div>
+
+        <div class="return-body">
+            <div class="return-reason">
+                <h6>Lý do: ${returnItem.LyDo}</h6>
+                <p>${returnItem.MoTa}</p>
+            </div>
+
+            ${imagesHtml}
+
+            <div class="return-actions">
+                <a href="@Url.Action("ChiTietDoiTra", "Home")?id=${returnItem.MaDoiTra}" class="btn btn-detail">
+                    Xem chi tiết
+                </a>
+            </div>
+        </div>
+    `;
+
+    return card;
+}
+
+function updatePagination(currentPage, totalPages, totalReturns) {
+    const container = document.getElementById('pagination-container');
+
+    if (totalPages <= 1) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = 'flex';
+    container.innerHTML = '';
+
+    // Previous buttons
+    const prevAllBtn = createPaginationButton('«', 1, currentPage === 1);
+    const prevBtn = createPaginationButton('‹', currentPage - 1, currentPage === 1);
+    container.appendChild(prevAllBtn);
+    container.appendChild(prevBtn);
+
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+
+    if (startPage > 1) {
+        container.appendChild(createPaginationButton('1', 1));
+        if (startPage > 2) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'pagination-btn disabled';
+            ellipsis.textContent = '...';
+            container.appendChild(ellipsis);
+        }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        const isActive = i === currentPage;
+        container.appendChild(createPaginationButton(i.toString(), i, false, isActive));
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'pagination-btn disabled';
+            ellipsis.textContent = '...';
+            container.appendChild(ellipsis);
+        }
+        container.appendChild(createPaginationButton(totalPages.toString(), totalPages));
+    }
+
+    // Next buttons
+    const nextBtn = createPaginationButton('›', currentPage + 1, currentPage === totalPages);
+    const nextAllBtn = createPaginationButton('»', totalPages, currentPage === totalPages);
+    container.appendChild(nextBtn);
+    container.appendChild(nextAllBtn);
+
+    // Info
+    const info = document.createElement('div');
+    info.className = 'pagination-info';
+    const startItem = (currentPage - 1) * returnsPerPage + 1;
+    const endItem = Math.min(currentPage * returnsPerPage, totalReturns);
+    info.textContent = `${startItem}-${endItem} của ${totalReturns} yêu cầu`;
+    container.appendChild(info);
+}
+
+function createPaginationButton(text, page, disabled = false, active = false) {
+    const button = document.createElement('button');
+    button.className = `pagination-btn ${disabled ? 'disabled' : ''} ${active ? 'active' : ''}`;
+    button.textContent = text;
+
+    if (!disabled && !active) {
+        button.onclick = () => changePage(page);
+    }
+
+    return button;
+}
+
+async function changePage(page) {
+    if (page < 1 || page > totalPages || page === currentPage) return;
+    await loadReturns(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showEmptyReturns() {
+    const container = document.getElementById('returns-container');
+    container.innerHTML = `
+        <div class="empty-returns">
+            <h3>Chưa có yêu cầu đổi trả nào</h3>
+            <p>Bạn chưa có yêu cầu đổi trả nào. Nếu có vấn đề với đơn hàng, hãy tạo yêu cầu từ trang đơn hàng của bạn!</p>
+            <a href="@Url.Action("DonHangCuaToi", "Home")" class="btn-shop">
+                Xem đơn hàng của tôi
+            </a>
+        </div>
+    `;
+    document.getElementById('pagination-container').style.display = 'none';
+}
+
+function showLoading(show) {
+    document.getElementById('loading').style.display = show ? 'block' : 'none';
+    document.getElementById('returns-container').style.display = show ? 'none' : 'block';
+}
+
+// Utility functions
+function getStatusClass(status) {
+    const statusMap = {
+        'Chờ xử lý': 'status-cho-xu-ly',
+        'Đã duyệt': 'status-da-duyet',
+        'Đang xử lý': 'status-dang-xu-ly',
+        'Đã xử lý': 'status-da-xu-ly',
+        'Từ chối': 'status-tu-choi'
+    };
+    return statusMap[status] || 'status-cho-xu-ly';
+}
+
+function formatDate(dateString) {
+    return new Date(dateString).toLocaleString('vi-VN');
+}
+
+function showError(message) {
+    console.error(message);
+    const container = document.getElementById('returns-container');
+    container.innerHTML = `
+        <div class="empty-returns">
+            <h3>Có lỗi xảy ra</h3>
+            <p>${message}</p>
+            <button class="btn-shop" onclick="location.reload()">Thử lại</button>
+        </div>
+    `;
+}
+
+// Image modal functions
+function showImageModal(imageSrc) {
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    modalImage.src = imageSrc;
+    modal.style.display = 'flex';
+}
+
+// Close modal when clicking close button or outside
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('imageModal');
+    const closeBtn = modal.querySelector('.close-btn');
+
+    closeBtn.onclick = function() {
+        modal.style.display = 'none';
+    }
+
+    modal.onclick = function(e) {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    }
+});
+</script>

@@ -1,0 +1,242 @@
+﻿@{
+    ViewBag.Title = "Quản Lý Đổi Trả";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+@using TMDTLaptop.Controllers
+<div class="container">
+    <h2 class="mt-4 mb-4">Quản Lý Yêu Cầu Đổi Trả</h2>
+    <!-- Thanh lọc trạng thái -->
+    <form class="form-inline d-flex align-items-center mb-3 gap-2" method="get" action="@Url.Action("QuanLyDoiTra")">
+        <select name="status" class="form-control" style="width: 250px">
+            <option value="">Tất cả trạng thái</option>
+            <option value="Chờ xử lý" @(ViewBag.Status == "Chờ xử lý" ? "selected" : "")>Chờ xử lý</option>
+            <option value="Đã duyệt" @(ViewBag.Status == "Đã duyệt" ? "selected" : "")>Đã duyệt</option>
+            <option value="Chờ lấy hàng" @(ViewBag.Status == "Chờ lấy hàng" ? "selected" : "")>Chờ lấy hàng</option>
+            <option value="Đang xử lý" @(ViewBag.Status == "Đang xử lý" ? "selected" : "")>Đang xử lý</option>
+            <option value="Đã xử lý" @(ViewBag.Status == "Đã xử lý" ? "selected" : "")>Đã xử lý</option>
+            <option value="Từ chối" @(ViewBag.Status == "Từ chối" ? "selected" : "")>Từ chối</option>
+        </select>
+        <button type="submit" class="btn btn-primary" style="width: 100px">Lọc</button>
+    </form>
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover table-bordered">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Mã Đổi Trả</th>
+                        <th scope="col">Đơn Hàng</th>
+                        <th scope="col">Khách Hàng</th>
+                        <th scope="col">Loại Yêu Cầu</th>
+                        <th scope="col">Lý Do</th>
+                        <th scope="col">Ngày Tạo</th>
+                        <th scope="col">Trạng Thái</th>
+                        <th scope="col">Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.Returns != null)
+                    {
+                        foreach (var item in ViewBag.Returns)
+                        {
+                            <tr>
+                                <td>@item.MaDoiTra</td>
+                                <td><a href="@Url.Action("ChiTietDonHang", new { id = item.MaDonHang })">#@item.MaDonHang</a></td>
+                                <td>@item.HoTen</td>
+                                <td>
+                                    <span class="badge @(item.LoaiYeuCau == "Đổi" ? "bg-info" : "bg-warning") text-white">
+                                        @item.LoaiYeuCau
+                                    </span>
+                                </td>
+                                <td>@item.LyDo</td>
+                                <td>@item.NgayTao</td>
+                                <td>
+                                    @{
+                                        string statusClass = "";
+                                        switch (item.TrangThai?.ToString() ?? "")
+                                        {
+                                            case "Chờ xử lý": statusClass = "bg-warning"; break;
+                                            case "Đã duyệt": statusClass = "bg-info"; break;
+                                            case "Chờ lấy hàng": statusClass = "bg-primary"; break;
+                                            case "Đang xử lý": statusClass = "bg-secondary"; break;
+                                            case "Đã xử lý": statusClass = "bg-success"; break;
+                                            case "Từ chối": statusClass = "bg-danger"; break;
+                                            default: statusClass = "bg-secondary"; break;
+                                        }
+                                    }
+                                    <span class="badge @statusClass text-white">
+                                        @item.TrangThai
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-info btn-sm" onclick="viewReturnDetail(@item.MaDoiTra)">
+                                            Chi tiết
+                                        </button>
+                                        @if (item.TrangThai == "Chờ xử lý")
+                                        {
+                                            <button type="button" class="btn btn-success btn-sm" onclick="updateReturnStatus(@item.MaDoiTra, 'Đã duyệt')">
+                                                Duyệt
+                                            </button>
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="rejectReturn(@item.MaDoiTra)">
+                                                Từ chối
+                                            </button>
+                                        }
+                                        else if (item.TrangThai == "Đã duyệt")
+                                        {
+                                            <button type="button" class="btn btn-primary btn-sm" onclick="updateReturnStatus(@item.MaDoiTra, 'Chờ lấy hàng')">
+                                                Chờ lấy hàng
+                                            </button>
+                                        }
+                                        else if (item.TrangThai == "Chờ lấy hàng")
+                                        {
+                                            <button type="button" class="btn btn-warning btn-sm" onclick="updateReturnStatus(@item.MaDoiTra, 'Đang xử lý')">
+                                                Đang xử lý
+                                            </button>
+                                        }
+                                        else if (item.TrangThai == "Đang xử lý")
+                                        {
+                                            <button type="button" class="btn btn-success btn-sm" onclick="completeReturn(@item.MaDoiTra)">
+                                                Hoàn tất
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- Phân trang -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            @for (var i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("QuanLyDoiTra", new { page = i, status = ViewBag.Status })">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+</div>
+<!-- Modal Chi tiết yêu cầu đổi trả -->
+<div class="modal fade" id="returnDetailModal" tabindex="-1" role="dialog" aria-labelledby="returnDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="returnDetailModalLabel">Chi tiết yêu cầu đổi trả</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="returnDetailContent">
+                <!-- Nội dung chi tiết sẽ được load bằng AJAX -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal từ chối -->
+<div class="modal fade" id="rejectModal" tabindex="-1" role="dialog" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectModalLabel">Từ chối yêu cầu đổi trả</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="rejectForm">
+                    <div class="form-group">
+                        <label for="rejectReason">Lý do từ chối:</label>
+                        <textarea class="form-control" id="rejectReason" rows="3" placeholder="Nhập lý do từ chối..." required></textarea>
+                    </div>
+                    <input type="hidden" id="rejectReturnId" value="" />
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" onclick="confirmReject()">Từ chối</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+// Hàm lấy class badge theo trạng thái
+function getStatusBadgeClass(status) {
+    switch(status) {
+        case 'Chờ xử lý': return 'bg-warning';
+        case 'Đã duyệt': return 'bg-info';
+        case 'Chờ lấy hàng': return 'bg-primary';
+        case 'Đang xử lý': return 'bg-secondary';
+        case 'Đã xử lý': return 'bg-success';
+        case 'Từ chối': return 'bg-danger';
+        default: return 'bg-secondary';
+    }
+}
+function viewReturnDetail(returnId) {
+    $('#returnDetailModal').modal('show');
+    $('#returnDetailContent').html('<p>Đang tải thông tin...</p>');
+
+    // Gọi API để lấy chi tiết
+    $.get('@Url.Action("ChiTietDoiTra")/' + returnId, function(data) {
+        $('#returnDetailContent').html(data);
+    }).fail(function() {
+        $('#returnDetailContent').html('<p class="text-danger">Không thể tải thông tin chi tiết.</p>');
+    });
+}
+// Cập nhật trạng thái đổi trả
+function updateReturnStatus(returnId, newStatus) {
+    if (confirm('Bạn có chắc chắn muốn cập nhật trạng thái này không?')) {
+        $.post('@Url.Action("CapNhatTrangThaiDoiTra")', {
+            maDoiTra: returnId,
+            trangThai: newStatus
+        }, function(result) {
+            if (result.success) {
+                alert('Cập nhật trạng thái thành công!');
+                location.reload();
+            } else {
+                alert('Có lỗi: ' + result.message);
+            }
+        });
+    }
+}
+// Hiển thị modal từ chối
+function rejectReturn(returnId) {
+    $('#rejectReturnId').val(returnId);
+    $('#rejectReason').val('');
+    $('#rejectModal').modal('show');
+}
+// Xác nhận từ chối
+function confirmReject() {
+    const returnId = $('#rejectReturnId').val();
+    const reason = $('#rejectReason').val().trim();
+    if (!reason) {
+        alert('Vui lòng nhập lý do từ chối!');
+        return;
+    }
+    $.post('@Url.Action("CapNhatTrangThaiDoiTra")', {
+        maDoiTra: returnId,
+        trangThai: 'Từ chối',
+        ghiChu: reason
+    }, function(result) {
+        if (result.success) {
+            alert('Từ chối yêu cầu thành công!');
+            $('#rejectModal').modal('hide');
+            location.reload();
+        } else {
+            alert('Có lỗi: ' + result.message);
+        }
+    });
+}
+// Hoàn tất đổi trả
+function completeReturn(returnId) {
+    if (confirm('Xác nhận hoàn tất xử lý đổi trả?')) {
+        updateReturnStatus(returnId, 'Đã xử lý');
+    }
+}
+</script>
