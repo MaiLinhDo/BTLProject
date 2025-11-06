@@ -202,7 +202,83 @@ def cancel_order():
     conn.commit()
     conn.close()
     return jsonify({"success": True})
+@order_routes.route("/api/thong_ke", methods=["POST"])
+def thong_ke():
+    data = request.get_json()
+    start_date = data.get("startDate")
+    end_date = data.get("endDate")
 
+    if not start_date or not end_date:
+        return jsonify({"success": False, "message": "Thiếu ngày bắt đầu hoặc kết thúc."}), 400
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # Tổng đơn hàng
+    cursor.execute("""
+        SELECT COUNT(*) FROM DonHang 
+        WHERE NgayDatHang BETWEEN ? AND ?
+    """, (start_date, end_date))
+    total_orders = cursor.fetchone()[0]
+
+    # Đếm theo trạng thái
+    def count_by_status(status):
+        cursor.execute("""
+            SELECT COUNT(*) FROM DonHang 
+            WHERE TrangThai = ? AND NgayDatHang BETWEEN ? AND ?
+        """, (status, start_date, end_date))
+        return cursor.fetchone()[0]
+
+    pending = count_by_status("Đang chờ xử lý")
+    approved = count_by_status("Đã duyệt")
+    delivered = count_by_status("Đã giao")
+    cancelled = count_by_status("Đã hủy")
+
+    # Doanh thu theo trạng thái
+    def sum_revenue(status):
+        cursor.execute("""
+            SELECT SUM(TongTien) FROM DonHang 
+            WHERE TrangThai = ? AND NgayDatHang BETWEEN ? AND ?
+        """, (status, start_date, end_date))
+        result = cursor.fetchone()[0]
+        return result or 0
+
+    revenue_pending = sum_revenue("Đang chờ xử lý")
+    revenue_approved = sum_revenue("Đã duyệt")
+    revenue_delivered = sum_revenue("Đã giao")
+    revenue_cancelled = sum_revenue("Đã hủy")
+
+    total_revenue = revenue_pending + revenue_approved + revenue_delivered + revenue_cancelled
+
+    # Sản phẩm bán chạy
+    cursor.execute("""
+        SELECT TOP 5 c.MaSanPham, p.TenSanPham, SUM(c.SoLuong) as SoLuong
+        FROM ChiTietDonHang c
+        JOIN DonHang d ON c.MaDonHang = d.MaDonHang
+        JOIN SanPham p ON c.MaSanPham = p.MaSanPham
+        WHERE d.NgayDatHang BETWEEN ? AND ?
+        GROUP BY c.MaSanPham, p.TenSanPham
+        ORDER BY SoLuong DESC
+    """, (start_date, end_date))
+
+    best_selling = [{"TenSanPham": row[1], "SoLuong": row[2]} for row in cursor.fetchall()]
+
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "totalOrders": total_orders,
+        "pendingOrders": pending,
+        "approvedOrders": approved,
+        "deliveredOrders": delivered,
+        "cancelledOrders": cancelled,
+        "revenuePending": f"{revenue_pending:,.0f} đ",
+        "revenueApproved": f"{revenue_approved:,.0f} đ",
+        "revenueDelivered": f"{revenue_delivered:,.0f} đ",
+        "revenueCancelled": f"{revenue_cancelled:,.0f} đ",
+        "totalRevenue": total_revenue,
+        "bestSellingProducts": best_selling
+    })
 # 1. Cập nhật trạng thái đơn hàng theo luồng mới
 @order_routes.route('/api/update_order_status_new', methods=['PUT'])
 def update_order_status_new():
