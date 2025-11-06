@@ -7,8 +7,8 @@ using System.Web.Mvc;
 
 namespace TMDTLaptop.Models.Class
 {
-	public class SanPham
-	{
+    public class SanPham
+    {
 
         public int MaSanPham { get; set; }
 
@@ -38,6 +38,14 @@ namespace TMDTLaptop.Models.Class
         [Required(ErrorMessage = "Số lượng không được để trống.")]
         [Range(0, int.MaxValue, ErrorMessage = "Số lượng phải là số nguyên không âm.")]
         public Nullable<int> SoLuong { get; set; }
+        public double? TrungBinhSao { get; set; }
+        public int? SoLuongDanhGia { get; set; }
+        // Helper method để lấy số sao đầy
+        public int SaoDay => (int)Math.Floor((decimal)TrungBinhSao);
 
+
+
+        // Helper method để lấy số sao rỗng
+        public int SaoRong => 5 - SaoDay;
     }
 }

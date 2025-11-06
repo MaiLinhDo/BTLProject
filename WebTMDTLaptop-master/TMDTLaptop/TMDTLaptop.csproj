@@ -261,19 +261,26 @@
     <Compile Include="Controllers\BaoHanhController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\LoginController.cs" />
+    <Compile Include="Controllers\OrderStatusHelper.cs" />
     <Compile Include="Controllers\ThanhToanController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\BestSellingProduct.cs" />
     <Compile Include="Models\Class\Banner.cs" />
+    <Compile Include="Models\Class\BaoHanh.cs" />
+    <Compile Include="Models\Class\ChiTietDoiTra.cs" />
     <Compile Include="Models\Class\ChiTietDonHang.cs" />
     <Compile Include="Models\Class\ChiTietGioHang.cs" />
     <Compile Include="Models\Class\ChiTietPhieuNhapKho.cs" />
+    <Compile Include="Models\Class\DanhGiaSanPham.cs" />
     <Compile Include="Models\Class\DanhMucSanPham.cs" />
+    <Compile Include="Models\Class\DonBaoHanh.cs" />
+    <Compile Include="Models\Class\DonDoiTra.cs" />
     <Compile Include="Models\Class\DonHang.cs" />
     <Compile Include="Models\Class\GioHang.cs" />
     <Compile Include="Models\Class\HangSanPham.cs" />
+    <Compile Include="Models\Class\KhoHangLoi.cs" />
     <Compile Include="Models\Class\PhieuNhapKho.cs" />
     <Compile Include="Models\Class\Quyen.cs" />
     <Compile Include="Models\Class\SanPham.cs" />
@@ -281,6 +288,9 @@
     <Compile Include="Models\Class\Voucher.cs" />
     <Compile Include="Models\CouponResponse.cs" />
     <Compile Include="Models\ModelGioHang.cs" />
+    <Compile Include="Models\RevenueByCategoryViewModel.cs" />
+    <Compile Include="Models\RevenueByProductViewModel.cs" />
+    <Compile Include="Models\ReviewStatisticsViewModel.cs" />
     <Compile Include="Models\VnPayLibrary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -450,6 +460,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -478,7 +489,6 @@
     <Content Include="Views\Home\Error.cshtml" />
     <Content Include="Views\Home\GioHang.cshtml" />
     <Content Include="Views\Home\HoSo.cshtml" />
-    <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Login\DangNhap.cshtml" />
     <Content Include="Views\Admin\ChiTietDonHang.cshtml" />
     <Content Include="Views\Admin\ChiTietPhieuNhapKho.cshtml" />
@@ -516,6 +526,12 @@
     <Content Include="Views\BaoHanh\ChiTietBaoHanhUser.cshtml" />
     <Content Include="Views\BaoHanh\DanhSachBaoHanhKhachHang.cshtml" />
     <Content Include="Views\BaoHanh\TaoBaoHanh.cshtml" />
+    <Content Include="Views\Admin\QuanLyDoiTra.cshtml" />
+    <Content Include="Views\Admin\QuanLyKhoHangLoi.cshtml" />
+    <Content Include="Views\Admin\ThemKhoHangLoi.cshtml" />
+    <Content Include="Views\Home\ChiTietDoiTra.cshtml" />
+    <Content Include="Views\Home\DanhSachDoiTra.cshtml" />
+    <Content Include="Views\Home\TaoYeuCauDoiTra.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -1,0 +1,121 @@
+﻿@model TMDTLaptop.Models.Class.KhoHangLoi
+
+@{
+    ViewBag.Title = "Thêm Sản Phẩm Vào Kho Hàng Lỗi";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <script>
+        alert('@Html.Raw(ViewBag.ErrorMessage)');
+    </script>
+}
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2>@ViewBag.Title</h2>
+        </div>
+        <div class="card-body">
+            @using (Html.BeginForm("ThemKhoHangLoi", "Admin", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-group">
+                    <label for="MaSanPham" class="font-weight-bold">Sản Phẩm <span class="text-danger">*</span></label>
+                    @Html.DropDownListFor(m => m.MaSanPham,
+                        new SelectList(ViewBag.SanPhams, "MaSanPham", "TenSanPham"),
+                        "-- Chọn sản phẩm --",
+                        new { @class = "form-control", required = "required" })
+                    @Html.ValidationMessageFor(m => m.MaSanPham, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    <label for="SoLuong" class="font-weight-bold">Số Lượng <span class="text-danger">*</span></label>
+                    @Html.TextBoxFor(m => m.SoLuong, new
+                    {
+                        @class = "form-control",
+                        type = "number",
+                        min = "1",
+                        placeholder = "Nhập số lượng sản phẩm lỗi",
+                        required = "required"
+                    })
+                    @Html.ValidationMessageFor(m => m.SoLuong, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    <label for="LyDo" class="font-weight-bold">Lý Do</label>
+                    @Html.TextAreaFor(m => m.LyDo, new
+                    {
+                        @class = "form-control",
+                        rows = "4",
+                        placeholder = "Mô tả chi tiết về lỗi của sản phẩm (vd: Màn hình bị vỡ, Pin chai, Bàn phím không hoạt động...)"
+                    })
+                    @Html.ValidationMessageFor(m => m.LyDo, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    <label class="font-weight-bold">Ngày Nhập</label>
+                    <input type="text" class="form-control" value="@DateTime.Now.ToString("dd/MM/yyyy HH:mm")" readonly />
+                    <small class="form-text text-muted">Ngày nhập sẽ được tự động ghi nhận</small>
+                </div>
+
+                <div class="form-group text-center">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-save"></i> Lưu Thông Tin
+                    </button>
+                    <a href="@Url.Action("QuanLyKhoHangLoi", "Admin")" class="btn btn-secondary btn-lg ml-2">
+                        <i class="fas fa-arrow-left"></i> Quay Lại
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Hướng Dẫn</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <h6><i class="fas fa-info-circle"></i> Khi nào cần nhập vào kho hàng lỗi?</h6>
+                <ul class="mb-0">
+                    <li>Sản phẩm bị trả lại do lỗi từ khách hàng</li>
+                    <li>Sản phẩm bị hỏng trong quá trình vận chuyển</li>
+                    <li>Sản phẩm có lỗi kỹ thuật được phát hiện</li>
+                    <li>Sản phẩm không đáp ứng tiêu chuẩn chất lượng</li>
+                </ul>
+            </div>
+            <div class="alert alert-warning">
+                <h6><i class="fas fa-exclamation-triangle"></i> Lưu Ý</h6>
+                <ul class="mb-0">
+                    <li>Sản phẩm trong kho hàng lỗi <strong>không được tính vào tồn kho bán hàng</strong></li>
+                    <li>Cần mô tả chi tiết lỗi để tiện theo dõi và xử lý</li>
+                    <li>Định kỳ kiểm tra và quyết định xử lý: sửa chữa, thanh lý hoặc tiêu hủy</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Validation form
+    $('form').submit(function(e) {
+        var maSanPham = $('#MaSanPham').val();
+        var soLuong = $('#SoLuong').val();
+
+        if (!maSanPham) {
+            alert('Vui lòng chọn sản phẩm!');
+            e.preventDefault();
+            return false;
+        }
+
+        if (!soLuong || parseInt(soLuong) <= 0) {
+            alert('Vui lòng nhập số lượng hợp lệ (lớn hơn 0)!');
+            e.preventDefault();
+            return false;
+        }
+    });
+});

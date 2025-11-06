@@ -418,14 +418,14 @@ namespace TMDTLaptop.Controllers
                     var phieuBaoHanh = data.phieuBaoHanh.ToObject<List<dynamic>>();
 
                     // Tạo file Excel hoặc PDF dựa trên format
-                    if (format.ToLower() == "pdf")
-                    {
-                        return ExportToPdf(phieuBaoHanh, startDate.Value, endDate.Value);
-                    }
-                    else
-                    {
+                    //if (format.ToLower() == "pdf")
+                    //{
+                    //    return ExportToPdf(phieuBaoHanh, startDate.Value, endDate.Value);
+                    //}
+                    //else
+                    //{
                         return ExportToExcel(phieuBaoHanh, startDate.Value, endDate.Value);
-                    }
+                   // }
                 }
                 else
                 {
