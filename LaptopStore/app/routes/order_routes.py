@@ -306,6 +306,93 @@ def thong_ke():
     })
 
 
+# 6. Lấy đơn hàng với thông tin có thể đổi trả/đánh giá
+@order_routes.route('/api/get_user_orders_paginated', methods=['POST'])
+def get_user_orders_paginated():
+    data = request.json
+    ma_tai_khoan = data.get('maTaiKhoan')
+    page = data.get('page', 1)
+    page_size = data.get('pageSize', 6)
+
+    if not ma_tai_khoan:
+        return jsonify({"success": False, "message": "Thiếu mã tài khoản"}), 400
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # Đếm tổng số đơn hàng
+    cursor.execute("""
+        SELECT COUNT(*) FROM DonHang 
+        WHERE MaTaiKhoan = ?
+    """, (ma_tai_khoan,))
+    total_orders = cursor.fetchone()[0]
+
+    # Tính tổng số trang
+    total_pages = (total_orders + page_size - 1) // page_size if total_orders > 0 else 1
+
+    # Lấy đơn hàng với phân trang
+    cursor.execute("""
+        SELECT MaDonHang, NgayDatHang, TongTien, TrangThai, 
+               DATEDIFF(day, NgayDatHang, GETDATE()) as SoNgay
+        FROM DonHang 
+        WHERE MaTaiKhoan = ?
+        ORDER BY NgayDatHang DESC
+        OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+    """, (ma_tai_khoan, (page - 1) * page_size, page_size))
+
+    orders = []
+    for row in cursor.fetchall():
+        ma_don_hang, ngay_dat, tong_tien, trang_thai, so_ngay = row
+
+        # Xác định hành động có thể thực hiện
+        can_cancel = trang_thai in ["Đặt hàng thành công", "Đang chuẩn bị hàng"]
+        can_return = trang_thai == "Đã giao" and so_ngay <= 7
+        can_review = trang_thai == "Đã giao"
+        can_confirm = trang_thai == "Đơn hàng sẽ sớm được giao đến bạn"
+
+        # Lấy chi tiết sản phẩm trong đơn hàng
+        cursor.execute("""
+            SELECT CT.MaSanPham, SP.TenSanPham, CT.SoLuong, CT.Gia, SP.HinhAnh
+            FROM ChiTietDonHang CT
+            JOIN SanPham SP ON CT.MaSanPham = SP.MaSanPham
+            WHERE CT.MaDonHang = ?
+        """, (ma_don_hang,))
+
+        products = []
+        for product_row in cursor.fetchall():
+            products.append({
+                "MaSanPham": product_row[0],
+                "TenSanPham": product_row[1],
+                "SoLuong": product_row[2],
+                "Gia": float(product_row[3]),
+                "HinhAnh": product_row[4]
+            })
+
+        orders.append({
+            "MaDonHang": ma_don_hang,
+            "NgayDatHang": ngay_dat.strftime("%Y-%m-%d") if ngay_dat else "",
+            "TongTien": float(tong_tien) if tong_tien else 0,
+            "TrangThai": trang_thai,
+            "CanCancel": can_cancel,
+            "CanReturn": can_return,
+            "CanReview": can_review,
+            "CanConfirm": can_confirm,
+            "Products": products
+        })
+
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "orders": orders,
+        "currentPage": page,
+        "totalPages": total_pages,
+        "total": total_orders,
+        "hasNext": page < total_pages,
+        "hasPrev": page > 1
+    })
+
+
     
 
         
