@@ -1248,7 +1248,325 @@ namespace TMDTLaptop.Controllers
         {
             return View();
         }
+        
 
+        // 2. Xác nhận đã nhận hàng
+        [HttpPost]
+        public async Task<JsonResult> XacNhanDaNhan(int orderId)
+        {
+            using (var client = new HttpClient())
+            {
+                var data = new { MaDonHang = orderId };
+                var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+
+                var response = await client.PostAsync("http://127.0.0.1:5000/api/confirm_received", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic responseData = JsonConvert.DeserializeObject(result);
+
+                return Json(new { success = responseData.success, message = responseData.message });
+            }
+        }
+
+
+        // GET: Danh sách đổi trả của khách hàng
+        public async Task<ActionResult> DanhSachDoiTra(int page = 1, int pageSize = 10)
+        {
+            var username = Session["Username"] as string;
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction("DangNhap");
+            }
+
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    // Lấy thông tin user
+                    string userApiUrl = $"http://127.0.0.1:5000/api/check_username?username={username}";
+                    var userResponse = await client.GetAsync(userApiUrl);
+
+                    if (userResponse.IsSuccessStatusCode)
+                    {
+                        string userResponseBody = await userResponse.Content.ReadAsStringAsync();
+                        dynamic user = JsonConvert.DeserializeObject(userResponseBody);
+
+                        if (user == null || user.TrangThai == false)
+                        {
+                            return RedirectToAction("DangNhap");
+                        }
+
+                        int maTaiKhoan = (int)user.MaTaiKhoan;
+
+                        // Lưu thông tin vào ViewBag
+                        ViewBag.MaTaiKhoan = maTaiKhoan;
+                        ViewBag.HoTen = (string)user.HoTen;
+                        ViewBag.CurrentPage = page;
+                        ViewBag.PageSize = pageSize;
+
+                        return View();
+                    }
+                    else
+                    {
+                        return RedirectToAction("DangNhap");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Lỗi kết nối: " + ex.Message;
+                return View();
+            }
+        }
+
+        // GET: Chi tiết đổi trả
+        public async Task<ActionResult> ChiTietDoiTra(int id)
+        {
+            var username = Session["Username"] as string;
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction("DangNhap");
+            }
+
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    // Lấy thông tin user
+                    string userApiUrl = $"http://127.0.0.1:5000/api/check_username?username={username}";
+                    var userResponse = await client.GetAsync(userApiUrl);
+
+                    if (userResponse.IsSuccessStatusCode)
+                    {
+                        string userResponseBody = await userResponse.Content.ReadAsStringAsync();
+                        dynamic user = JsonConvert.DeserializeObject(userResponseBody);
+
+                        if (user == null || user.TrangThai == false)
+                        {
+                            return RedirectToAction("DangNhap");
+                        }
+
+                        int maTaiKhoan = (int)user.MaTaiKhoan;
+
+                        // Lấy chi tiết đổi trả
+                        var postData = new
+                        {
+                            MaDoiTra = id,
+                            MaTaiKhoan = maTaiKhoan
+                        };
+
+                        var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+                        var response = await client.PostAsync("http://127.0.0.1:5000/api/get_user_return_detail", content);
+                        var result = await response.Content.ReadAsStringAsync();
+                        dynamic data = JsonConvert.DeserializeObject(result);
+
+                        if ((bool)data.success)
+                        {
+                            ViewBag.ChiTiet = data.chiTiet;
+                            return View();
+                        }
+                        else
+                        {
+                            TempData["ErrorMessage"] = data.message;
+                            return RedirectToAction("DanhSachDoiTra");
+                        }
+                    }
+                    else
+                    {
+                        return RedirectToAction("DangNhap");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi kết nối: " + ex.Message;
+                return RedirectToAction("DanhSachDoiTra");
+            }
+        }
+
+        // POST: Tạo yêu cầu đổi trả với hình ảnh (CẬP NHẬT)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> TaoYeuCauDoiTra()
+        {
+            var orderId = Request.Form["orderId"];
+            var loaiYeuCau = Request.Form["loaiYeuCau"];
+            var lyDo = Request.Form["lyDo"];
+            var moTa = Request.Form["moTa"];
+
+            // Lấy files hình ảnh
+            var hinhAnhFiles = Request.Files.GetMultiple("HinhAnhLoi");
+
+            if (string.IsNullOrEmpty(orderId) || string.IsNullOrEmpty(loaiYeuCau) ||
+                string.IsNullOrEmpty(lyDo) || string.IsNullOrEmpty(moTa))
+            {
+                TempData["ErrorMessage"] = "Vui lòng điền đầy đủ thông tin bắt buộc";
+                return RedirectToAction("TaoYeuCauDoiTra", new { orderId = orderId });
+            }
+
+            try
+            {
+                // Tạo yêu cầu đổi trả trước để có MaDoiTra
+                var tempData = new
+                {
+                    MaDonHang = orderId,
+                    LoaiYeuCau = loaiYeuCau,
+                    LyDo = lyDo,
+                    MoTa = moTa,
+                    HinhAnhLoi = new List<string>() // Gửi rỗng trước
+                };
+
+                string maDoiTra = "";
+                using (var client = new HttpClient())
+                {
+                    var jsonContent = JsonConvert.SerializeObject(tempData);
+                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                    var response = await client.PostAsync("http://127.0.0.1:5000/api/create_return_with_images", content);
+                    var result = await response.Content.ReadAsStringAsync();
+                    dynamic data = JsonConvert.DeserializeObject(result);
+
+                    if (!(bool)data.success)
+                    {
+                        TempData["ErrorMessage"] = data.message;
+                        return RedirectToAction("TaoYeuCauDoiTra", new { orderId = orderId });
+                    }
+
+                    maDoiTra = data.maDoiTra.ToString();
+                }
+
+                // Lưu files hình ảnh (GIỐNG LOGIC BẢO HÀNH)
+                List<string> savedFileNames = new List<string>();
+                if (hinhAnhFiles != null && hinhAnhFiles.Any(f => f != null && f.ContentLength > 0))
+                {
+                    // Tạo thư mục lưu trữ
+                    string returnFolder = Server.MapPath($"~/assets/images/returns/{maDoiTra}/");
+                    if (!Directory.Exists(returnFolder))
+                    {
+                        Directory.CreateDirectory(returnFolder);
+                    }
+
+                    foreach (var file in hinhAnhFiles)
+                    {
+                        if (file != null && file.ContentLength > 0)
+                        {
+                            // Validate file
+                            string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                            string fileExtension = Path.GetExtension(file.FileName).ToLower();
+
+                            if (!allowedExtensions.Contains(fileExtension))
+                            {
+                                continue; // Skip invalid files
+                            }
+
+                            if (file.ContentLength > 5 * 1024 * 1024) // 5MB
+                            {
+                                continue; // Skip files too large
+                            }
+
+                            // Tạo tên file unique
+                            string uniqueFileName = $"{Guid.NewGuid().ToString("N")}{fileExtension}";
+                            string filePath = Path.Combine(returnFolder, uniqueFileName);
+
+                            // Lưu file
+                            file.SaveAs(filePath);
+                            savedFileNames.Add(uniqueFileName);
+                        }
+                    }
+                }
+
+                // Cập nhật đường dẫn hình ảnh vào database
+                if (savedFileNames.Count > 0)
+                {
+                    using (var client = new HttpClient())
+                    {
+                        var updateData = new
+                        {
+                            MaDoiTra = maDoiTra,
+                            HinhAnhLoi = savedFileNames
+                        };
+
+                        var jsonContent = JsonConvert.SerializeObject(updateData);
+                        var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                        await client.PostAsync("http://127.0.0.1:5000/api/cap_nhat_hinh_anh_doi_tra", content);
+                    }
+                }
+
+                TempData["SuccessMessage"] = $"Tạo yêu cầu đổi trả thành công! Mã yêu cầu: {maDoiTra}";
+                if (savedFileNames.Count > 0)
+                {
+                    TempData["SuccessMessage"] += $" Đã tải lên {savedFileNames.Count} hình ảnh.";
+                }
+
+                return RedirectToAction("DanhSachDoiTra");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi khi tạo yêu cầu đổi trả: " + ex.Message;
+                return RedirectToAction("TaoYeuCauDoiTra", new { orderId = orderId });
+            }
+        }
+        public async Task<ActionResult> TaoYeuCauDoiTra(int? orderId)
+        {
+            if (!orderId.HasValue)
+            {
+                TempData["ErrorMessage"] = "Thiếu thông tin đơn hàng";
+                return RedirectToAction("DonHangCuaToi");
+            }
+
+            var username = Session["Username"] as string;
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction("DangNhap");
+            }
+
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    // Lấy chi tiết đơn hàng
+                    var postData = new { orderId = orderId.Value };
+                    var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+                    var response = await client.PostAsync("http://127.0.0.1:5000/api/get_order_detail", content);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var result = await response.Content.ReadAsStringAsync();
+                        dynamic data = JsonConvert.DeserializeObject(result);
+
+                        if (data.success == true)
+                        {
+                            // Kiểm tra đơn hàng đã giao và trong thời hạn 7 ngày
+                            if (data.order.TrangThai != "Đã giao")
+                            {
+                                TempData["ErrorMessage"] = "Chỉ có thể tạo yêu cầu đổi trả cho đơn hàng đã giao";
+                                return RedirectToAction("DonHangCuaToi");
+                            }
+
+                            // Kiểm tra thời hạn 7 ngày
+                            DateTime ngayDatHang = DateTime.Parse(data.order.NgayDatHang.ToString());
+                            if ((DateTime.Now - ngayDatHang).TotalDays > 7)
+                            {
+                                TempData["ErrorMessage"] = "Đã quá thời hạn 7 ngày để tạo yêu cầu đổi trả";
+                                return RedirectToAction("DonHangCuaToi");
+                            }
+
+                            ViewBag.Order = data.order;
+                            ViewBag.OrderDetails = data.details;
+                            return View();
+                        }
+                    }
+
+                    TempData["ErrorMessage"] = "Không tìm thấy đơn hàng";
+                    return RedirectToAction("DonHangCuaToi");
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Có lỗi xảy ra: " + ex.Message;
+                return RedirectToAction("DonHangCuaToi");
+            }
+        }
+        
+       
 
 
     }

@@ -28,6 +28,101 @@ namespace TMDTLaptop.Controllers
             if (Session["Admin"] == null) { return false; }
             return true;
         }
+        // GET: Quản lý banner
+        public async Task<ActionResult> QuanLyBanner()
+        {
+            //        if (!check()) { return RedirectToAction("Loi404", "Admin"); }
+
+            using (var client = new HttpClient())
+            {
+                var response = await client.GetAsync("http://127.0.0.1:5000/api/get_all_banners");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    ViewBag.Message = "Có lỗi khi kết nối đến API.";
+                    return View();
+                }
+
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                if (data.success == true && data.banners != null)
+                {
+                    var banners = data.banners.ToObject<List<Banner>>();
+                    return View(banners);
+                }
+                else
+                {
+                    ViewBag.Message = data.message ?? "Không thể lấy dữ liệu từ API.";
+                    return View();
+                }
+            }
+        }
+        public ActionResult ThemBanner()
+        {
+            //   if (!check()) { return RedirectToAction("Loi404", "Admin"); }
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> ThemBanner(Banner model, HttpPostedFileBase HinhAnh)
+        {
+            if (ModelState.IsValid)
+            {
+                if (HinhAnh != null && HinhAnh.ContentLength > 0)
+                {
+                    var fileName = Path.GetFileName(HinhAnh.FileName);
+                    var path = Path.Combine(Server.MapPath("~/assets/images/banner/"), fileName);
+                    HinhAnh.SaveAs(path);
+                    model.HinhAnh = fileName;
+                }
+
+                model.LienKet = "";
+
+                using (var client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri("http://127.0.0.1:5000");
+                    var data = new
+                    {
+                        MoTa = model.MoTa,
+                        HinhAnh = model.HinhAnh,
+                        LienKet = model.LienKet
+                    };
+
+                    var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+                    var response = await client.PostAsync("/api/banners", content);
+                    var result = await response.Content.ReadAsStringAsync();
+                    dynamic responseData = JsonConvert.DeserializeObject(result);
+
+                    if (responseData.success == true)
+                    {
+                        return RedirectToAction("QuanLyBanner");
+                    }
+
+                    ModelState.AddModelError("", responseData.message.ToString());
+                }
+            }
+
+            return View(model);
+        }
+
+        public async Task<ActionResult> XoaBanner(int id)
+        {
+            using (var client = new HttpClient())
+            {
+                var response = await client.DeleteAsync($"http://127.0.0.1:5000/api/banners/{id}");
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                if (data.success == true)
+                {
+                    return RedirectToAction("QuanLyBanner");
+                }
+
+                ViewBag.Message = data.message ?? "Xóa thất bại.";
+                return RedirectToAction("QuanLyBanner");
+            }
+        }
         // GET: Admin
         public async Task<ActionResult> Index()
         {
@@ -1286,6 +1381,485 @@ namespace TMDTLaptop.Controllers
                 }
             }
         }
+
+        public async Task<ActionResult> QuanLyTonKho(string searchString, int page = 1, int pageSize = 10)
+        {
+            //   if (!check()) { return RedirectToAction("Loi404", "Admin"); }
+
+            using (var client = new HttpClient())
+            {
+                var postData = new
+                {
+                    SearchString = searchString,
+                    Page = page,
+                    PageSize = pageSize
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+
+                var response = await client.PostAsync("http://127.0.0.1:5000/api/get_products", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                if ((bool)data.success)
+                {
+                    var pagedProducts = data.products.ToObject<List<SanPham>>();
+                    ViewBag.CurrentPage = page;
+                    ViewBag.TotalPages = (int)data.totalPages;
+                    ViewBag.SearchString = searchString;
+
+                    return View(pagedProducts);
+                }
+                else
+                {
+                    return HttpNotFound();
+                }
+            }
+        }
+
+        public async Task<ActionResult> QuanLyPhieuNhapKho(int? searchString, int page = 1, int pageSize = 10)
+        {
+            // if (!check()) { return RedirectToAction("Loi404", "Admin"); }
+
+            using (var client = new HttpClient())
+            {
+                var postData = new
+                {
+                    SearchString = searchString,
+                    Page = page,
+                    PageSize = pageSize
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+
+                var response = await client.PostAsync("http://127.0.0.1:5000/api/get_phieunhapkho", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                if ((bool)data.success)
+                {
+                    var pagedPhieuNhap = data.phieuNhaps.ToObject<List<PhieuNhapKho>>();
+                    ViewBag.CurrentPage = page;
+                    ViewBag.TotalPages = (int)data.totalPages;
+                    ViewBag.SearchString = searchString;
+
+                    return View(pagedPhieuNhap);
+                }
+                else
+                {
+                    return HttpNotFound();
+                }
+            }
+        }
+
+        public async Task<ActionResult> ChiTietPhieuNhapKho(int id)
+        {
+            // if (!check()) { return RedirectToAction("Loi404", "Admin"); }
+
+            using (var client = new HttpClient())
+            {
+                var postData = new { MaPhieuNhap = id };
+                var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+
+                var response = await client.PostAsync("http://127.0.0.1:5000/api/get_chitietphieunhap", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                if ((bool)data.success)
+                {
+                    var phieuNhap = data.phieuNhap.ToObject<PhieuNhapKho>();
+                    var chiTiet = data.chiTiet.ToObject<List<dynamic>>();
+
+                    // Gắn danh sách chi tiết vào phiếu nhập
+                    ViewBag.ChiTietPhieuNhapKho = chiTiet;
+
+                    return View(phieuNhap);
+                }
+                else
+                {
+                    return HttpNotFound();
+                }
+            }
+        }
+
+        public async Task<ActionResult> ThemPhieuNhapKho()
+        {
+            // if (!check()) { return RedirectToAction("Loi404", "Admin"); }
+
+            using (var client = new HttpClient())
+            {
+                var response = await client.GetAsync("http://127.0.0.1:5000/api/get_sanpham"); // giả sử bạn có sẵn API này
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+                if ((bool)data.success)
+                {
+                    ViewBag.SanPhams = data.sanPhams.ToObject<List<SanPham>>();
+                }
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ThemPhieuNhapKho(PhieuNhapKho phieuNhapKho, List<ChiTietPhieuNhapKho> ChiTietPhieuNhaps)
+        {
+            var postData = new
+            {
+                phieuNhapKho = new
+                {
+                    GhiChu = phieuNhapKho.GhiChu
+                },
+                ChiTietPhieuNhaps = ChiTietPhieuNhaps.Select(ct => new
+                {
+                    MaSanPham = ct.MaSanPham,
+                    SoLuong = ct.SoLuong,
+                    GiaNhap = ct.GiaNhap
+                }).ToList()
+            };
+
+            using (var client = new HttpClient())
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://127.0.0.1:5000/api/create_phieunhap", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                if ((bool)data.success)
+                {
+                    return RedirectToAction("QuanLyPhieuNhapKho");
+                }
+                else
+                {
+                    ViewBag.ErrorMessage = data.message;
+                    ViewBag.SanPhams = ChiTietPhieuNhaps; // giữ lại sản phẩm đã nhập
+                    return View(phieuNhapKho);
+                }
+            }
+        }
+
+        public async Task<ActionResult> QuanLyKhoHangLoi(string searchString, int page = 1, int pageSize = 10)
+        {
+            // if (!check()) { return RedirectToAction("Loi404", "Admin"); }
+
+            using (var client = new HttpClient())
+            {
+                var postData = new
+                {
+                    SearchString = searchString,
+                    Page = page,
+                    PageSize = pageSize
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+
+                var response = await client.PostAsync("http://127.0.0.1:5000/api/get_kho_hang_loi", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                if ((bool)data.success)
+                {
+                    var khoHangLoi = data.khoHangLoi.ToObject<List<dynamic>>();
+                    ViewBag.CurrentPage = page;
+                    ViewBag.TotalPages = (int)data.totalPages;
+                    ViewBag.SearchString = searchString;
+                    ViewBag.TotalCount = (int)data.totalCount;
+
+                    return View(khoHangLoi);
+                }
+                else
+                {
+                    return HttpNotFound();
+                }
+            }
+        }
+
+        public async Task<ActionResult> ThemKhoHangLoi()
+        {
+            // if (!check()) { return RedirectToAction("Loi404", "Admin"); }
+
+            using (var client = new HttpClient())
+            {
+                var response = await client.GetAsync("http://127.0.0.1:5000/api/get_sanpham");
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+                if ((bool)data.success)
+                {
+                    ViewBag.SanPhams = data.sanPhams.ToObject<List<SanPham>>();
+                }
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ThemKhoHangLoi(KhoHangLoi khoHangLoi)
+        {
+            if (!ModelState.IsValid)
+            {
+                // Nếu có lỗi validation, load lại danh sách sản phẩm
+                using (var client = new HttpClient())
+                {
+                    var response = await client.GetAsync("http://127.0.0.1:5000/api/get_sanpham");
+                    var result = await response.Content.ReadAsStringAsync();
+                    dynamic data = JsonConvert.DeserializeObject(result);
+                    if ((bool)data.success)
+                    {
+                        ViewBag.SanPhams = data.sanPhams.ToObject<List<SanPham>>();
+                    }
+                }
+                return View(khoHangLoi);
+            }
+
+            var postData = new
+            {
+                MaSanPham = khoHangLoi.MaSanPham,
+                SoLuong = khoHangLoi.SoLuong,
+                LyDo = khoHangLoi.LyDo
+            };
+
+            using (var client = new HttpClient())
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://127.0.0.1:5000/api/them_kho_hang_loi", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                if ((bool)data.success)
+                {
+                    TempData["SuccessMessage"] = "Thêm sản phẩm vào kho hàng lỗi thành công!";
+                    return RedirectToAction("QuanLyKhoHangLoi");
+                }
+                else
+                {
+                    ViewBag.ErrorMessage = data.message;
+
+                    // Load lại danh sách sản phẩm
+                    var productResponse = await client.GetAsync("http://127.0.0.1:5000/api/get_sanpham");
+                    var productResult = await productResponse.Content.ReadAsStringAsync();
+                    dynamic productData = JsonConvert.DeserializeObject(productResult);
+                    if ((bool)productData.success)
+                    {
+                        ViewBag.SanPhams = productData.sanPhams.ToObject<List<SanPham>>();
+                    }
+
+                    return View(khoHangLoi);
+                }
+            }
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> XoaKhoHangLoi(int maKhoLoi)
+        {
+            var postData = new { MaKhoLoi = maKhoLoi };
+
+            using (var client = new HttpClient())
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://127.0.0.1:5000/api/xoa_kho_hang_loi", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                return Json(new { success = data.success, message = data.message });
+            }
+        }
+
+        public async Task<ActionResult> ThongKeKhoHangLoi()
+        {
+            // if (!check()) { return RedirectToAction("Loi404", "Admin"); }
+
+            using (var client = new HttpClient())
+            {
+                var response = await client.GetAsync("http://127.0.0.1:5000/api/thong_ke_kho_hang_loi");
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                if ((bool)data.success)
+                {
+                    ViewBag.TongSanPham = (int)data.tongSanPham;
+                    ViewBag.TongSoLuong = (int)data.tongSoLuong;
+                    var thongKe = data.thongKeSanPham.ToObject<List<dynamic>>();
+
+                    return View(thongKe);
+                }
+                else
+                {
+                    return HttpNotFound();
+                }
+            }
+        }
+
+        public async Task<ActionResult> KhoaTaiKhoan(int id)
+        {
+            using (var client = new HttpClient())
+            {
+                var response = await client.PutAsync("http://127.0.0.1:5000/api/khoa-tai-khoan/" + id, null);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic json = JsonConvert.DeserializeObject(result);
+                TempData["Message"] = json.message;
+            }
+            return RedirectToAction("QuanLyNhanVien");
+        }
+
+        public async Task<ActionResult> MoKhoaTaiKhoan(int id)
+        {
+            using (var client = new HttpClient())
+            {
+                var response = await client.PutAsync("http://127.0.0.1:5000/api/mo-khoa-tai-khoan/" + id, null);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic json = JsonConvert.DeserializeObject(result);
+                TempData["Message"] = json.message;
+            }
+            return RedirectToAction("QuanLyNhanVien");
+        }
+
+        // GET: Đổi mật khẩu
+        public ActionResult DoiMatKhau()
+        {
+            //  if (!check()) { return RedirectToAction("Loi404", "Admin"); }
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DoiMatKhau(string matKhauCu, string matKhauMoi, string xacNhanMatKhau)
+        {
+            string taiKhoan = (string)Session["Admin"]; // Lấy username từ session
+
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://127.0.0.1:5000/"); // Thay bằng địa chỉ thực của API
+
+                var content = new StringContent(JsonConvert.SerializeObject(new
+                {
+                    username = taiKhoan,
+                    matkhaucu = matKhauCu,
+                    matkhaumoi = matKhauMoi,
+                    xacnhanmk = xacNhanMatKhau
+                }), Encoding.UTF8, "application/json");
+
+                var response = await client.PostAsync("api/doi-mat-khau", content);
+                var result = await response.Content.ReadAsStringAsync();
+
+                dynamic json = JsonConvert.DeserializeObject(result);
+                ViewBag.Message = json.message;
+
+                if ((bool)json.success)
+                {
+                    return View(); // hoặc RedirectToAction("SuccessPage");
+                }
+
+                return View(); // Giữ nguyên nếu lỗi
+            }
+        }
+
+        
+
+        // 2. Quản lý đơn đổi trả
+        public async Task<ActionResult> QuanLyDoiTra(int page = 1, int pageSize = 10, string status = null)
+        {
+            using (var client = new HttpClient())
+            {
+                var url = $"http://127.0.0.1:5000/api/get_return_requests?page={page}&pageSize={pageSize}&status={status}";
+                var response = await client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+                    dynamic data = JsonConvert.DeserializeObject(result);
+
+                    if (data.success == true)
+                    {
+                        ViewBag.Returns = data.returns;
+                        ViewBag.CurrentPage = page;
+                        ViewBag.Status = status;
+                        return View();
+                    }
+                }
+
+                ViewBag.Message = "Không thể lấy dữ liệu đổi trả.";
+                return View();
+            }
+        }
+        // Thêm vào Controller
+        public async Task<ActionResult> ChiTietDoiTra(int id)
+        {
+            using (var client = new HttpClient())
+            {
+                var response = await client.GetAsync($"http://127.0.0.1:5000/api/get_return_detail/{id}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+                    dynamic data = JsonConvert.DeserializeObject(result);
+                    if (data.success == true)
+                    {
+                        return PartialView("_ReturnDetailPartial", data.returnDetail);
+                    }
+                }
+                return Json(new { success = false, message = "Không thể lấy thông tin chi tiết" });
+            }
+        }
+        // 3. Cập nhật trạng thái đổi trả
+        [HttpPost]
+        public async Task<JsonResult> CapNhatTrangThaiDoiTra(int maDoiTra, string trangThai, string ghiChu = "")
+        {
+            using (var client = new HttpClient())
+            {
+                var data = new
+                {
+                    maDoiTra = maDoiTra,
+                    trangThai = trangThai,
+                    ghiChu = ghiChu
+                };
+                var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+                var response = await client.PutAsync("http://127.0.0.1:5000/api/update_return_status", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic responseData = JsonConvert.DeserializeObject(result);
+                return Json(new { success = responseData.success, message = responseData.message });
+            }
+        }
+
+      
+
+        // 6. Cập nhật QuanLyDonHang với trạng thái mới
+        public async Task<ActionResult> QuanLyDonHangEnhanced(int page = 1, int pageSize = 5, string searchTerm = null, string status = null)
+        {
+            using (var client = new HttpClient())
+            {
+                var postData = new
+                {
+                    page,
+                    pageSize,
+                    searchTerm,
+                    status
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://127.0.0.1:5000/api/get_orders", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = (int)Math.Ceiling((double)data.total / pageSize);
+                ViewBag.SearchTerm = searchTerm;
+                ViewBag.Status = status;
+
+                // Danh sách trạng thái mới
+                ViewBag.StatusList = new List<string>
+        {
+            "Đặt hàng thành công",
+            "Đang chuẩn bị hàng",
+            "Đã giao cho đơn vị vận chuyển",
+            "Đơn hàng sẽ sớm được giao đến bạn",
+            "Đã giao",
+            "Đã hủy"
+        };
+
+                return View(data.orders);
+            }
+        }
+
+        
 
     }
 }
