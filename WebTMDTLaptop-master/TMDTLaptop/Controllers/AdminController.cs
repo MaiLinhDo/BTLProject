@@ -28,6 +28,8 @@ namespace TMDTLaptop.Controllers
             if (Session["Admin"] == null) { return false; }
             return true;
         }
+
+      
         // GET: Quản lý banner
         public async Task<ActionResult> QuanLyBanner()
         {

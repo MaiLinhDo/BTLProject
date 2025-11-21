@@ -96,7 +96,7 @@
                                                 </td>
                                                 <!-- Price -->
                                                 <td>
-                                                    <span class="product-price fw-bold text-primary">
+                                                    <span class="product-price fw-bold text-primary" data-id="@item.MaSanPham">
                                                         @item.Gia.ToString("N0")₫
                                                     </span>
                                                 </td>
@@ -117,7 +117,7 @@
                                                 </td>
                                                 <!-- Subtotal -->
                                                 <td class="text-end">
-                                                    <span class="product-subtotal fw-bold text-success h6">
+                                                    <span class="product-subtotal fw-bold text-success h6" data-id="@item.MaSanPham">
                                                         @((item.Gia * item.SoLuong).ToString("N0"))₫
                                                     </span>
                                                 </td>
@@ -1016,6 +1016,17 @@ function updateQuantity(productId, quantity) {
             if (input) {
                 input.value = quantity;
             }
+
+            // ====== NEW: Update subtotal of the product ======
+            const priceElement = document.querySelector(`.product-price[data-id="${productId}"]`);
+            const subtotalElement = document.querySelector(`.product-subtotal[data-id="${productId}"]`);
+
+            if (priceElement && subtotalElement) {
+                const price = parseInt(priceElement.textContent.replace(/[^\d]/g, '')) || 0;
+                const newSubtotal = price * quantity;
+                subtotalElement.textContent = newSubtotal.toLocaleString() + "₫";
+            }
+
             // Add animation
             const row = document.querySelector(`tr[data-product-id="${productId}"], .mobile-cart-item[data-product-id="${productId}"]`);
             if (row) {
@@ -1216,7 +1227,7 @@ function removeAppliedVoucher(showToastMessage = false) {
         const appliedVoucher = document.getElementById('applied-voucher');
         const discountRow = document.getElementById('discount-row');
         const hiddenInput = document.getElementById('appliedVoucherCode');
-
+        const discountAmountElement = document.getElementById('discount-amount');
         // Hide applied voucher display with null checks
         if (appliedVoucher) {
             appliedVoucher.classList.add('d-none');
@@ -1227,7 +1238,9 @@ function removeAppliedVoucher(showToastMessage = false) {
         if (hiddenInput) {
             hiddenInput.value = '';
         }
-
+        if (discountAmountElement) {
+            discountAmountElement.textContent = '-0₫';
+        }
         // Reset voucher button states - Enable all buttons
         document.querySelectorAll('.apply-voucher-btn').forEach(btn => {
             if (btn) {
@@ -1236,12 +1249,13 @@ function removeAppliedVoucher(showToastMessage = false) {
                 btn.disabled = false;
             }
         });
-
+       
         // Update totals
         updateCartTotals();
 
         // Only show toast if this was called manually
         if (showToastMessage) {
+
             showToast('Đã hủy áp dụng voucher', 'info');
         }
     } catch (error) {

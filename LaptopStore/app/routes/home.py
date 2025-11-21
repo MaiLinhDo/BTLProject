@@ -2,8 +2,12 @@ from flask import Blueprint, jsonify
 import app.services.home_service as home_service
 from flask import request
 
-api = Blueprint('api', __name__)
+from app.services import revenue_service
 
+api = Blueprint('api', __name__)
+@api.route('/api/thong_ke', methods=['GET'])
+def api_revenue():
+    return jsonify(revenue_service.thong_ke_theo_thang())
 @api.route('/api/vouchers', methods=['GET'])
 def api_vouchers():
     return jsonify(home_service.get_valid_vouchers())
