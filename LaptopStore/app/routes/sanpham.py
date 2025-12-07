@@ -1,9 +1,59 @@
 from flask import Blueprint, request, jsonify
+import json
 import app.services.sanpham_service as sanpham_service
 from app.config import Config
 import pyodbc
+
 def get_connection():
     return pyodbc.connect(Config.SQL_SERVER_CONN)
+
+def normalize_spec_filters(raw_filters):
+    if not raw_filters:
+        return []
+
+    parsed = raw_filters
+    if isinstance(raw_filters, str):
+        try:
+            parsed = json.loads(raw_filters)
+        except (ValueError, TypeError):
+            return []
+
+    normalized = []
+    for item in parsed:
+        if not isinstance(item, dict):
+            continue
+        spec_id = item.get("MaThongSo") or item.get("maThongSo")
+        value = item.get("GiaTri") or item.get("giaTri")
+        if not spec_id or value is None:
+            continue
+        try:
+            normalized.append({
+                "MaThongSo": int(spec_id),
+                "GiaTri": str(value).strip()
+            })
+        except (ValueError, TypeError):
+            continue
+    return normalized
+
+def normalize_spec_values(raw_value):
+    normalized = []
+    if not raw_value:
+        return normalized
+    specs = normalize_spec_filters(raw_value)
+    for spec in specs:
+        if spec["GiaTri"]:
+            normalized.append((spec["MaThongSo"], spec["GiaTri"]))
+    return normalized
+
+def save_product_specs(cursor, product_id, specs, replace=False):
+    if replace:
+        cursor.execute("DELETE FROM SanPhamThongSo WHERE MaSanPham = ?", (product_id,))
+    for spec_id, value in specs:
+        cursor.execute("""
+            INSERT INTO SanPhamThongSo (MaSanPham, MaThongSo, GiaTri)
+            VALUES (?, ?, ?)
+        """, (product_id, spec_id, value))
+
 product_routes = Blueprint("product_routes", __name__)
 # API lấy thông tin sản phẩm theo ID
 @product_routes.route("/api/get_detail_product", methods=["POST"])
@@ -52,9 +102,20 @@ def api_products():
     brand = request.args.get('brand', type=int)
     page = request.args.get('page', default=1, type=int)
     page_size = request.args.get('pageSize', default=8, type=int)
+    spec_filters_raw = request.args.get('specFilters')
+    spec_filters = normalize_spec_filters(spec_filters_raw)
 
     # Gọi đến service để lấy danh sách sản phẩm
-    result = sanpham_service.get_products_user(category_id, search, min_price, max_price, brand, page, page_size)
+    result = sanpham_service.get_products_user(
+        category_id,
+        search,
+        min_price,
+        max_price,
+        brand,
+        page,
+        page_size,
+        spec_filters=spec_filters
+    )
 
     return jsonify(result)
 @product_routes.route('/api/get_products', methods=['POST'])
@@ -125,25 +186,40 @@ def get_sanpham_admin():
     search_term = data.get("SearchTerm", "")
     page = data.get("Page", 1)
     page_size = data.get("PageSize", 10)
+    spec_filters = normalize_spec_filters(data.get("SpecFilters"))
 
     offset = (page - 1) * page_size
 
     conn = get_connection()
     cursor = conn.cursor()
 
-    query = """
+    where_clause = "WHERE TenSanPham LIKE ?"
+    params = [f"%{search_term}%"]
+
+    for spec in spec_filters:
+        where_clause += """
+            AND EXISTS (
+                SELECT 1 FROM SanPhamThongSo sps
+                WHERE sps.MaSanPham = SanPham.MaSanPham
+                AND sps.MaThongSo = ?
+                AND sps.GiaTri LIKE ?
+            )
+        """
+        params.extend([spec["MaThongSo"], f"%{spec['GiaTri']}%"])
+
+    query = f"""
         SELECT MaSanPham, TenSanPham, MoTa, Gia, GiaMoi, TrangThai, HinhAnh, MaDanhMuc, MaHang
         FROM SanPham
-        WHERE TenSanPham LIKE ?
+        {where_clause}
         ORDER BY MaSanPham DESC
         OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
     """
-    cursor.execute(query, (f"%{search_term}%", offset, page_size))
+    cursor.execute(query, params + [offset, page_size])
     rows = cursor.fetchall()
 
     # Đếm tổng số sản phẩm
-    count_query = "SELECT COUNT(*) FROM SanPham WHERE TenSanPham LIKE ?"
-    cursor.execute(count_query, (f"%{search_term}%",))
+    count_query = f"SELECT COUNT(*) FROM SanPham {where_clause}"
+    cursor.execute(count_query, params)
     total_count = cursor.fetchone()[0]
 
     conn.close()
@@ -179,6 +255,7 @@ def create_sanpham():
     ma_danh_muc = data.get('MaDanhMuc')
     ma_hang = data.get('MaHang')
     so_luong = data.get('SoLuong')
+    spec_values = normalize_spec_values(data.get('ThongSoKyThuat'))
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -192,6 +269,9 @@ def create_sanpham():
 
     cursor.execute(query, (ten_san_pham, mo_ta, gia, ma_danh_muc, ma_hang, hinh_anh, so_luong))
     ma_san_pham = cursor.fetchone()[0]
+
+    if spec_values:
+        save_product_specs(cursor, ma_san_pham, spec_values)
 
     conn.commit()
 
@@ -208,6 +288,7 @@ def update_sanpham(id):
     gia = data.get('Gia')
     ma_danh_muc = data.get('MaDanhMuc')
     ma_hang = data.get('MaHang')
+    spec_values = normalize_spec_values(data.get('ThongSoKyThuat'))
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -225,6 +306,8 @@ def update_sanpham(id):
         hinh_anh = (hinh_dai_dien.filename)
         update_image_query = "UPDATE SanPham SET HinhAnh = ? WHERE MaSanPham = ?"
         cursor.execute(update_image_query, (hinh_anh, id))
+
+    save_product_specs(cursor, id, spec_values, replace=True)
 
     conn.commit()
 

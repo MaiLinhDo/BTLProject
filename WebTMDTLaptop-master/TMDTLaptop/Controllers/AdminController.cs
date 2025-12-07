@@ -17,6 +17,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Collections.Specialized;
 namespace TMDTLaptop.Controllers
 {
     public class AdminController : Controller
@@ -170,7 +171,214 @@ namespace TMDTLaptop.Controllers
 
             return View();
         }
+        private List<SpecFilterInput> ParseSpecFilters(NameValueCollection query)
+        {
+            var filters = new List<SpecFilterInput>();
+            if (query == null) return filters;
 
+            foreach (string key in query.AllKeys)
+            {
+                if (string.IsNullOrEmpty(key) || !key.StartsWith("spec_", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var value = query[key];
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    continue;
+                }
+
+                if (int.TryParse(key.Substring(5), out int specId))
+                {
+                    filters.Add(new SpecFilterInput
+                    {
+                        MaThongSo = specId,
+                        GiaTri = value.Trim()
+                    });
+                }
+            }
+
+            return filters;
+        }
+
+        private List<ThongSoKyThuat> DeserializeSpecValues(string payload)
+        {
+            if (string.IsNullOrWhiteSpace(payload))
+            {
+                return new List<ThongSoKyThuat>();
+            }
+
+            try
+            {
+                var result = JsonConvert.DeserializeObject<List<ThongSoKyThuat>>(payload);
+                return result ?? new List<ThongSoKyThuat>();
+            }
+            catch
+            {
+                return new List<ThongSoKyThuat>();
+            }
+        }
+
+
+        private class SpecFilterInput
+        {
+            public int MaThongSo { get; set; }
+            public string GiaTri { get; set; }
+        }
+        #region Thông số kỹ thuật
+
+        public async Task<ActionResult> QuanLyThongSo(string searchTerm = null, int? status = null, int page = 1, int pageSize = 10)
+        {
+            using (var client = new HttpClient())
+            {
+                var builder = new StringBuilder($"http://127.0.0.1:5000/api/spec-definitions?page={page}&pageSize={pageSize}");
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    builder.Append($"&search={HttpUtility.UrlEncode(searchTerm)}");
+                }
+                if (status.HasValue)
+                {
+                    builder.Append($"&status={status.Value}");
+                }
+
+                var response = await client.GetAsync(builder.ToString());
+                if (!response.IsSuccessStatusCode)
+                {
+                    ViewBag.Message = "Không thể lấy danh sách thông số.";
+                    return View(new List<ThongSoKyThuat>());
+                }
+
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                if (data.success == true)
+                {
+                    var specs = data.specs.ToObject<List<ThongSoKyThuat>>();
+                    ViewBag.CurrentPage = page;
+                    ViewBag.TotalPages = (int)data.totalPages;
+                    ViewBag.SearchTerm = searchTerm;
+                    ViewBag.Status = status;
+                    return View(specs);
+                }
+
+                ViewBag.Message = data.message ?? "Không thể lấy dữ liệu.";
+                return View(new List<ThongSoKyThuat>());
+            }
+        }
+
+        public ActionResult ThemThongSo()
+        {
+            return View(new ThongSoKyThuat());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ThemThongSo(ThongSoKyThuat model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            using (var client = new HttpClient())
+            {
+                var payload = JsonConvert.SerializeObject(model);
+                var content = new StringContent(payload, Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://127.0.0.1:5000/api/spec-definitions", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+                    dynamic data = JsonConvert.DeserializeObject(result);
+                    if (data.success == true)
+                    {
+                        return RedirectToAction("QuanLyThongSo");
+                    }
+                    ModelState.AddModelError("", data.message.ToString());
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Không thể tạo thông số mới.");
+                }
+            }
+
+            return View(model);
+        }
+
+        public async Task<ActionResult> SuaThongSo(int id)
+        {
+            using (var client = new HttpClient())
+            {
+                var response = await client.GetAsync($"http://127.0.0.1:5000/api/spec-definitions/{id}");
+                if (!response.IsSuccessStatusCode)
+                {
+                    TempData["Error"] = "Không tìm thấy thông số.";
+                    return RedirectToAction("QuanLyThongSo");
+                }
+
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+                if (data.success == true)
+                {
+                    var spec = data.spec.ToObject<ThongSoKyThuat>();
+                    return View(spec);
+                }
+
+                TempData["Error"] = data.message;
+                return RedirectToAction("QuanLyThongSo");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> SuaThongSo(ThongSoKyThuat model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            using (var client = new HttpClient())
+            {
+                var payload = JsonConvert.SerializeObject(model);
+                var content = new StringContent(payload, Encoding.UTF8, "application/json");
+                var response = await client.PutAsync($"http://127.0.0.1:5000/api/spec-definitions/{model.MaThongSo}", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+                    dynamic data = JsonConvert.DeserializeObject(result);
+                    if (data.success == true)
+                    {
+                        return RedirectToAction("QuanLyThongSo");
+                    }
+                    ModelState.AddModelError("", data.message.ToString());
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Không thể cập nhật thông số.");
+                }
+            }
+
+            return View(model);
+        }
+
+        public async Task<ActionResult> CapNhatTrangThaiThongSo(int id)
+        {
+            using (var client = new HttpClient())
+            {
+                var request = new HttpRequestMessage(new HttpMethod("PATCH"), $"http://127.0.0.1:5000/api/spec-definitions/{id}/toggle");
+                var response = await client.SendAsync(request);
+                if (!response.IsSuccessStatusCode)
+                {
+                    TempData["Error"] = "Không thể cập nhật trạng thái thông số.";
+                }
+            }
+            return RedirectToAction("QuanLyThongSo");
+        }
+
+        #endregion
         // GET: QuanLySanPham
         public async Task<ActionResult> QuanLySanPham(int page = 1, int pageSize = 5, string searchTerm = "")
         {
@@ -180,11 +388,23 @@ namespace TMDTLaptop.Controllers
             {
                 client.BaseAddress = new Uri("http://127.0.0.1:5000"); // Đổi thành base URL Flask của bạn
 
+                var specResponse = await client.GetAsync("/api/spec-definitions?active=1&pageSize=200");
+                if (specResponse.IsSuccessStatusCode)
+                {
+                    var specJson = await specResponse.Content.ReadAsStringAsync();
+                    dynamic specData = JsonConvert.DeserializeObject(specJson);
+                    ViewBag.SpecDefinitions = specData.specs.ToObject<List<ThongSoKyThuat>>();
+                }
+
+                var specFilters = ParseSpecFilters(Request.QueryString);
+                ViewBag.ActiveSpecFilters = specFilters.ToDictionary(x => x.MaThongSo, x => x.GiaTri);
+
                 var payload = new
                 {
                     SearchTerm = searchTerm ?? "",
                     Page = page,
-                    PageSize = pageSize
+                    PageSize = pageSize,
+                    SpecFilters = specFilters.Select(f => new { f.MaThongSo, f.GiaTri }).ToList()
                 };
 
                 var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
@@ -210,6 +430,57 @@ namespace TMDTLaptop.Controllers
             }
         }
 
+        public async Task<ActionResult> ChiTietSanPhamAdmin(int id)
+        {
+            using (var client = new HttpClient())
+            {
+                var requestData = new { productId = id };
+                var content = new StringContent(JsonConvert.SerializeObject(requestData), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://127.0.0.1:5000/api/get_detail_product", content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    TempData["Error"] = "Không thể lấy chi tiết sản phẩm.";
+                    return RedirectToAction("QuanLySanPham");
+                }
+
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                dynamic result = JsonConvert.DeserializeObject(jsonResponse);
+                if (result.success == false)
+                {
+                    TempData["Error"] = result.message ?? "Không tìm thấy sản phẩm.";
+                    return RedirectToAction("QuanLySanPham");
+                }
+
+                var sanPham = result.product.ToObject<SanPham>();
+                ViewBag.ThongSoKyThuat = result.product.ThongSoKyThuat != null
+                    ? result.product.ThongSoKyThuat.ToObject<List<ThongSoKyThuat>>()
+                    : new List<ThongSoKyThuat>();
+                ViewBag.SanPhamCungGia = result.similarProducts != null
+                    ? result.similarProducts.ToObject<List<SanPham>>()
+                    : new List<SanPham>();
+                var serials = new List<SerialNumberViewModel>();
+                if (result.product.SerialNumbers != null)
+                {
+                    foreach (var serial in result.product.SerialNumbers)
+                    {
+                        serials.Add(new SerialNumberViewModel
+                        {
+                            MaSerial = (int)serial.MaSerial,
+                            SerialNumber = (string)serial.SerialNumber,
+                            TrangThai = serial.TrangThai != null ? (string)serial.TrangThai : string.Empty,
+                            NgayNhap = serial.NgayNhap != null ? (string)serial.NgayNhap : string.Empty,
+                            NgayBan = serial.NgayBan != null ? (string)serial.NgayBan : string.Empty
+                        });
+                    }
+                }
+                ViewBag.SerialNumbers = serials;
+                ViewBag.SerialCount = result.product.SerialCount != null ? (int)result.product.SerialCount : serials.Count;
+
+                return View(sanPham);
+            }
+        }
+
 
 
         // GET: ThemSanPham
@@ -223,18 +494,27 @@ namespace TMDTLaptop.Controllers
                 // Gửi yêu cầu GET đến API Flask để lấy danh mục sản phẩm
                 var danhMucResponse = await client.GetAsync("http://127.0.0.1:5000/api/categories");
                 var hangResponse = await client.GetAsync("http://127.0.0.1:5000/api/get_hang");
+                var specResponse = await client.GetAsync("http://127.0.0.1:5000/api/spec-definitions?active=1&pageSize=200");
 
-                if (danhMucResponse.IsSuccessStatusCode && hangResponse.IsSuccessStatusCode)
+                if (danhMucResponse.IsSuccessStatusCode && hangResponse.IsSuccessStatusCode && specResponse.IsSuccessStatusCode)
                 {
                     var danhMucData = await danhMucResponse.Content.ReadAsStringAsync();
                     var hangData = await hangResponse.Content.ReadAsStringAsync();
+                    var specData = await specResponse.Content.ReadAsStringAsync();
 
                     // Deserialise dữ liệu trả về thành danh sách
                     ViewBag.DanhMuc = JsonConvert.DeserializeObject<List<DanhMucSanPham>>(danhMucData);
                     ViewBag.Hang = JsonConvert.DeserializeObject<List<HangSanPham>>(hangData);
+                    dynamic parsedSpecs = JsonConvert.DeserializeObject(specData);
+                    ViewBag.SpecDefinitions = parsedSpecs.specs.ToObject<List<ThongSoKyThuat>>();
+                    ViewBag.SpecValues = new List<ThongSoKyThuat>();
                 }
                 else
                 {
+                    ViewBag.DanhMuc = new List<DanhMucSanPham>();
+                    ViewBag.Hang = new List<HangSanPham>();
+                    ViewBag.SpecDefinitions = new List<ThongSoKyThuat>();
+                    ViewBag.SpecValues = new List<ThongSoKyThuat>();
                     ModelState.AddModelError("", "Lỗi khi gọi API.");
                     return RedirectToAction("QuanLySanPham");
                 }
@@ -249,6 +529,8 @@ namespace TMDTLaptop.Controllers
         {
             if (ModelState.IsValid)
             {
+                var thongSoPayload = Request.Form["ThongSoPayload"] ?? "[]";
+                var currentSpecs = DeserializeSpecValues(thongSoPayload);
                 using (var client = new HttpClient())
                 using (var formData = new MultipartFormDataContent())
                 {
@@ -259,6 +541,7 @@ namespace TMDTLaptop.Controllers
                     formData.Add(new StringContent(model.MaDanhMuc.ToString()), "MaDanhMuc");
                     formData.Add(new StringContent(model.MaHang.ToString()), "MaHang");
                     formData.Add(new StringContent(model.SoLuong.ToString()), "SoLuong");
+                    formData.Add(new StringContent(thongSoPayload, Encoding.UTF8, "application/json"), "ThongSoKyThuat");
                     // Hình đại diện
                     if (HinhDaiDien != null && HinhDaiDien.ContentLength > 0)
                     {
@@ -331,15 +614,20 @@ namespace TMDTLaptop.Controllers
                         {
                             var danhMucResponse = await client.GetAsync("http://127.0.0.1:5000/api/categories");
                             var hangResponse = await client.GetAsync("http://127.0.0.1:5000/api/get_hang");
+                            var specResponse = await client.GetAsync("http://127.0.0.1:5000/api/spec-definitions?active=1&pageSize=200");
 
-                            if (danhMucResponse.IsSuccessStatusCode && hangResponse.IsSuccessStatusCode)
+                            if (danhMucResponse.IsSuccessStatusCode && hangResponse.IsSuccessStatusCode && specResponse.IsSuccessStatusCode)
                             {
                                 var danhMucData = await danhMucResponse.Content.ReadAsStringAsync();
                                 var hangData = await hangResponse.Content.ReadAsStringAsync();
+                                var specData = await specResponse.Content.ReadAsStringAsync();
 
                                 // Deserialise dữ liệu trả về thành danh sách
                                 ViewBag.DanhMuc = JsonConvert.DeserializeObject<List<DanhMucSanPham>>(danhMucData);
                                 ViewBag.Hang = JsonConvert.DeserializeObject<List<HangSanPham>>(hangData);
+                                dynamic parsedSpecs = JsonConvert.DeserializeObject(specData);
+                                ViewBag.SpecDefinitions = parsedSpecs.specs.ToObject<List<ThongSoKyThuat>>();
+                                ViewBag.SpecValues = currentSpecs;
                             }
                             ModelState.AddModelError("", "Lỗi khi tạo sản phẩm.");
                         }
@@ -348,21 +636,51 @@ namespace TMDTLaptop.Controllers
                     {
                         var danhMucResponse = await client.GetAsync("http://127.0.0.1:5000/api/categories");
                         var hangResponse = await client.GetAsync("http://127.0.0.1:5000/api/get_hang");
+                        var specResponse = await client.GetAsync("http://127.0.0.1:5000/api/spec-definitions?active=1&pageSize=200");
 
-                        if (danhMucResponse.IsSuccessStatusCode && hangResponse.IsSuccessStatusCode)
+                        if (danhMucResponse.IsSuccessStatusCode && hangResponse.IsSuccessStatusCode && specResponse.IsSuccessStatusCode)
                         {
                             var danhMucData = await danhMucResponse.Content.ReadAsStringAsync();
                             var hangData = await hangResponse.Content.ReadAsStringAsync();
+                            var specData = await specResponse.Content.ReadAsStringAsync();
 
                             // Deserialise dữ liệu trả về thành danh sách
                             ViewBag.DanhMuc = JsonConvert.DeserializeObject<List<DanhMucSanPham>>(danhMucData);
                             ViewBag.Hang = JsonConvert.DeserializeObject<List<HangSanPham>>(hangData);
+                            dynamic parsedSpecs = JsonConvert.DeserializeObject(specData);
+                            ViewBag.SpecDefinitions = parsedSpecs.specs.ToObject<List<ThongSoKyThuat>>();
+                            ViewBag.SpecValues = currentSpecs;
                         }
                         ModelState.AddModelError("", "Lỗi khi gọi API.");
                     }
                 }
             }
 
+            if (ViewBag.DanhMuc == null || ViewBag.Hang == null || ViewBag.SpecDefinitions == null)
+            {
+                using (var lookupClient = new HttpClient())
+                {
+                    var danhMucResponse = await lookupClient.GetAsync("http://127.0.0.1:5000/api/categories");
+                    var hangResponse = await lookupClient.GetAsync("http://127.0.0.1:5000/api/get_hang");
+                    var specResponse = await lookupClient.GetAsync("http://127.0.0.1:5000/api/spec-definitions?active=1&pageSize=200");
+
+                    if (danhMucResponse.IsSuccessStatusCode && hangResponse.IsSuccessStatusCode && specResponse.IsSuccessStatusCode)
+                    {
+                        var danhMucData = await danhMucResponse.Content.ReadAsStringAsync();
+                        var hangData = await hangResponse.Content.ReadAsStringAsync();
+                        var specData = await specResponse.Content.ReadAsStringAsync();
+                        ViewBag.DanhMuc = JsonConvert.DeserializeObject<List<DanhMucSanPham>>(danhMucData);
+                        ViewBag.Hang = JsonConvert.DeserializeObject<List<HangSanPham>>(hangData);
+                        dynamic parsedSpecs = JsonConvert.DeserializeObject(specData);
+                        ViewBag.SpecDefinitions = parsedSpecs.specs.ToObject<List<ThongSoKyThuat>>();
+                    }
+                }
+            }
+
+            if (ViewBag.SpecValues == null)
+            {
+                ViewBag.SpecValues = DeserializeSpecValues(Request.Form["ThongSoPayload"]);
+            }
 
             return View(model);
         }
@@ -399,13 +717,18 @@ namespace TMDTLaptop.Controllers
                     // Gán danh sách danh mục và hãng sản phẩm vào ViewBag
                     var danhMucResponse = await client.GetAsync("http://127.0.0.1:5000/api/categories");
                     var hangResponse = await client.GetAsync("http://127.0.0.1:5000/api/get_hang");
+                    var specResponse = await client.GetAsync("http://127.0.0.1:5000/api/spec-definitions?active=1&pageSize=200");
 
-                    if (danhMucResponse.IsSuccessStatusCode && hangResponse.IsSuccessStatusCode)
+                    if (danhMucResponse.IsSuccessStatusCode && hangResponse.IsSuccessStatusCode && specResponse.IsSuccessStatusCode)
                     {
                         var danhMucData = await danhMucResponse.Content.ReadAsStringAsync();
                         var hangData = await hangResponse.Content.ReadAsStringAsync();
+                        var specData = await specResponse.Content.ReadAsStringAsync();
                         ViewBag.DanhMuc = JsonConvert.DeserializeObject<List<DanhMucSanPham>>(danhMucData);
                         ViewBag.Hang = JsonConvert.DeserializeObject<List<HangSanPham>>(hangData);
+                        dynamic parsedSpecs = JsonConvert.DeserializeObject(specData);
+                        ViewBag.SpecDefinitions = parsedSpecs.specs.ToObject<List<ThongSoKyThuat>>();
+                        ViewBag.SpecValues = result.product.ThongSoKyThuat.ToObject<List<ThongSoKyThuat>>();
                     }
 
                     return View(sanPham);
@@ -428,6 +751,8 @@ namespace TMDTLaptop.Controllers
         {
             if (ModelState.IsValid)
             {
+                var thongSoPayload = Request.Form["ThongSoPayload"] ?? "[]";
+                var currentSpecs = DeserializeSpecValues(thongSoPayload);
                 using (var client = new HttpClient())
                 using (var formData = new MultipartFormDataContent())
                 {
@@ -437,6 +762,7 @@ namespace TMDTLaptop.Controllers
                     formData.Add(new StringContent(model.Gia.ToString()), "Gia");
                     formData.Add(new StringContent(model.MaDanhMuc.ToString()), "MaDanhMuc");
                     formData.Add(new StringContent(model.MaHang.ToString()), "MaHang");
+                    formData.Add(new StringContent(thongSoPayload, Encoding.UTF8, "application/json"), "ThongSoKyThuat");
 
                     // Hình đại diện
                     if (HinhDaiDien != null && HinhDaiDien.ContentLength > 0)
@@ -476,13 +802,18 @@ namespace TMDTLaptop.Controllers
                         {
                             var danhMucResponse = await client.GetAsync("http://127.0.0.1:5000/api/categories");
                             var hangResponse = await client.GetAsync("http://127.0.0.1:5000/api/get_hang");
+                            var specResponse = await client.GetAsync("http://127.0.0.1:5000/api/spec-definitions?active=1&pageSize=200");
 
-                            if (danhMucResponse.IsSuccessStatusCode && hangResponse.IsSuccessStatusCode)
+                            if (danhMucResponse.IsSuccessStatusCode && hangResponse.IsSuccessStatusCode && specResponse.IsSuccessStatusCode)
                             {
                                 var danhMucData = await danhMucResponse.Content.ReadAsStringAsync();
                                 var hangData = await hangResponse.Content.ReadAsStringAsync();
+                                var specData = await specResponse.Content.ReadAsStringAsync();
                                 ViewBag.DanhMuc = JsonConvert.DeserializeObject<List<DanhMucSanPham>>(danhMucData);
                                 ViewBag.Hang = JsonConvert.DeserializeObject<List<HangSanPham>>(hangData);
+                                dynamic parsedSpecs = JsonConvert.DeserializeObject(specData);
+                                ViewBag.SpecDefinitions = parsedSpecs.specs.ToObject<List<ThongSoKyThuat>>();
+                                ViewBag.SpecValues = currentSpecs;
                             }
                             ModelState.AddModelError("", "Lỗi khi cập nhật sản phẩm.");
                             return View(model);
@@ -493,13 +824,18 @@ namespace TMDTLaptop.Controllers
                     {
                         var danhMucResponse = await client.GetAsync("http://127.0.0.1:5000/api/categories");
                         var hangResponse = await client.GetAsync("http://127.0.0.1:5000/api/get_hang");
+                        var specResponse = await client.GetAsync("http://127.0.0.1:5000/api/spec-definitions?active=1&pageSize=200");
 
-                        if (danhMucResponse.IsSuccessStatusCode && hangResponse.IsSuccessStatusCode)
+                        if (danhMucResponse.IsSuccessStatusCode && hangResponse.IsSuccessStatusCode && specResponse.IsSuccessStatusCode)
                         {
                             var danhMucData = await danhMucResponse.Content.ReadAsStringAsync();
                             var hangData = await hangResponse.Content.ReadAsStringAsync();
+                            var specData = await specResponse.Content.ReadAsStringAsync();
                             ViewBag.DanhMuc = JsonConvert.DeserializeObject<List<DanhMucSanPham>>(danhMucData);
                             ViewBag.Hang = JsonConvert.DeserializeObject<List<HangSanPham>>(hangData);
+                            dynamic parsedSpecs = JsonConvert.DeserializeObject(specData);
+                            ViewBag.SpecDefinitions = parsedSpecs.specs.ToObject<List<ThongSoKyThuat>>();
+                            ViewBag.SpecValues = currentSpecs;
                         }
                         ModelState.AddModelError("", "Lỗi khi gọi API.");
                         return View(model);
@@ -508,6 +844,32 @@ namespace TMDTLaptop.Controllers
                 }
             }
 
+
+            if (ViewBag.DanhMuc == null || ViewBag.Hang == null || ViewBag.SpecDefinitions == null)
+            {
+                using (var lookupClient = new HttpClient())
+                {
+                    var danhMucResponse = await lookupClient.GetAsync("http://127.0.0.1:5000/api/categories");
+                    var hangResponse = await lookupClient.GetAsync("http://127.0.0.1:5000/api/get_hang");
+                    var specResponse = await lookupClient.GetAsync("http://127.0.0.1:5000/api/spec-definitions?active=1&pageSize=200");
+
+                    if (danhMucResponse.IsSuccessStatusCode && hangResponse.IsSuccessStatusCode && specResponse.IsSuccessStatusCode)
+                    {
+                        var danhMucData = await danhMucResponse.Content.ReadAsStringAsync();
+                        var hangData = await hangResponse.Content.ReadAsStringAsync();
+                        var specData = await specResponse.Content.ReadAsStringAsync();
+                        ViewBag.DanhMuc = JsonConvert.DeserializeObject<List<DanhMucSanPham>>(danhMucData);
+                        ViewBag.Hang = JsonConvert.DeserializeObject<List<HangSanPham>>(hangData);
+                        dynamic parsedSpecs = JsonConvert.DeserializeObject(specData);
+                        ViewBag.SpecDefinitions = parsedSpecs.specs.ToObject<List<ThongSoKyThuat>>();
+                    }
+                }
+            }
+
+            if (ViewBag.SpecValues == null)
+            {
+                ViewBag.SpecValues = DeserializeSpecValues(Request.Form["ThongSoPayload"]);
+            }
 
             return View(model);
         }

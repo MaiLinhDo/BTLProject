@@ -21,6 +21,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Net.Sockets;
 using System.IO;
+using System.Collections.Specialized;
 namespace TMDTLaptop.Controllers
 {
     public class HomeController : Controller
@@ -500,6 +501,107 @@ namespace TMDTLaptop.Controllers
             }
         }
 
+        public async Task<ActionResult> CuaHang(int id, string search = "", decimal? minPrice = null, decimal? maxPrice = null, int? brand = null, int page = 1, int pageSize = 8)
+        {
+            string apiUrl = "http://127.0.0.1:5000/api/products_user";
+            var client = new HttpClient();
+
+            var specFilters = ParseSpecFilters(Request.QueryString);
+            var query = HttpUtility.ParseQueryString(string.Empty);
+            query["id"] = id.ToString();
+            query["search"] = search;
+            if (minPrice.HasValue) query["minPrice"] = minPrice.Value.ToString();
+            if (maxPrice.HasValue) query["maxPrice"] = maxPrice.Value.ToString();
+            if (brand.HasValue) query["brand"] = brand.Value.ToString();
+            query["page"] = page.ToString();
+            query["pageSize"] = pageSize.ToString();
+            if (specFilters.Any())
+            {
+                var payload = JsonConvert.SerializeObject(specFilters.Select(f => new { f.MaThongSo, f.GiaTri }));
+                query["specFilters"] = payload;
+            }
+            var queryString = "?" + query.ToString();
+
+            try
+            {
+                // Gửi yêu cầu GET đến API sản phẩm
+                var response = await client.GetStringAsync(apiUrl + queryString);
+                Debug.WriteLine(response);
+                var jsonResponse = JObject.Parse(response);
+
+                var productsToken = jsonResponse["products"];
+                var productsToDisplay = productsToken != null
+                    ? productsToken.ToObject<List<SanPham>>()
+                    : new List<SanPham>();
+
+                // Gán các ViewBag cho phân trang và thông tin tìm kiếm
+                ViewBag.DanhMuc = id;
+                ViewBag.TotalPages = jsonResponse["totalPages"] != null ? jsonResponse["totalPages"].Value<int>() : 1;
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalProducts = jsonResponse["totalProducts"].Value<int>();
+                ViewBag.Search = search;
+                ViewBag.MinPrice = minPrice;
+                ViewBag.MaxPrice = maxPrice;
+                ViewBag.Brand = brand?.ToString();
+
+                // Gọi API lấy danh mục sản phẩm (Brands)
+                var categoriesResponse = await client.GetStringAsync("http://127.0.0.1:5000/api/get_categories");
+                var categoriesJsonResponse = JObject.Parse(categoriesResponse);
+
+                var categories = categoriesJsonResponse["categories"] != null
+                    ? categoriesJsonResponse["categories"].ToObject<List<HangSanPham>>()
+                    : new List<HangSanPham>();
+                ViewBag.Brands = categories;
+
+                var specResponse = await client.GetStringAsync("http://127.0.0.1:5000/api/spec-definitions?active=1&pageSize=200");
+                var specObject = JObject.Parse(specResponse);
+                ViewBag.SpecDefinitions = specObject["specs"]?.ToObject<List<ThongSoKyThuat>>() ?? new List<ThongSoKyThuat>();
+                ViewBag.ActiveSpecFilters = specFilters.ToDictionary(x => x.MaThongSo, x => x.GiaTri);
+
+                return View(productsToDisplay);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Lỗi khi gọi API: {ex.Message}");
+                return RedirectToAction("Error", "Home");
+            }
+        }
+        private List<SpecFilterInput> ParseSpecFilters(NameValueCollection query)
+        {
+            var filters = new List<SpecFilterInput>();
+            if (query == null) return filters;
+
+            foreach (string key in query.AllKeys)
+            {
+                if (string.IsNullOrEmpty(key) || !key.StartsWith("spec_", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var value = query[key];
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    continue;
+                }
+
+                if (int.TryParse(key.Substring(5), out int specId))
+                {
+                    filters.Add(new SpecFilterInput
+                    {
+                        MaThongSo = specId,
+                        GiaTri = value.Trim()
+                    });
+                }
+            }
+
+            return filters;
+        }
+
+        private class SpecFilterInput
+        {
+            public int MaThongSo { get; set; }
+            public string GiaTri { get; set; }
+        }
         // DatHangThanhCong: Xử lý đặt hàng
         public ActionResult DatHang(string paymentMethod)
         {
@@ -708,56 +810,6 @@ namespace TMDTLaptop.Controllers
             return View();
         }
 
-        public async Task<ActionResult> CuaHang(int id, string search = "", decimal? minPrice = null, decimal? maxPrice = null, int? brand = null, int page = 1, int pageSize = 8)
-        {
-            string apiUrl = "http://127.0.0.1:5000/api/products_user";
-            var client = new HttpClient();
-            var queryString = $"?id={id}&search={search}&minPrice={minPrice}&maxPrice={maxPrice}&brand={brand}&page={page}&pageSize={pageSize}";
-
-            try
-            {
-                // Gửi yêu cầu GET đến API sản phẩm
-                var response = await client.GetStringAsync(apiUrl + queryString);
-                Debug.WriteLine(response);
-                var jsonResponse = JObject.Parse(response);
-
-                if (jsonResponse["products"] == null || !jsonResponse["products"].Any())
-                {
-                    return RedirectToAction("Error", "Home");
-                }
-
-                var productsToDisplay = jsonResponse["products"].ToObject<List<SanPham>>();
-
-                // Gán các ViewBag cho phân trang và thông tin tìm kiếm
-                ViewBag.DanhMuc = id;
-                ViewBag.TotalPages = jsonResponse["totalPages"].Value<int>();
-                ViewBag.CurrentPage = page;
-                ViewBag.TotalProducts = jsonResponse["totalProducts"].Value<int>();
-                ViewBag.Search = search;
-                ViewBag.MinPrice = minPrice;
-                ViewBag.MaxPrice = maxPrice;
-                ViewBag.Brand = brand?.ToString();
-
-                // Gọi API lấy danh mục sản phẩm (Brands)
-                var categoriesResponse = await client.GetStringAsync("http://127.0.0.1:5000/api/get_categories");
-                var categoriesJsonResponse = JObject.Parse(categoriesResponse);
-
-                if (categoriesJsonResponse["categories"] == null || !categoriesJsonResponse["categories"].Any())
-                {
-                    return RedirectToAction("Error", "Home");
-                }
-
-                var categories = categoriesJsonResponse["categories"].ToObject<List<HangSanPham>>();
-                ViewBag.Brands = categories;
-
-                return View(productsToDisplay);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Lỗi khi gọi API: {ex.Message}");
-                return RedirectToAction("Error", "Home");
-            }
-        }
         public async Task<ActionResult> ChiTietSanPham(int id, int reviewPage = 1)
         {
             var httpClient = new HttpClient();

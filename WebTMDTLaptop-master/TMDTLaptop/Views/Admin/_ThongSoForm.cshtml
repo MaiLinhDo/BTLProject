@@ -1,0 +1,29 @@
+﻿@model TMDTLaptop.Models.Class.ThongSoKyThuat
+<div class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label">Tên thông số</label>
+        @Html.TextBoxFor(m => m.TenThongSo, new { @class = "form-control", required = "required" })
+        @Html.ValidationMessageFor(m => m.TenThongSo, "", new { @class = "text-danger" })
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Đơn vị</label>
+        @Html.TextBoxFor(m => m.DonVi, new { @class = "form-control" })
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Thứ tự hiển thị</label>
+        @Html.TextBoxFor(m => m.ThuTu, new { @class = "form-control", type = "number", min = "0" })
+    </div>
+    <div class="col-md-12">
+        <label class="form-label">Mô tả</label>
+        @Html.TextAreaFor(m => m.MoTa, new { @class = "form-control", rows = 3 })
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Trạng thái</label>
+        @Html.DropDownListFor(m => m.TrangThai, new SelectList(new[]
+        {
+            new { Value = true, Text = "Đang dùng" },
+            new { Value = false, Text = "Ẩn" }
+        }, "Value", "Text", Model.TrangThai ?? true), new { @class = "form-select" })
+    </div>
+</div>
+

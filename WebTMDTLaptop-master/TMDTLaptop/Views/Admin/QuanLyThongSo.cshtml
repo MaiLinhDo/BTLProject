@@ -1,0 +1,103 @@
+﻿@using System.Web
+@model IEnumerable<TMDTLaptop.Models.Class.ThongSoKyThuat>
+@{
+    ViewBag.Title = "Quản Lý Thông Số Kỹ Thuật";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    var status = ViewBag.Status as int?;
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+        <h2>@ViewBag.Title</h2>
+        <a href="@Url.Action("ThemThongSo")" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Thêm thông số
+        </a>
+    </div>
+
+    @using (Html.BeginForm("QuanLyThongSo", "Admin", FormMethod.Get, new { @class = "row g-2 mb-4" }))
+    {
+        <div class="col-md-6">
+            <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" class="form-control" placeholder="Tìm thông số..." />
+        </div>
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="">Tất cả trạng thái</option>
+                <option value="1" @(status == 1 ? "selected" : "")>Đang dùng</option>
+                <option value="0" @(status == 0 ? "selected" : "")>Ẩn</option>
+            </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button class="btn btn-primary flex-grow-1" type="submit"><i class="fas fa-search me-2"></i>Tìm kiếm</button>
+            <a href="@Url.Action("QuanLyThongSo")" class="btn btn-outline-secondary">
+                <i class="fas fa-undo"></i>
+            </a>
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-body table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tên thông số</th>
+                        <th>Đơn vị</th>
+                        <th>Mô tả</th>
+                        <th>Thứ tự</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.TenThongSo</td>
+                                <td>@item.DonVi</td>
+                                <td>@item.MoTa</td>
+                                <td>@item.ThuTu</td>
+                                <td>
+                                    <span class="badge @(item.TrangThai == true ? "bg-success" : "bg-secondary")">
+                                        @(item.TrangThai == true ? "Đang dùng" : "Đã ẩn")
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("SuaThongSo", new { id = item.MaThongSo })" class="btn btn-warning btn-sm me-1">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="@Url.Action("CapNhatTrangThaiThongSo", new { id = item.MaThongSo })"
+                                       class="btn btn-outline-secondary btn-sm"
+                                       onclick="return confirm('Bạn có chắc chắn muốn đổi trạng thái thông số này?');">
+                                        @(item.TrangThai == true ? "Ẩn" : "Kích hoạt")
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">Chưa có thông số nào.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <nav class="mt-3">
+        <ul class="pagination justify-content-center">
+            @for (int i = 1; i <= (ViewBag.TotalPages ?? 1); i++)
+            {
+                var query = HttpUtility.ParseQueryString(Request.QueryString?.ToString() ?? string.Empty);
+                query["page"] = i.ToString();
+                var url = Url.Action("QuanLyThongSo") + "?" + query.ToString();
+                <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                    <a class="page-link" href="@url">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+</div>
+

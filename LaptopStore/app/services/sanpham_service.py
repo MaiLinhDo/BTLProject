@@ -15,10 +15,45 @@ def get_product_by_id(product_id):
     """, (product_id,))
     
     row = cursor.fetchone()
-    conn.close()
 
     if not row:
+        conn.close()
         return None
+
+    cursor.execute("""
+        SELECT ts.MaThongSo, ts.TenThongSo, ts.DonVi, ts.MoTa, ts.ThuTu, sps.GiaTri
+        FROM SanPhamThongSo sps
+        INNER JOIN ThongSoKyThuat ts ON sps.MaThongSo = ts.MaThongSo
+        WHERE sps.MaSanPham = ?
+        ORDER BY ISNULL(ts.ThuTu, ts.MaThongSo)
+    """, (product_id,))
+    spec_rows = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT MaSerial, SerialNumber, TrangThai, NgayNhap, NgayBan
+        FROM SanPhamSerial
+        WHERE MaSanPham = ?
+        ORDER BY MaSerial DESC
+    """, (product_id,))
+    serial_rows = cursor.fetchall()
+    conn.close()
+
+    specs = [{
+        "MaThongSo": spec[0],
+        "TenThongSo": spec[1],
+        "DonVi": spec[2],
+        "MoTa": spec[3],
+        "ThuTu": spec[4],
+        "GiaTri": spec[5]
+    } for spec in spec_rows]
+
+    serials = [{
+        "MaSerial": serial[0],
+        "SerialNumber": serial[1],
+        "TrangThai": serial[2],
+        "NgayNhap": serial[3].strftime("%Y-%m-%d %H:%M:%S") if serial[3] else None,
+        "NgayBan": serial[4].strftime("%Y-%m-%d %H:%M:%S") if serial[4] else None
+    } for serial in serial_rows]
 
     return {
         "MaSanPham": row.MaSanPham,
@@ -32,6 +67,9 @@ def get_product_by_id(product_id):
         "MaDanhMuc": row.MaDanhMuc,
         "NgayTao": row.NgayTao.strftime("%Y-%m-%d"),
         "TrangThai": row.TrangThai,
+        "ThongSoKyThuat": specs,
+        "SerialNumbers": serials,
+        "SerialCount": len(serials)
     }
     # Sửa service để lấy sản phẩm cùng giá
 def get_similar_price_products(price, product_id):
@@ -65,9 +103,10 @@ def get_similar_price_products(price, product_id):
 
     return similar_products
 
-def get_products_user(category_id, search="", min_price=None, max_price=None, brand=None, page=1, page_size=8):
+def get_products_user(category_id, search="", min_price=None, max_price=None, brand=None, page=1, page_size=8, spec_filters=None):
     conn = get_connection()
     cursor = conn.cursor()
+    spec_filters = spec_filters or []
     
     # SQL cơ bản để truy vấn sản phẩm (dựa trên code cũ)
     query = """
@@ -99,6 +138,18 @@ def get_products_user(category_id, search="", min_price=None, max_price=None, br
     if brand is not None:
         query += " AND MaHang = ?"
         params.append(brand)
+
+    for spec in spec_filters:
+        query += """
+        AND EXISTS (
+            SELECT 1 FROM SanPhamThongSo sps
+            WHERE sps.MaSanPham = SanPham.MaSanPham
+              AND sps.MaThongSo = ?
+              AND sps.GiaTri LIKE ?
+        )
+        """
+        params.append(spec["MaThongSo"])
+        params.append(f"%{spec['GiaTri']}%")
     
     query += " ORDER BY MaSanPham DESC"
     
@@ -143,6 +194,18 @@ def get_products_user(category_id, search="", min_price=None, max_price=None, br
     if brand is not None:
         count_query += " AND MaHang = ?"
         count_params.append(brand)
+
+    for spec in spec_filters:
+        count_query += """
+        AND EXISTS (
+            SELECT 1 FROM SanPhamThongSo sps
+            WHERE sps.MaSanPham = SanPham.MaSanPham
+              AND sps.MaThongSo = ?
+              AND sps.GiaTri LIKE ?
+        )
+        """
+        count_params.append(spec["MaThongSo"])
+        count_params.append(f"%{spec['GiaTri']}%")
     
     print(f"Count query: {count_query}")
     print(f"Count params: {count_params}")
