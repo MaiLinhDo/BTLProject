@@ -1565,8 +1565,46 @@ namespace TMDTLaptop.Controllers
                 return RedirectToAction("DonHangCuaToi");
             }
         }
-        
-       
+
+        public ActionResult Contact()
+        {
+            ViewBag.Message = "Your contact page.";
+
+            return View();
+        }
+        [HttpPost]
+        public ActionResult Contact(string con_name, string con_email, string con_subject, string con_message)
+        {
+            try
+            {
+                // Tạo email message
+                MailMessage mail = new MailMessage();
+                mail.From = new MailAddress("project_nhom08@gmail.com"); // Địa chỉ email của bạn
+                mail.To.Add(con_email); // Gửi email tới người dùng
+                mail.Bcc.Add("project_nhom08@gmail.com"); // Email nhận bản sao
+                mail.Subject = con_subject;
+                mail.Body = $"Xin chào {con_name},\n\nCảm ơn bạn đã liên hệ với chúng tôi.\nNội dung tin nhắn: {con_message}";
+                mail.IsBodyHtml = false;
+
+                // Cấu hình SMTP
+                SmtpClient smtpClient = new SmtpClient("smtp.gmail.com", 587); // SMTP server, ví dụ Gmail
+                smtpClient.Credentials = new NetworkCredential("project_nhom08@gmail.com", "vlnd erpg soxe jwsr"); // Đăng nhập email
+                smtpClient.EnableSsl = true; // Sử dụng SSL
+
+                // Gửi email
+                smtpClient.Send(mail);
+
+                // Thông báo gửi thành công
+                ViewBag.Message = "Gửi email thành công!";
+            }
+            catch (Exception ex)
+            {
+                // Xử lý lỗi
+                ViewBag.Message = "Gửi email thất bại: " + ex.Message;
+            }
+
+            return View();
+        }
 
 
     }
