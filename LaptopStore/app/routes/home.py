@@ -2,8 +2,6 @@ from flask import Blueprint, jsonify
 import app.services.home_service as home_service
 from flask import request
 
-from app.services import revenue_service
-
 api = Blueprint('api', __name__)
 
 @api.route('/api/vouchers', methods=['GET'])
@@ -24,23 +22,20 @@ def api_categories():
 @api.route('/api/get_hang', methods=['GET'])
 def get_hang():
     return jsonify(home_service.get_hang())
-
-
 @api.route('/api/dangky', methods=['POST'])
 def api_dangky():
     data = request.json
     result = home_service.dang_ky_tai_khoan(data)
     return jsonify(result)
-
-
 @api.route('/api/dangnhap', methods=['POST'])
 def api_dang_nhap():
     data = request.json
     username = data.get('Username')
     password = data.get('Password')
-
+    
     result = home_service.dang_nhap_tai_khoan(username, password)
 
+   
     print(result)
     return jsonify(result)
 @api.route('/api/capnhat-thongtin', methods=['POST'])

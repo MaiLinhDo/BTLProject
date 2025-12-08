@@ -22,18 +22,22 @@ def get_phieunhapkho():
     # Truy vấn chính
     if search_string:
         query = """
-            SELECT MaPhieuNhap, NgayNhap, TongTien,GhiChu
-            FROM PhieuNhapKho
-            WHERE MaPhieuNhap = ?
-            ORDER BY NgayNhap DESC
+            SELECT pn.MaPhieuNhap, pn.NgayNhap, pn.TongTien, pn.GhiChu,
+                   pn.MaNhaCungCap, ISNULL(ncc.TenNhaCungCap, N'') AS TenNhaCungCap
+            FROM PhieuNhapKho pn
+            LEFT JOIN NhaCungCap ncc ON pn.MaNhaCungCap = ncc.MaNhaCungCap
+            WHERE pn.MaPhieuNhap = ?
+            ORDER BY pn.NgayNhap DESC
             OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
         """
         cursor.execute(query, (search_string, offset, page_size))
     else:
         query = """
-            SELECT MaPhieuNhap, NgayNhap ,TongTien,GhiChu
-            FROM PhieuNhapKho
-            ORDER BY NgayNhap DESC
+            SELECT pn.MaPhieuNhap, pn.NgayNhap, pn.TongTien, pn.GhiChu,
+                   pn.MaNhaCungCap, ISNULL(ncc.TenNhaCungCap, N'') AS TenNhaCungCap
+            FROM PhieuNhapKho pn
+            LEFT JOIN NhaCungCap ncc ON pn.MaNhaCungCap = ncc.MaNhaCungCap
+            ORDER BY pn.NgayNhap DESC
             OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
         """
         cursor.execute(query, (offset, page_size))
@@ -46,7 +50,9 @@ def get_phieunhapkho():
             "MaPhieuNhap": row[0],
             "NgayNhap": row[1],
             "TongTien": row[2],
-            "GhiChu": row[3]
+            "GhiChu": row[3],
+            "MaNhaCungCap": row[4],
+            "TenNhaCungCap": row[5]
         }
         for row in rows
     ]
@@ -82,9 +88,11 @@ def get_chitiet_phieunhap():
 
     # Truy vấn phiếu nhập kho
     query_phieu = """
-        SELECT MaPhieuNhap,NgayNhap,TongTien, GhiChu
-        FROM PhieuNhapKho
-        WHERE MaPhieuNhap = ?
+        SELECT pn.MaPhieuNhap, pn.NgayNhap, pn.TongTien, pn.GhiChu,
+               pn.MaNhaCungCap, ISNULL(ncc.TenNhaCungCap, N''), ISNULL(ncc.SoDienThoai, N''), ISNULL(ncc.Email, N'')
+        FROM PhieuNhapKho pn
+        LEFT JOIN NhaCungCap ncc ON pn.MaNhaCungCap = ncc.MaNhaCungCap
+        WHERE pn.MaPhieuNhap = ?
     """
     cursor.execute(query_phieu, (ma_phieu,))
     row = cursor.fetchone()
@@ -97,27 +105,47 @@ def get_chitiet_phieunhap():
         "MaPhieuNhap": row[0],
         "NgayNhap": row[1],
         "TongTien": row[2],
-        "GhiChu": row[3]
+        "GhiChu": row[3],
+        "MaNhaCungCap": row[4],
+        "TenNhaCungCap": row[5],
+        "SoDienThoaiNCC": row[6],
+        "EmailNCC": row[7]
     }
 
     # Truy vấn chi tiết phiếu nhập kho
     query_chitiet = """
-      SELECT MaChiTiet, MaPhieuNhap,ChiTietPhieuNhapKho.MaSanPham,ChiTietPhieuNhapKho.SoLuong,GiaNhap, TongTien, TenSanPham
-        FROM ChiTietPhieuNhapKho, SanPham
-        WHERE MaPhieuNhap = ? AND ChiTietPhieuNhapKho.MaSanPham = SanPham.MaSanPham
+      SELECT ctpn.MaChiTiet, ctpn.MaPhieuNhap, ctpn.MaSanPham, ctpn.SoLuong, ctpn.GiaNhap, ctpn.TongTien, sp.TenSanPham
+        FROM ChiTietPhieuNhapKho ctpn
+        INNER JOIN SanPham sp ON ctpn.MaSanPham = sp.MaSanPham
+        WHERE ctpn.MaPhieuNhap = ?
+        ORDER BY ctpn.MaChiTiet
     """
     cursor.execute(query_chitiet, (ma_phieu,))
     chitiet_rows = cursor.fetchall()
 
+    detail_ids = [row[0] for row in chitiet_rows]
+    serial_map = {}
+    if detail_ids:
+        placeholders = ",".join(['?'] * len(detail_ids))
+        cursor.execute(f"""
+            SELECT MaChiTietPhieuNhap, SerialNumber
+            FROM SanPhamSerial
+            WHERE MaChiTietPhieuNhap IN ({placeholders})
+            ORDER BY SerialNumber
+        """, detail_ids)
+        for detail_id, serial in cursor.fetchall():
+            serial_map.setdefault(detail_id, []).append(serial)
+
     chi_tiet_list = [
         {
-            "MaPhieuNhap": row[0],
-            "MaChiTiet": row[1],
+            "MaChiTiet": row[0],
+            "MaPhieuNhap": row[1],
             "MaSanPham": row[2],
             "SoLuong": row[3],
             "GiaNhap": row[4],
             "TongTien": row[5],
-            "TenSanPham": row[6]
+            "TenSanPham": row[6],
+            "SerialNumbers": serial_map.get(row[0], [])
         }
         for row in chitiet_rows
     ]
@@ -142,14 +170,22 @@ def create_phieunhap():
     cursor = conn.cursor()
 
     try:
+        supplier_id = phieu_nhap.get("MaNhaCungCap")
+        if not supplier_id:
+            return jsonify({"success": False, "message": "Vui lòng chọn nhà cung cấp"}), 400
+
+        cursor.execute("SELECT COUNT(*) FROM NhaCungCap WHERE MaNhaCungCap = ?", (supplier_id,))
+        if cursor.fetchone()[0] == 0:
+            return jsonify({"success": False, "message": "Nhà cung cấp không tồn tại"}), 400
+
         # Tạo phiếu nhập kho mới
         insert_phieu = """
-            INSERT INTO PhieuNhapKho (NgayNhap, TongTien, GhiChu)
+            INSERT INTO PhieuNhapKho (NgayNhap, TongTien, GhiChu, MaNhaCungCap)
             OUTPUT INSERTED.MaPhieuNhap
-            VALUES (?, ?, ?)
+            VALUES (?, ?, ?, ?)
         """
         ngay_nhap = datetime.now()
-        cursor.execute(insert_phieu, (ngay_nhap, 0, phieu_nhap.get("GhiChu", "")))
+        cursor.execute(insert_phieu, (ngay_nhap, 0, phieu_nhap.get("GhiChu", ""), supplier_id))
         ma_phieu = cursor.fetchone()[0]
 
         tong_tien = 0
@@ -159,35 +195,35 @@ def create_phieunhap():
             so_luong = chi_tiet["SoLuong"]
             gia_nhap = chi_tiet["GiaNhap"]
             thanh_tien = so_luong * gia_nhap
+            serial_values = chi_tiet.get("SerialNumbers", [])
 
-            # Kiểm tra chi tiết đã tồn tại chưa
-            cursor.execute("""
-                SELECT SoLuong, GiaNhap FROM ChiTietPhieuNhapKho
-                WHERE MaPhieuNhap = ? AND MaSanPham = ?
-            """, (ma_phieu, ma_san_pham))
-            existing = cursor.fetchone()
-
-            if existing:
-                # Nếu giá nhập không trùng thì báo lỗi
-                if existing[1] != gia_nhap:
-                    conn.rollback()
-                    return jsonify({
-                        "success": False,
-                        "message": f"Sản phẩm {ma_san_pham} đã tồn tại với giá khác."
-                    }), 400
-
-                # Cập nhật số lượng trong chi tiết phiếu
-                cursor.execute("""
-                    UPDATE ChiTietPhieuNhapKho
-                    SET SoLuong = SoLuong + ?
-                    WHERE MaPhieuNhap = ? AND MaSanPham = ?
-                """, (so_luong, ma_phieu, ma_san_pham))
+            if isinstance(serial_values, str):
+                serial_values = [serial.strip() for serial in serial_values.replace(",", "\n").splitlines() if serial.strip()]
+            elif isinstance(serial_values, list):
+                serial_values = [str(serial).strip() for serial in serial_values if str(serial).strip()]
             else:
-                # Thêm mới chi tiết phiếu
+                serial_values = []
+
+            if len(serial_values) != so_luong:
+                conn.rollback()
+                return jsonify({
+                    "success": False,
+                    "message": f"Số lượng serial của sản phẩm {ma_san_pham} không khớp với số lượng nhập."
+                }), 400
+
+            insert_detail = """
+                INSERT INTO ChiTietPhieuNhapKho (MaPhieuNhap, MaSanPham, SoLuong, GiaNhap)
+                OUTPUT INSERTED.MaChiTiet
+                VALUES (?, ?, ?, ?)
+            """
+            cursor.execute(insert_detail, (ma_phieu, ma_san_pham, so_luong, gia_nhap))
+            ma_chi_tiet = cursor.fetchone()[0]
+
+            for serial in serial_values:
                 cursor.execute("""
-                    INSERT INTO ChiTietPhieuNhapKho (MaPhieuNhap, MaSanPham, SoLuong, GiaNhap)
-                    VALUES (?, ?, ?, ?)
-                """, (ma_phieu, ma_san_pham, so_luong, gia_nhap))
+                    INSERT INTO SanPhamSerial (MaSanPham, MaChiTietPhieuNhap, MaPhieuNhap, SerialNumber, TrangThai)
+                    VALUES (?, ?, ?, ?, N'Trong kho')
+                """, (ma_san_pham, ma_chi_tiet, ma_phieu, serial))
 
             # Cập nhật số lượng tồn kho sản phẩm
             cursor.execute("""

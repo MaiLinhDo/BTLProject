@@ -14,6 +14,8 @@ from app.routes.banner import banner_routes
 from app.routes.phieunhap import phieunhap_routes
 from app.routes.kho_hang_loi import kho_hang_loi_routes
 from app.routes.baohanh import warranty_routes
+from app.routes.nhacungcap import supplier_routes
+from app.routes.thongso import spec_routes
 from flask_cors import CORS 
 def create_app():
     load_dotenv()
@@ -35,4 +37,7 @@ def create_app():
     app.register_blueprint(banner_routes)
     app.register_blueprint(kho_hang_loi_routes)
     app.register_blueprint(warranty_routes)
+    app.register_blueprint(supplier_routes)
+    app.register_blueprint(spec_routes)
+
     return app

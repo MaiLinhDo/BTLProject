@@ -129,6 +129,7 @@ def tao_phieu_bao_hanh():
         return jsonify({"success": False, "message": f"Lỗi hệ thống: {str(e)}"}), 500
     finally:
         conn.close()
+
 # API để cập nhật hình ảnh sau khi C# đã lưu file (IMPROVED)
 @warranty_routes.route('/api/cap_nhat_hinh_anh_bao_hanh', methods=['POST'])
 def cap_nhat_hinh_anh_bao_hanh():
@@ -182,6 +183,7 @@ def cap_nhat_hinh_anh_bao_hanh():
         return jsonify({"success": False, "message": f"Lỗi hệ thống: {str(e)}"}), 500
     finally:
         conn.close()
+
 # 2. Lấy danh sách phiếu bảo hành
 @warranty_routes.route('/api/get_phieu_bao_hanh', methods=['POST'])
 def get_phieu_bao_hanh():
@@ -508,6 +510,98 @@ def get_chi_tiet_bao_hanh():
         print(f"Error in get_chi_tiet_bao_hanh: {str(e)}")
         return jsonify({"success": False, "message": f"Lỗi hệ thống: {str(e)}"}), 500
 
+# 5. Tạo thông tin vận chuyển
+@warranty_routes.route('/api/tao_van_chuyen_bao_hanh', methods=['POST'])
+def tao_van_chuyen_bao_hanh():
+    data = request.json
+    ma_phieu_bh = data.get("MaPhieuBH")
+    loai_van_chuyen = data.get("LoaiVanChuyen")  # "Lấy hàng" hoặc "Trả hàng"
+    don_vi_van_chuyen = data.get("DonViVanChuyen")
+    ma_van_don = data.get("MaVanDon")
+    dia_chi_lay_hang = data.get("DiaChiLayHang")
+    dia_chi_tra_hang = data.get("DiaChiTraHang")
+    
+    if not all([ma_phieu_bh, loai_van_chuyen, don_vi_van_chuyen]):
+        return jsonify({"success": False, "message": "Thiếu thông tin bắt buộc"}), 400
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            INSERT INTO VanChuyenBaoHanh (MaPhieuBH, LoaiVanChuyen, DonViVanChuyen, 
+                                         MaVanDon, DiaChiLayHang, DiaChiTraHang)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (ma_phieu_bh, loai_van_chuyen, don_vi_van_chuyen, ma_van_don,
+              dia_chi_lay_hang, dia_chi_tra_hang))
+        
+        conn.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": "Tạo thông tin vận chuyển thành công"
+        })
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+# 6. Cập nhật thông tin xử lý từ nhà sản xuất
+@warranty_routes.route('/api/cap_nhat_xu_ly_nha_san_xuat', methods=['POST'])
+def cap_nhat_xu_ly_nha_san_xuat():
+    data = request.json
+    ma_phieu_bh = data.get("MaPhieuBH")
+    ten_nha_san_xuat = data.get("TenNhaSanXuat")
+    ma_phieu_nsx = data.get("MaPhieuNSX")
+    hinh_thuc_xu_ly = data.get("HinhThucXuLy")
+    mo_ta_xu_ly = data.get("MoTaXuLy")
+    chi_phi = data.get("ChiPhi", 0)
+    trang_thai = data.get("TrangThai", "Đang xử lý")
+    
+    if not ma_phieu_bh:
+        return jsonify({"success": False, "message": "Thiếu mã phiếu bảo hành"}), 400
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # Kiểm tra đã có thông tin xử lý chưa
+        cursor.execute("SELECT MaXuLy FROM XuLyNhaSanXuat WHERE MaPhieuBH = ?", (ma_phieu_bh,))
+        existing = cursor.fetchone()
+        
+        if existing:
+            # Cập nhật
+            cursor.execute("""
+                UPDATE XuLyNhaSanXuat
+                SET TenNhaSanXuat = ?, MaPhieuNSX = ?, HinhThucXuLy = ?,
+                    MoTaXuLy = ?, ChiPhi = ?, TrangThai = ?
+                WHERE MaPhieuBH = ?
+            """, (ten_nha_san_xuat, ma_phieu_nsx, hinh_thuc_xu_ly,
+                  mo_ta_xu_ly, chi_phi, trang_thai, ma_phieu_bh))
+        else:
+            # Tạo mới
+            cursor.execute("""
+                INSERT INTO XuLyNhaSanXuat (MaPhieuBH, TenNhaSanXuat, MaPhieuNSX, 
+                                           NgayGui, HinhThucXuLy, MoTaXuLy, ChiPhi, TrangThai)
+                VALUES (?, ?, ?, GETDATE(), ?, ?, ?, ?)
+            """, (ma_phieu_bh, ten_nha_san_xuat, ma_phieu_nsx, hinh_thuc_xu_ly,
+                  mo_ta_xu_ly, chi_phi, trang_thai))
+        
+        conn.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": "Cập nhật thông tin xử lý nhà sản xuất thành công"
+        })
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
 # 7. Thống kê bảo hành
 @warranty_routes.route('/api/thong_ke_bao_hanh', methods=['POST'])
 def thong_ke_bao_hanh():
@@ -612,7 +706,8 @@ def thong_ke_bao_hanh():
         
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
-    # 8. Kiểm tra điều kiện bảo hành
+
+# 8. Kiểm tra điều kiện bảo hành
 @warranty_routes.route('/api/kiem_tra_dieu_kien_bao_hanh', methods=['POST'])
 def kiem_tra_dieu_kien_bao_hanh():
     data = request.json
@@ -695,4 +790,3 @@ def kiem_tra_dieu_kien_bao_hanh():
         
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
-

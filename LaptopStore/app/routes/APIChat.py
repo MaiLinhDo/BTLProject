@@ -9,7 +9,7 @@ from flask_cors import CORS
 sys.stdout.reconfigure(encoding='utf-8')
 
 # Cấu hình API Key Gemini
-API_KEY = "AIzaSyCeGZiWJ6_Ynysbwt5-32VRStPTGs1Iwyw"
+API_KEY = "AIzaSyD84nqYxXX1Nfm1pBgF_IE0TUwuMIp1DU0"
 genai.configure(api_key=API_KEY)
 
 # Chọn model Gemini
@@ -19,12 +19,46 @@ model = genai.GenerativeModel("gemini-2.0-flash")
 def get_db_connection():
     conn = pyodbc.connect(
         "DRIVER={SQL Server};"
-        "SERVER=DESKTOP-A9RVON6\\SQLEXPRESS;"
+        "SERVER=DESKTOP-F2DJF28;"
         "DATABASE=LaptopStore;"
         "Trusted_Connection=yes;" 
         "TrustServerCertificate=yes;"  
     )
     return conn
+
+def get_support_staff_info():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    query = """
+        SELECT TOP 3 tk.HoTen, ISNULL(tk.SoDienThoai, ''), ISNULL(tk.Email, ''), ISNULL(q.TenQuyen, N'Nhân viên')
+        FROM TaiKhoan tk
+        LEFT JOIN Quyen q ON tk.MaQuyen = q.MaQuyen
+        WHERE tk.TrangThai = 1 AND (q.TenQuyen IS NULL OR q.TenQuyen <> N'Khách hàng')
+        ORDER BY tk.NgayTao DESC
+    """
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    if not rows:
+        return ("Hiện tại chatbot chỉ hỗ trợ kiểm tra tồn kho. "
+                "Vui lòng liên hệ hotline 1900.999.888 để được nhân viên hỗ trợ chi tiết.")
+
+    message_lines = [
+        "Xin lỗi! Câu hỏi này nằm ngoài phạm vi hỗ trợ tự động.",
+        "Bạn có thể liên hệ đội ngũ nhân viên của chúng tôi để được tư vấn ngay:"
+    ]
+
+    for row in rows:
+        ho_ten = row[0]
+        so_dien_thoai = row[1] or "Chưa cập nhật"
+        email = row[2] or "support@laptopstore.vn"
+        chuc_vu = row[3] or "Nhân viên"
+        message_lines.append(f"• {ho_ten} ({chuc_vu}) - SĐT: {so_dien_thoai} - Email: {email}")
+
+    message_lines.append("Nhân viên luôn sẵn sàng hỗ trợ 24/7 ❤️")
+    return "\n".join(message_lines)
 
 def is_stock_inquiry(user_message):
     prompt = f"""Bạn chỉ cần trả lời một từ duy nhất: 'Có' hoặc 'Không'.  
@@ -128,9 +162,9 @@ def chat():
             print(f"🔍 Kết quả kiểm tra kho: {stock_responses}")  
             return jsonify({"response": "\n".join(stock_responses)})
 
-        # Nếu không có sản phẩm hoặc không hỏi về hàng tồn, hỏi Gemini như bình thường
-        response = model.generate_content(user_message)
-        return jsonify({"response": response.text})
+        # Nếu không phải câu hỏi về tồn kho, trả về thông tin nhân viên hỗ trợ
+        staff_message = get_support_staff_info()
+        return jsonify({"response": staff_message})
 
     except Exception as e:
         print(f"❌ Lỗi khi xử lý tin nhắn: {str(e)}")

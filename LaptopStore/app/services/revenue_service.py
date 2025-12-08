@@ -1,9 +1,6 @@
 import pyodbc
-from flask import request, jsonify
-
 from app.config import Config
-from datetime import datetime, timedelta
-
+from datetime import datetime
 
 def get_connection():
     return pyodbc.connect(Config.SQL_SERVER_CONN)
@@ -58,4 +55,3 @@ def get_revenue_by_product_and_category():
         "revenueByProduct": revenue_by_product,
         "revenueByCategory": revenue_by_category
     }
-

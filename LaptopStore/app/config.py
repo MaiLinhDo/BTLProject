@@ -1,7 +1,7 @@
 import os
 
 class Config:
-    DB_SERVER = os.getenv("DB_SERVER", "DESKTOP-A9RVON6\\SQLEXPRESS")
+    DB_SERVER = os.getenv("DB_SERVER", "DESKTOP-F2DJF28")
     DB_DATABASE = os.getenv("DB_DATABASE", "LaptopStore")
 
     SQL_SERVER_CONN = (

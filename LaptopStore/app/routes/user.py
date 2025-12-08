@@ -11,8 +11,11 @@ def get_user():
     if user:
         return jsonify({
             "MaTaiKhoan": user.MaTaiKhoan,
+            "Username": user.Username,
+            "HoTen": user.HoTen,
             "DiaChi": user.DiaChi,
             "SoDienThoai": user.SoDienThoai,
+            "Email": user.Email,
             "TrangThai": user.TrangThai
         })
   
@@ -50,6 +53,24 @@ def khoa_tai_khoan(id):
 def mo_khoa_tai_khoan(id):
     result = user_service.update_trang_thai_tai_khoan(id, True)
     return jsonify(result)
+@user_routes.route('/api/get_all_nhanvien', methods=['GET'])
+def get_all_nhanvien():
+    try:
+        page = request.args.get('page', type=int, default=1)
+        page_size = request.args.get('pageSize', type=int, default=5)
+        search_term = request.args.get('search', type=str, default='')
 
+        result = user_service.get_all_nhanvien_service(page, page_size, search_term)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+@user_routes.route('/api/nhanvien', methods=['POST'])
+def add_nhanvien():
+    try:
+        data = request.get_json()
+        result = user_service.them_nhan_vien(data)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
 
 
