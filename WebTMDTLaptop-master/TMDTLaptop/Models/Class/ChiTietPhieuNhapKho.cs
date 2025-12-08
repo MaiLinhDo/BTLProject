@@ -14,6 +14,6 @@ namespace TMDTLaptop.Models.Class
         public decimal GiaNhap { get; set; }
         public Nullable<decimal> TongTien { get; set; }
 
-     
+        public string SerialNumbers { get; set; }
     }
 }

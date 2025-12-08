@@ -1,8 +1,11 @@
 ﻿@model TMDTLaptop.Models.Class.SanPham
-
+@using TMDTLaptop.Models.Class
 @{
     ViewBag.Title = "Thêm Sản Phẩm";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    var specDefinitions = ViewBag.SpecDefinitions as List<ThongSoKyThuat> ?? new List<ThongSoKyThuat>();
+    var specValues = ViewBag.SpecValues as List<ThongSoKyThuat> ?? new List<ThongSoKyThuat>();
+    var specDict = specValues.ToDictionary(s => s.MaThongSo, s => s.GiaTri ?? string.Empty);
 }
 
 <div class="container">
@@ -26,7 +29,7 @@
                 </div>
 
                 <script>
-                    CKEDITOR.replace('editor'); // Khởi tạo CKEditor cho trường MoTa
+                    CKEDITOR.replace('editor');
                 </script>
 
                 <div class="form-group">
@@ -66,8 +69,67 @@
                     @Html.ValidationMessageFor(model => model.MaDanhMuc, "", new { @class = "text-danger" })
                 </div>
 
-                <button type="submit" class="btn btn-primary">Thêm Sản Phẩm</button>
+                @if (specDefinitions.Any())
+                {
+                    <div class="mt-4">
+                        <h5>Thông số kỹ thuật</h5>
+                        <input type="hidden" name="ThongSoPayload" id="ThongSoPayload" />
+                        <div class="row g-3">
+                            @foreach (var spec in specDefinitions)
+                            {
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">
+                                        @spec.TenThongSo
+                                        @if (!string.IsNullOrWhiteSpace(spec.DonVi))
+                                        {
+                                            <small class="text-muted">(@spec.DonVi)</small>
+                                        }
+                                    </label>
+                                    <input type="text"
+                                           class="form-control spec-input"
+                                           data-id="@spec.MaThongSo"
+                                           value="@(specDict.ContainsKey(spec.MaThongSo) ? specDict[spec.MaThongSo] : string.Empty)"
+                                           placeholder="Nhập giá trị..." />
+                                </div>
+                            }
+                        </div>
+                        <small class="text-muted d-block mt-2">Các thông số để trống sẽ không được lưu.</small>
+                    </div>
+                }
+                else
+                {
+                    <input type="hidden" name="ThongSoPayload" id="ThongSoPayload" value="[]" />
+                }
+
+                <button type="submit" class="btn btn-primary mt-3">Thêm Sản Phẩm</button>
+                <a href="@Url.Action("QuanLySanPham")" class="btn btn-secondary mt-3 ms-2">Hủy</a>
             </div>
         </div>
     }
 </div>
+
+@section scripts{
+    <script>
+        (function () {
+            const form = document.querySelector("form");
+            if (!form) return;
+            form.addEventListener("submit", function () {
+                const specs = [];
+                document.querySelectorAll(".spec-input").forEach(function (input) {
+                    const value = (input.value || "").trim();
+                    if (value) {
+                        specs.push({
+                            MaThongSo: parseInt(input.dataset.id),
+                            GiaTri: value
+                        });
+                    }
+                });
+                const payload = document.getElementById("ThongSoPayload");
+                if (payload) {
+                    payload.value = JSON.stringify(specs);
+                }
+            });
+        })();
+    </script>
+}
+

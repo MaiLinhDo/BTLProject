@@ -1,0 +1,198 @@
+﻿@{
+    ViewBag.Title = "Quản Lý Đánh Giá";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="container">
+    <h2 class="mt-4 mb-4">Quản Lý Đánh Giá Sản Phẩm</h2>
+
+    <!-- Thanh tìm kiếm và lọc -->
+    <form class="form-inline d-flex align-items-center mb-3 gap-2" method="get" action="@Url.Action("QuanLyDanhGia")">
+        <input type="number" name="productId" class="form-control" style="width: 150px" placeholder="Mã sản phẩm" value="@ViewBag.ProductId" />
+        <select name="rating" class="form-control" style="width: 150px">
+            <option value="">Tất cả rating</option>
+            <option value="5" @(ViewBag.Rating == "5" ? "selected" : "")>5 sao</option>
+            <option value="4" @(ViewBag.Rating == "4" ? "selected" : "")>4 sao</option>
+            <option value="3" @(ViewBag.Rating == "3" ? "selected" : "")>3 sao</option>
+            <option value="2" @(ViewBag.Rating == "2" ? "selected" : "")>2 sao</option>
+            <option value="1" @(ViewBag.Rating == "1" ? "selected" : "")>1 sao</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Lọc</button>
+        <a href="@Url.Action("ThongKeDanhGia")" class="btn btn-info">Thống kê</a>
+    </form>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover table-bordered">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Mã Đánh Giá</th>
+                        <th scope="col">Sản Phẩm</th>
+                        <th scope="col">Khách Hàng</th>
+                        <th scope="col">Rating</th>
+                        <th scope="col">Bình Luận</th>
+                        <th scope="col">Ngày Đánh Giá</th>
+                        <th scope="col">Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.Reviews != null)
+                    {
+                        foreach (var review in ViewBag.Reviews)
+                        {
+                            <tr>
+                                <td>@review.MaDanhGia</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="@Url.Content($"~/assets/images/product/{review.MaSanPham}/{review.HinhAnh}")"
+                                             alt="@review.TenSanPham" class="img-thumbnail me-2" style="width: 50px; height: 50px;">
+                                        <div>
+                                            <strong>@review.TenSanPham</strong><br>
+                                            <small class="text-muted">ID: @review.MaSanPham</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@review.HoTen</td>
+                                <td>
+                                    <div class="rating-display">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <span class="star @(i <= review.DiemDanhGia ? "text-warning" : "text-muted")">★</span>
+                                        }
+                                        <span class="ms-1">(@review.DiemDanhGia/5)</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="comment-preview" style="max-width: 300px;">
+                                        @if (review.BinhLuan.Length > 100)
+                                        {
+                                            <span>@review.BinhLuan.Substring(0, 100)...</span>
+                                            <br><small><a href="#" onclick="viewFullReview(@review.MaDanhGia)">Xem đầy đủ</a></small>
+                                        }
+                                        else
+                                        {
+                                            <span>@review.BinhLuan</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>@review.NgayDanhGia</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-info btn-sm" onclick="viewFullReview(@review.MaDanhGia)">
+                                            Xem
+                                        </button>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteReview(@review.MaDanhGia, '@review.TenSanPham')">
+                                            Xóa
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center">Không có đánh giá nào</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Phân trang -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            @for (var i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("QuanLyDanhGia", new { page = i, productId = ViewBag.ProductId, rating = ViewBag.Rating })">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+</div>
+
+<!-- Modal xem đầy đủ đánh giá -->
+<div class="modal fade" id="reviewDetailModal" tabindex="-1" role="dialog" aria-labelledby="reviewDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reviewDetailModalLabel">Chi tiết đánh giá</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="reviewDetailContent">
+                <!-- Nội dung chi tiết sẽ được load bằng AJAX -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewFullReview(reviewId) {
+    // Gọi AJAX để lấy chi tiết đánh giá
+    $.get('@Url.Action("GetReviewDetail")', { id: reviewId }, function(data) {
+        if (data.success) {
+            const review = data.review;
+            const stars = '★'.repeat(review.DiemDanhGia) + '☆'.repeat(5 - review.DiemDanhGia);
+
+            $('#reviewDetailContent').html(`
+                <div class="row">
+                    <div class="col-md-4">
+                        <img src="/assets/images/product/${review.MaSanPham}/${review.HinhAnh}"
+                             alt="${review.TenSanPham}" class="img-fluid">
+                    </div>
+                    <div class="col-md-8">
+                        <h6>${review.TenSanPham}</h6>
+                        <p><strong>Khách hàng:</strong> ${review.HoTen}</p>
+                        <p><strong>Đánh giá:</strong> <span class="text-warning">${stars}</span> (${review.DiemDanhGia}/5)</p>
+                        <p><strong>Ngày đánh giá:</strong> ${review.NgayDanhGia}</p>
+                        <div class="mt-3">
+                            <strong>Nhận xét:</strong>
+                            <div class="border p-3 mt-2" style="background-color: #f8f9fa;">
+                                ${review.BinhLuan}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+        } else {
+            $('#reviewDetailContent').html('<p class="text-danger">Không thể tải thông tin đánh giá.</p>');
+        }
+
+        $('#reviewDetailModal').modal('show');
+    });
+}
+
+function deleteReview(reviewId, productName) {
+    if (confirm(`Bạn có chắc chắn muốn xóa đánh giá cho sản phẩm "${productName}" không?\nHành động này không thể hoàn tác.`)) {
+        $.post('@Url.Action("XoaDanhGia")', { maDanhGia: reviewId }, function(result) {
+            if (result.success) {
+                alert('Xóa đánh giá thành công!');
+                location.reload();
+            } else {
+                alert('Có lỗi: ' + result.message);
+            }
+        });
+    }
+}
+</script>
+
+<style>
+    .rating-display .star {
+        font-size: 1.2rem;
+    }
+
+    .comment-preview {
+        word-break: break-word;
+    }
+
+    .img-thumbnail {
+        object-fit: cover;
+    }
+</style>

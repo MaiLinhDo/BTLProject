@@ -11,5 +11,9 @@ namespace TMDTLaptop.Models.Class
         public System.DateTime NgayNhap { get; set; }
         public decimal TongTien { get; set; }
         public string GhiChu { get; set; }
+        public int? MaNhaCungCap { get; set; }
+        public string TenNhaCungCap { get; set; }
+        public string SoDienThoaiNCC { get; set; }
+        public string EmailNCC { get; set; }
     }
 }

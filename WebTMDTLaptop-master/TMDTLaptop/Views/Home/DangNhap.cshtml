@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewBag.Title = "DangNhap";
     Layout = "~/Views/Shared/_LayoutHome.cshtml";
 }
@@ -806,19 +806,17 @@ function validateField(field) {
 }
 
 // Toast notification function
-    function showToast(message, type = 'info') {
-        let toastContainer = document.getElementById('toast-container');
-        if (!toastContainer) {
-            toastContainer = document.createElement('div');
-            toastContainer.id = 'toast-container';
-            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
-            toastContainer.style.zIndex = '9999';
-            document.body.appendChild(toastContainer);
-        }
+function showToast(message, type = 'info') {
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
 
-        const toastId = 'toast-' + Date.now();
-        const iconClass = type === 'success' ? 'fa-check-circle text-success' :
-            type === 'error' ? 'fa-exclamation-circle text-danger' :''
-       }  
-   
-    </script>
+    const toastId = 'toast-' + Date.now();
+    const iconClass = type === 'success' ? 'fa-check-circle text-success' :
+                     type === 'error' ? 'fa-exclamation-circle text-danger' :
+                     '

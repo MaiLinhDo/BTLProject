@@ -1,4 +1,5 @@
-﻿@{
+﻿@using TMDTLaptop.Controllers
+@{
     ViewBag.Title = "Quản Lý Đơn Hàng";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 }
@@ -11,13 +12,14 @@
         <input type="text" name="searchTerm" class="form-control" style="width: 250px" placeholder="Tìm kiếm..." value="@ViewBag.SearchTerm" />
         <select name="status" class="form-control" style="width: 250px">
             <option value="">Tất cả trạng thái</option>
-            <option value="Đang chờ xử lý" @(ViewBag.Status == "Đang chờ xử lý" ? "selected" : "")>Đang chờ xử lý</option>
-            <option value="Đã Duyệt" @(ViewBag.Status == "Đã Duyệt" ? "selected" : "")>Đã Duyệt</option>
-            <option value="Đã thanh toán" @(ViewBag.Status == "Đã thanh toán" ? "selected" : "")>Đã thanh toán</option>
-            <option value="Đã Giao" @(ViewBag.Status == "Đã Giao" ? "selected" : "")>Đã Giao</option>
-            <option value="Đã Hủy" @(ViewBag.Status == "Đã Hủy" ? "selected" : "")>Đã Hủy</option>
+            <option value="Đặt hàng thành công" @(ViewBag.Status == "Đặt hàng thành công" ? "selected" : "")>Đặt hàng thành công</option>
+            <option value="Đang chuẩn bị hàng" @(ViewBag.Status == "Đang chuẩn bị hàng" ? "selected" : "")>Đang chuẩn bị hàng</option>
+            <option value="Đã giao cho đơn vị vận chuyển" @(ViewBag.Status == "Đã giao cho đơn vị vận chuyển" ? "selected" : "")>Đã giao cho đơn vị vận chuyển</option>
+            <option value="Đơn hàng sẽ sớm được giao đến bạn" @(ViewBag.Status == "Đơn hàng sẽ sớm được giao đến bạn" ? "selected" : "")>Đơn hàng sẽ sớm được giao đến bạn</option>
+            <option value="Đã giao" @(ViewBag.Status == "Đã giao" ? "selected" : "")>Đã giao</option>
+            <option value="Đã hủy" @(ViewBag.Status == "Đã hủy" ? "selected" : "")>Đã hủy</option>
+            <option value="Đã trả hàng" @(ViewBag.Status == "Đã trả hàng" ? "selected" : "")>Đã trả hàng</option>
         </select>
-
         <button type="submit" class="btn btn-primary" style="width: 100px">Tìm kiếm</button>
     </form>
 
@@ -41,9 +43,9 @@
                             <td>@item.MaDonHang</td>
                             <td>@item.HoTen</td>
                             <td>@item.NgayDatHang.ToString("dd/MM/yyyy")</td>
-                            <td>@item.TongTien.ToString("N0") đ</td>
-                            <td>@item.TrangThai</td>
+                            <td>@(Convert.ToDecimal(item.TongTien ?? 0).ToString("N0")) đ</td>
                             <td>
+<<<<<<< HEAD
                                 <a href="@Url.Action("ChiTietDonHang", new { id = item.MaDonHang })" class="btn btn-info btn-sm">Xem Chi Tiết</a>
                                 @if (item.TrangThai == "Đang chờ xử lý" || item.TrangThai == "Đặt hàng thành công")
                                 {
@@ -69,8 +71,67 @@
 
                                     }
                                 }
+=======
+                                @{
+                                    string statusClass = "";
+                                    switch (item.TrangThai?.ToString() ?? "")
+                                    {
+                                        case "Đặt hàng thành công": statusClass = "bg-info"; break;
+                                        case "Đang chuẩn bị hàng": statusClass = "bg-warning"; break;
+                                        case "Đã giao cho đơn vị vận chuyển": statusClass = "bg-primary"; break;
+                                        case "Đơn hàng sẽ sớm được giao đến bạn": statusClass = "bg-secondary"; break;
+                                        case "Đã giao": statusClass = "bg-success"; break;
+                                        case "Đã hủy": statusClass = "bg-danger"; break;
+                                        case "Đã trả hàng": statusClass = "bg-dark"; break;
+                                        default: statusClass = "bg-secondary"; break;
+                                    }
+                                }
+                                <span class="badge @statusClass text-white">
+                                    @item.TrangThai
+                                </span>
+>>>>>>> 2888fa2 (Cập nhật project lần 2)
                             </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="@Url.Action("ChiTietDonHang", new { id = item.MaDonHang })"
+                                       class="btn btn-info btn-sm">Chi Tiết</a>
+                                    <a href="@Url.Action("InHoaDon", new { id = item.MaDonHang })"
+                                       class="btn btn-outline-dark btn-sm" target="_blank">
+                                        <i class="fas fa-print"></i>
+                                    </a>
 
+                                    <!-- Fixed Dropdown for Bootstrap 5 compatibility -->
+                                    <div class="btn-group" role="group">
+                                        <button id="statusDropdown@(item.MaDonHang)" type="button"
+                                                class="btn btn-secondary btn-sm dropdown-toggle"
+                                                data-bs-toggle="dropdown"
+                                                data-toggle="dropdown"
+                                                aria-haspopup="true" aria-expanded="false">
+                                            Cập nhật
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="statusDropdown@(item.MaDonHang)">
+                                            @{
+                                                var nextStatuses = OrderStatusHelper.GetNextValidStatuses(item.TrangThai?.ToString() ?? "");
+                                                foreach (var status in nextStatuses)
+                                                {
+                                                    <a class="dropdown-item" href="javascript:void(0)"
+                                                       onclick="updateOrderStatus('@item.MaDonHang', '@status')">
+                                                        @status
+                                                    </a>
+                                                }
+                                            }
+                                            @if (OrderStatusHelper.CanCancelOrder(item.TrangThai?.ToString() ?? ""))
+                                            {
+                                                <div class="dropdown-divider"></div>
+                                                <a class="dropdown-item text-danger" href="javascript:void(0)"
+                                                   onclick="cancelOrder('@item.MaDonHang')">
+                                                    Hủy đơn hàng
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -84,9 +145,275 @@
             @for (var i = 1; i <= ViewBag.TotalPages; i++)
             {
                 <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                    <a class="page-link" href="@Url.Action("QuanLyDonHang", new { page = i, pageSize = 5, searchTerm = ViewBag.SearchTerm , status = ViewBag.Status})">@i</a>
+                    <a class="page-link" href="@Url.Action("QuanLyDonHang", new { page = i, pageSize = 5, searchTerm = ViewBag.SearchTerm, status = ViewBag.Status })">@i</a>
                 </li>
             }
         </ul>
     </nav>
 </div>
+
+<!-- Modal xác nhận cập nhật trạng thái - Fixed for Bootstrap 5 -->
+<div class="modal fade" id="updateStatusModal" tabindex="-1" aria-labelledby="updateStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateStatusModalLabel">Xác nhận cập nhật trạng thái</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn cập nhật trạng thái đơn hàng <strong id="orderIdDisplay"></strong> thành <strong id="newStatusDisplay"></strong>?</p>
+                <div class="form-group mt-3">
+                    <label for="updateNote">Ghi chú (tùy chọn):</label>
+                    <textarea class="form-control" id="updateNote" rows="3" placeholder="Nhập ghi chú về việc cập nhật trạng thái..."></textarea>
+                </div>
+                <input type="hidden" id="hiddenOrderId" />
+                <input type="hidden" id="hiddenNewStatus" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="confirmUpdateStatus()">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal hủy đơn hàng - Fixed for Bootstrap 5 -->
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelOrderModalLabel">Hủy đơn hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn hủy đơn hàng <strong id="cancelOrderIdDisplay"></strong>?</p>
+                <div class="form-group mt-3">
+                    <label for="cancelReason">Lý do hủy *:</label>
+                    <textarea class="form-control" id="cancelReason" rows="3" placeholder="Nhập lý do hủy đơn hàng..." required></textarea>
+                </div>
+                <input type="hidden" id="hiddenCancelOrderId" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-dismiss="modal">Không</button>
+                <button type="button" class="btn btn-danger" onclick="confirmCancelOrder()">Hủy đơn hàng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Debug function - check if jQuery is loaded
+console.log('jQuery loaded:', typeof $ !== 'undefined');
+console.log('Bootstrap loaded:', typeof bootstrap !== 'undefined');
+
+// Cập nhật trạng thái đơn hàng
+function updateOrderStatus(orderId, newStatus) {
+    console.log('updateOrderStatus called:', orderId, newStatus);
+
+    // Check if elements exist
+    const orderIdDisplay = document.getElementById('orderIdDisplay');
+    const newStatusDisplay = document.getElementById('newStatusDisplay');
+    const hiddenOrderId = document.getElementById('hiddenOrderId');
+    const hiddenNewStatus = document.getElementById('hiddenNewStatus');
+    const updateNote = document.getElementById('updateNote');
+
+    if (!orderIdDisplay || !newStatusDisplay || !hiddenOrderId || !hiddenNewStatus || !updateNote) {
+        console.error('Modal elements not found');
+        alert('Lỗi: Không tìm thấy modal elements');
+        return;
+    }
+
+    orderIdDisplay.textContent = '#' + orderId;
+    newStatusDisplay.textContent = newStatus;
+    hiddenOrderId.value = orderId;
+    hiddenNewStatus.value = newStatus;
+    updateNote.value = '';
+
+    // Try both Bootstrap 4 and 5 methods
+    try {
+        if (typeof $ !== 'undefined') {
+            $('#updateStatusModal').modal('show');
+        } else if (typeof bootstrap !== 'undefined') {
+            const modal = new bootstrap.Modal(document.getElementById('updateStatusModal'));
+            modal.show();
+        } else {
+            alert('Bootstrap không được load. Vui lòng kiểm tra lại.');
+        }
+    } catch (error) {
+        console.error('Error showing modal:', error);
+        alert('Lỗi hiển thị modal: ' + error.message);
+    }
+}
+
+// Xác nhận cập nhật trạng thái
+function confirmUpdateStatus() {
+    const orderId = document.getElementById('hiddenOrderId').value;
+    const newStatus = document.getElementById('hiddenNewStatus').value;
+    const note = document.getElementById('updateNote').value;
+
+    console.log('Confirming update:', orderId, newStatus, note);
+
+    // Check if we have jQuery for AJAX
+    if (typeof $ !== 'undefined') {
+        $.post('@Url.Action("CapNhatTrangThaiDonHang")', {
+            id: orderId,
+            trangThai: newStatus,
+            ghiChu: note
+        })
+        .done(function(result) {
+            console.log('Update result:', result);
+            if (result.success) {
+                alert('Cập nhật trạng thái thành công!');
+                $('#updateStatusModal').modal('hide');
+                location.reload();
+            } else {
+                alert('Có lỗi: ' + result.message);
+            }
+        })
+        .fail(function(xhr, status, error) {
+            console.error('AJAX error:', xhr, status, error);
+            alert('Lỗi kết nối: ' + error);
+        });
+    } else {
+        // Fallback using fetch API
+        fetch('@Url.Action("CapNhatTrangThaiDonHang")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `id=${orderId}&trangThai=${newStatus}&ghiChu=${note}`
+        })
+        .then(response => response.json())
+        .then(result => {
+            console.log('Update result:', result);
+            if (result.success) {
+                alert('Cập nhật trạng thái thành công!');
+                // Hide modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('updateStatusModal'));
+                if (modal) modal.hide();
+                location.reload();
+            } else {
+                alert('Có lỗi: ' + result.message);
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            alert('Lỗi kết nối: ' + error.message);
+        });
+    }
+}
+
+// Hủy đơn hàng
+function cancelOrder(orderId) {
+    console.log('cancelOrder called:', orderId);
+
+    const cancelOrderIdDisplay = document.getElementById('cancelOrderIdDisplay');
+    const hiddenCancelOrderId = document.getElementById('hiddenCancelOrderId');
+    const cancelReason = document.getElementById('cancelReason');
+
+    if (!cancelOrderIdDisplay || !hiddenCancelOrderId || !cancelReason) {
+        console.error('Cancel modal elements not found');
+        alert('Lỗi: Không tìm thấy cancel modal elements');
+        return;
+    }
+
+    cancelOrderIdDisplay.textContent = '#' + orderId;
+    hiddenCancelOrderId.value = orderId;
+    cancelReason.value = '';
+
+    // Try both Bootstrap 4 and 5 methods
+    try {
+        if (typeof $ !== 'undefined') {
+            $('#cancelOrderModal').modal('show');
+        } else if (typeof bootstrap !== 'undefined') {
+            const modal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
+            modal.show();
+        } else {
+            alert('Bootstrap không được load. Vui lòng kiểm tra lại.');
+        }
+    } catch (error) {
+        console.error('Error showing cancel modal:', error);
+        alert('Lỗi hiển thị modal: ' + error.message);
+    }
+}
+
+// Xác nhận hủy đơn hàng
+function confirmCancelOrder() {
+    const orderId = document.getElementById('hiddenCancelOrderId').value;
+    const reason = document.getElementById('cancelReason').value.trim();
+
+    if (!reason) {
+        alert('Vui lòng nhập lý do hủy đơn hàng!');
+        return;
+    }
+
+    console.log('Confirming cancel:', orderId, reason);
+
+    // Check if we have jQuery for AJAX
+    if (typeof $ !== 'undefined') {
+        $.post('@Url.Action("HuyDonHang")', {
+            id: orderId,
+            lyDoHuy: reason
+        })
+        .done(function(result) {
+            console.log('Cancel result:', result);
+            if (result.success) {
+                alert('Hủy đơn hàng thành công!');
+                $('#cancelOrderModal').modal('hide');
+                location.reload();
+            } else {
+                alert('Có lỗi: ' + result.message);
+            }
+        })
+        .fail(function(xhr, status, error) {
+            console.error('AJAX error:', xhr, status, error);
+            alert('Lỗi kết nối: ' + error);
+        });
+    } else {
+        // Fallback using fetch API
+        fetch('@Url.Action("HuyDonHang")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `id=${orderId}&lyDoHuy=${reason}`
+        })
+        .then(response => response.json())
+        .then(result => {
+            console.log('Cancel result:', result);
+            if (result.success) {
+                alert('Hủy đơn hàng thành công!');
+                // Hide modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('cancelOrderModal'));
+                if (modal) modal.hide();
+                location.reload();
+            } else {
+                alert('Có lỗi: ' + result.message);
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            alert('Lỗi kết nối: ' + error.message);
+        });
+    }
+}
+
+// Test function to check if everything is working
+function testSetup() {
+    console.log('=== Debug Information ===');
+    console.log('jQuery:', typeof $ !== 'undefined' ? 'OK' : 'NOT LOADED');
+    console.log('Bootstrap:', typeof bootstrap !== 'undefined' ? 'OK' : 'NOT LOADED');
+    console.log('Modal elements exist:',
+        document.getElementById('updateStatusModal') ? 'YES' : 'NO');
+    console.log('============================');
+}
+
+// Run test on page load
+document.addEventListener('DOMContentLoaded', function() {
+    testSetup();
+});
+</script>

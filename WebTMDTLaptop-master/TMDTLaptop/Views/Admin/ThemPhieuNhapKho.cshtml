@@ -18,9 +18,23 @@
             @using (Html.BeginForm("ThemPhieuNhapKho", "Admin", FormMethod.Post))
             {
                 @Html.AntiForgeryToken()
-                <div class="form-group">
-                    <label for="NgayNhap">Ngày Nhập</label>
-                    <input type="date" class="form-control" id="NgayNhap" name="NgayNhap" value="@DateTime.Now.ToString("yyyy-MM-dd")" readonly />
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="NgayNhap">Ngày Nhập</label>
+                            <input type="date" class="form-control" id="NgayNhap" name="NgayNhap" value="@DateTime.Now.ToString("yyyy-MM-dd")" readonly />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="MaNhaCungCap">Nhà Cung Cấp</label>
+                            @Html.DropDownListFor(m => m.MaNhaCungCap,
+                                new SelectList(ViewBag.NhaCungCaps, "MaNhaCungCap", "TenNhaCungCap"),
+                                "Chọn nhà cung cấp",
+                                new { @class = "form-control", required = "required", id = "MaNhaCungCap" })
+                            @Html.ValidationMessageFor(m => m.MaNhaCungCap, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -53,6 +67,10 @@
                         <div class="col-md-3">
                             <label for="GiaNhap_0">Giá Nhập</label>
                             <input type="number" class="form-control" id="GiaNhap_0" name="ChiTietPhieuNhaps[0].GiaNhap" required />
+                        </div>
+                        <div class="col-md-3">
+                            <label for="Serials_0">Serial/IMEI (mỗi dòng một mã)</label>
+                            <textarea class="form-control" id="Serials_0" name="ChiTietPhieuNhaps[0].SerialNumbers" rows="3" placeholder="VD: SN001&#10;SN002"></textarea>
                         </div>
                         <div class="col-md-2">
                             <label>&nbsp;</label>
@@ -94,16 +112,19 @@
         template.querySelector('select[name="ChiTietPhieuNhaps[0].MaSanPham"]').name = `ChiTietPhieuNhaps[${chiTietIndex}].MaSanPham`;
         template.querySelector('input[name="ChiTietPhieuNhaps[0].SoLuong"]').name = `ChiTietPhieuNhaps[${chiTietIndex}].SoLuong`;
         template.querySelector('input[name="ChiTietPhieuNhaps[0].GiaNhap"]').name = `ChiTietPhieuNhaps[${chiTietIndex}].GiaNhap`;
+        template.querySelector('textarea[name="ChiTietPhieuNhaps[0].SerialNumbers"]').name = `ChiTietPhieuNhaps[${chiTietIndex}].SerialNumbers`;
 
         // Cập nhật id cho các trường mới
         template.querySelector('select').id = `SanPham_${chiTietIndex}`;
         template.querySelector('input[name$=".SoLuong"]').id = `SoLuong_${chiTietIndex}`;
         template.querySelector('input[name$=".GiaNhap"]').id = `GiaNhap_${chiTietIndex}`;
+        template.querySelector('textarea[name$=".SerialNumbers"]').id = `Serials_${chiTietIndex}`;
 
         // Xóa giá trị để tránh nhầm lẫn
         template.querySelector('select').value = "";
         template.querySelector('input[name$=".SoLuong"]').value = "";
         template.querySelector('input[name$=".GiaNhap"]').value = "";
+        template.querySelector('textarea[name$=".SerialNumbers"]').value = "";
 
         // Thêm event listener cho các trường số lượng và giá nhập mới
         template.querySelector('input[name$=".SoLuong"]').addEventListener('input', tinhTongTien);

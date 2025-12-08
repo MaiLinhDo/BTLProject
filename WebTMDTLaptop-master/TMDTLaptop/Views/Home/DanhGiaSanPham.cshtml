@@ -1,0 +1,535 @@
+﻿@{
+    ViewBag.Title = "Đánh giá sản phẩm";
+    Layout = "~/Views/Shared/_LayoutHome.cshtml";
+}
+<style>
+    .breadcrumb-area {
+        background: #f8f9fa;
+        padding: 40px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .breadcrumb-content {
+        text-align: center;
+    }
+    .breadcrumb-content h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #212529;
+    }
+    .breadcrumb-content ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.9rem;
+    }
+    .breadcrumb-content ul li {
+        color: #6c757d;
+    }
+    .breadcrumb-content ul li a {
+        color: #0d6efd;
+        text-decoration: none;
+    }
+    .breadcrumb-content ul li a:hover {
+        text-decoration: underline;
+    }
+    .breadcrumb-content ul li::after {
+        content: '/';
+        margin-left: 12px;
+        color: #dee2e6;
+    }
+    .breadcrumb-content ul li:last-child::after {
+        display: none;
+    }
+
+    .page-content {
+        padding: 60px 0;
+        background: #ffffff;
+        min-height: 80vh;
+    }
+
+    .review-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        overflow: hidden;
+        border: 1px solid #e9ecef;
+    }
+
+    .card-header {
+        background: #fff;
+        border-bottom: 1px solid #e9ecef;
+        padding: 24px 32px;
+    }
+    .card-header h4 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #212529;
+    }
+
+    .card-body {
+        padding: 32px;
+    }
+
+    /* Product Info Section */
+    .product-section {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 32px;
+        border: 1px solid #e9ecef;
+    }
+
+    .product-image {
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+    }
+
+    .product-details h5 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 16px;
+        line-height: 1.4;
+    }
+
+    .product-meta {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .product-meta p {
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .product-meta .price {
+        color: #198754;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    /* Rating Section */
+    .rating-section {
+        text-align: center;
+        margin-bottom: 32px;
+        padding: 24px;
+        background: #fff;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+
+    .rating-section label {
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 16px;
+        display: block;
+        font-size: 1rem;
+    }
+
+    .rating-stars {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .rating-stars .star {
+        font-size: 2rem;
+        color: #dee2e6;
+        cursor: pointer;
+        transition: color 0.2s ease;
+        padding: 4px;
+    }
+
+    .rating-stars .star:hover,
+    .rating-stars .star.active {
+        color: #ffc107;
+    }
+
+    .rating-text {
+        font-size: 0.9rem;
+        color: #6c757d;
+        min-height: 24px;
+    }
+
+    /* Form Elements */
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 1rem;
+    }
+
+    .form-control {
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        transition: border-color 0.15s ease;
+        resize: vertical;
+        min-height: 120px;
+        width: 100%;
+    }
+
+    .form-control:focus {
+        border-color: #0d6efd;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25);
+    }
+
+    /* Tips Section */
+    .review-tips {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 20px;
+        margin-bottom: 32px;
+    }
+
+    .review-tips h6 {
+        color: #495057;
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+    .review-tips ul {
+        margin: 0;
+        padding-left: 20px;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .review-tips li {
+        margin-bottom: 4px;
+        line-height: 1.4;
+    }
+
+    /* Action Buttons */
+    .form-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 32px;
+    }
+
+    .btn-submit {
+        background: #0d6efd;
+        border: 1px solid #0d6efd;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-align: center;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+        background: #0b5ed7;
+        border-color: #0a58ca;
+    }
+
+    .btn-submit:disabled {
+        background: #6c757d;
+        border-color: #6c757d;
+        cursor: not-allowed;
+        opacity: 0.65;
+    }
+
+    .btn-cancel {
+        background: #fff;
+        border: 1px solid #6c757d;
+        color: #6c757d;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        transition: all 0.15s ease;
+    }
+
+    .btn-cancel:hover {
+        background: #6c757d;
+        color: white;
+        text-decoration: none;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .breadcrumb-content h2 {
+            font-size: 1.5rem;
+        }
+
+        .card-body {
+            padding: 24px 20px;
+        }
+
+        .product-section {
+            padding: 20px;
+        }
+
+        .product-image {
+            width: 100px;
+            height: 100px;
+        }
+
+        .rating-stars .star {
+            font-size: 1.8rem;
+        }
+
+        .form-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .breadcrumb-content ul {
+            flex-wrap: wrap;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .page-content {
+            padding: 40px 0;
+        }
+
+        .breadcrumb-area {
+            padding: 32px 0;
+        }
+
+        .product-section .row {
+            text-align: center;
+        }
+
+        .product-section .col-md-4 {
+            margin-bottom: 16px;
+        }
+    }
+</style>
+
+<div class="breadcrumb-area">
+    <div class="container">
+        <div class="breadcrumb-content">
+            <h2>Đánh giá sản phẩm</h2>
+            <ul>
+                <li><a href="@Url.Action("Index","Home")">Trang chủ</a></li>
+                <li><a href="@Url.Action("DonHangCuaToi","Home")">Đơn hàng của tôi</a></li>
+                <li class="active">Đánh giá sản phẩm</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<main class="page-content">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+                <div class="card review-card">
+                    <div class="card-header">
+                        <h4>Đánh giá sản phẩm</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Product Information -->
+                        <div class="product-section">
+                            <div class="row align-items-center">
+                                <div class="col-md-4 text-center mb-3 mb-md-0">
+                                    <img src="@Url.Content($"~/assets/images/product/{ViewBag.Product.MaSanPham}/{ViewBag.Product.HinhAnh}")"
+                                         alt="@ViewBag.Product.TenSanPham"
+                                         class="product-image">
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="product-details">
+                                        <h5>@ViewBag.Product.TenSanPham</h5>
+                                        <div class="product-meta">
+                                            <p><span>Mã sản phẩm:</span> <strong>#@ViewBag.Product.MaSanPham</strong></p>
+                                            <p><span>Đơn hàng:</span> <strong>#@ViewBag.OrderId</strong></p>
+                                            @if (ViewBag.Product.GiaMoi != null)
+                                            {
+                                                <p class="price">
+                                                    <span>Giá:</span> <strong>@string.Format("{0:N0} đ", ViewBag.Product.GiaMoi)</strong>
+                                                </p>
+                                            }
+                                            else
+                                            {
+                                                <p class="price">
+                                                    <span>Giá:</span> <strong>@string.Format("{0:N0} đ", ViewBag.Product.Gia)</strong>
+                                                </p>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Review Form -->
+                        @using (Html.BeginForm("DanhGiaSanPham", "Home", FormMethod.Post, new { @class = "review-form" }))
+                        {
+                            <input type="hidden" name="orderId" value="@ViewBag.OrderId" />
+                            <input type="hidden" name="productId" value="@ViewBag.Product.MaSanPham" />
+                            <input type="hidden" name="diemDanhGia" id="hiddenRating" value="0" />
+
+                            <!-- Rating Section -->
+                            <div class="rating-section">
+                                <label>Đánh giá của bạn</label>
+                                <div class="rating-stars" id="ratingStars">
+                                    <span class="star" data-rating="1">★</span>
+                                    <span class="star" data-rating="2">★</span>
+                                    <span class="star" data-rating="3">★</span>
+                                    <span class="star" data-rating="4">★</span>
+                                    <span class="star" data-rating="5">★</span>
+                                </div>
+                                <div class="rating-text">
+                                    <span id="ratingText">Chọn số sao để đánh giá</span>
+                                </div>
+                            </div>
+
+                            <!-- Comment -->
+                            <div class="form-group">
+                                <label for="binhLuan" class="form-label">Nhận xét của bạn</label>
+                                <textarea name="binhLuan" id="binhLuan" class="form-control"
+                                          placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
+                                          required></textarea>
+                            </div>
+
+                            <!-- Tips -->
+                            <div class="review-tips">
+                                <h6>Gợi ý viết đánh giá:</h6>
+                                <ul>
+                                    <li>Mô tả chất lượng và tính năng của sản phẩm</li>
+                                    <li>Chia sẻ cảm nhận về thiết kế và độ bền</li>
+                                    <li>Đánh giá tỷ lệ chất lượng/giá cả</li>
+                                    <li>Khuyến nghị cho người mua khác</li>
+                                </ul>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="form-actions">
+                                <button class="btn-submit" type="submit" id="submitBtn" disabled>
+                                    Gửi đánh giá
+                                </button>
+                                <a href="@Url.Action("DonHangCuaToi")" class="btn-cancel">
+                                    Hủy
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const stars = document.querySelectorAll('.star');
+        const hiddenRating = document.getElementById('hiddenRating');
+        const ratingText = document.getElementById('ratingText');
+        const submitBtn = document.getElementById('submitBtn');
+        const binhLuanField = document.getElementById('binhLuan');
+
+        const ratingTexts = {
+            0: 'Chọn số sao để đánh giá',
+            1: 'Rất tệ',
+            2: 'Tệ',
+            3: 'Bình thường',
+            4: 'Tốt',
+            5: 'Xuất sắc'
+        };
+
+        // Handle star clicks
+        stars.forEach(star => {
+            star.addEventListener('click', function () {
+                const rating = parseInt(this.dataset.rating);
+                hiddenRating.value = rating;
+                updateStars(rating);
+                ratingText.textContent = ratingTexts[rating];
+                checkFormValidity();
+            });
+
+            // Hover effect
+            star.addEventListener('mouseenter', function () {
+                const rating = parseInt(this.dataset.rating);
+                highlightStars(rating);
+            });
+        });
+
+        // Reset on mouse leave
+        document.getElementById('ratingStars').addEventListener('mouseleave', function () {
+            const currentRating = parseInt(hiddenRating.value);
+            updateStars(currentRating);
+        });
+
+        // Check form validity on comment input
+        binhLuanField.addEventListener('input', checkFormValidity);
+
+        function updateStars(rating) {
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        function highlightStars(rating) {
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.style.color = '#ffc107';
+                } else {
+                    star.style.color = '#dee2e6';
+                }
+            });
+        }
+
+        function checkFormValidity() {
+            const rating = parseInt(hiddenRating.value);
+            const comment = binhLuanField.value.trim();
+
+            if (rating > 0 && comment.length >= 10) {
+                submitBtn.disabled = false;
+            } else {
+                submitBtn.disabled = true;
+            }
+        }
+
+        // Form validation on submit
+        document.querySelector('.review-form').addEventListener('submit', function (e) {
+            const rating = parseInt(hiddenRating.value);
+            const comment = binhLuanField.value.trim();
+
+            if (rating === 0) {
+                e.preventDefault();
+                alert('Vui lòng chọn số sao đánh giá!');
+                return false;
+            }
+
+            if (comment.length < 10) {
+                e.preventDefault();
+                alert('Nhận xét phải có ít nhất 10 ký tự!');
+                binhLuanField.focus();
+                return false;
+            }
+
+            return confirm('Bạn có chắc chắn muốn gửi đánh giá này không?');
+        });
+    });
+</script>

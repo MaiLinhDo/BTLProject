@@ -273,6 +273,7 @@
     <Compile Include="Models\Class\ChiTietDonHang.cs" />
     <Compile Include="Models\Class\ChiTietGioHang.cs" />
     <Compile Include="Models\Class\ChiTietPhieuNhapKho.cs" />
+    <Compile Include="Models\Class\ChiTietPhieuNhapViewModel.cs" />
     <Compile Include="Models\Class\DanhGiaSanPham.cs" />
     <Compile Include="Models\Class\DanhMucSanPham.cs" />
     <Compile Include="Models\Class\DonBaoHanh.cs" />
@@ -281,10 +282,13 @@
     <Compile Include="Models\Class\GioHang.cs" />
     <Compile Include="Models\Class\HangSanPham.cs" />
     <Compile Include="Models\Class\KhoHangLoi.cs" />
+    <Compile Include="Models\Class\NhaCungCap.cs" />
     <Compile Include="Models\Class\PhieuNhapKho.cs" />
     <Compile Include="Models\Class\Quyen.cs" />
     <Compile Include="Models\Class\SanPham.cs" />
+    <Compile Include="Models\Class\SerialNumberViewModel.cs" />
     <Compile Include="Models\Class\TaiKhoan.cs" />
+    <Compile Include="Models\Class\ThongSoKyThuat.cs" />
     <Compile Include="Models\Class\Voucher.cs" />
     <Compile Include="Models\CouponResponse.cs" />
     <Compile Include="Models\ModelGioHang.cs" />
@@ -515,7 +519,6 @@
     <Content Include="Views\Admin\ThemPhieuNhapKho.cshtml" />
     <Content Include="Views\Admin\ThemSanPham.cshtml" />
     <Content Include="Views\Admin\ThemVoucher.cshtml" />
-    <Content Include="Views\Admin\ThongTinCaNhan.cshtml" />
     <Content Include="Views\Home\DatHangThanhCong.cshtml" />
     <Content Include="Views\Home\DonHangCuaToi.cshtml" />
     <Content Include="Views\Home\GoogleLoginCallback.cshtml" />
@@ -532,6 +535,11 @@
     <Content Include="Views\Home\ChiTietDoiTra.cshtml" />
     <Content Include="Views\Home\DanhSachDoiTra.cshtml" />
     <Content Include="Views\Home\TaoYeuCauDoiTra.cshtml" />
+    <Content Include="Views\Home\DanhGiaSanPham.cshtml" />
+    <Content Include="Views\Admin\QuanLyDanhGia.cshtml" />
+    <Content Include="Views\Admin\ThongKeDanhGia.cshtml" />
+    <Content Include="Views\Admin\ThongKeKhoHangLoi.cshtml" />
+    <Content Include="Views\Home\QuenMatKhau.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -1,0 +1,299 @@
+﻿@{
+    ViewBag.Title = "Thống Kê Đánh Giá";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="container">
+    <h2 class="mt-4 mb-4">Thống Kê Đánh Giá Sản Phẩm</h2>
+
+    <!-- Tổng quan -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="card-body-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="mr-5">@ViewBag.TotalReviews</div>
+                    <div class="card-title">Tổng đánh giá</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="card-body-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="mr-5">@ViewBag.AverageRating</div>
+                    <div class="card-title">Rating trung bình</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="card-body-icon">
+                        <i class="fas fa-star-half-alt"></i>
+                    </div>
+                    <div class="mr-5">@ViewBag.FiveStarPercentage%</div>
+                    <div class="card-title">5 sao</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="card-body-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="mr-5">@ViewBag.ThisMonthReviews</div>
+                    <div class="card-title">Đánh giá tháng này</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Biểu đồ phân bố rating -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Phân Bố Rating</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.RatingDistribution != null)
+                    {
+                        foreach (var rating in ViewBag.RatingDistribution)
+                        {
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span>@rating.Stars sao</span>
+                                    <span>@rating.Count (@rating.Percentage%)</span>
+                                </div>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar @GetProgressBarClass(rating.Stars)"
+                                         role="progressbar"
+                                         style="width: @rating.Percentage%"
+                                         aria-valuenow="@rating.Percentage"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Xu Hướng Đánh Giá (30 ngày gần đây)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="reviewTrendChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top sản phẩm được đánh giá cao -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Top Sản Phẩm Được Đánh Giá Cao</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.TopRatedProducts != null)
+                    {
+                        <div class="list-group">
+                            @foreach (var product in ViewBag.TopRatedProducts)
+                            {
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <img src="@Url.Content($"~/assets/images/product/{product.MaSanPham}/{product.HinhAnh}")"
+                                             alt="@product.TenSanPham" class="img-thumbnail me-3" style="width: 50px; height: 50px;">
+                                        <div>
+                                            <h6 class="mb-1">@product.TenSanPham</h6>
+                                            <small class="text-muted">@product.TotalReviews đánh giá</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="rating-display">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <span class="star @(i <= product.AverageRating ? "text-warning" : "text-muted")">★</span>
+                                            }
+                                        </div>
+                                        <small>@product.AverageRating/5.0</small>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Sản Phẩm Cần Cải Thiện</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.LowRatedProducts != null)
+                    {
+                        <div class="list-group">
+                            @foreach (var product in ViewBag.LowRatedProducts)
+                            {
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <img src="@Url.Content($"~/assets/images/product/{product.MaSanPham}/{product.HinhAnh}")"
+                                             alt="@product.TenSanPham" class="img-thumbnail me-3" style="width: 50px; height: 50px;">
+                                        <div>
+                                            <h6 class="mb-1">@product.TenSanPham</h6>
+                                            <small class="text-muted">@product.TotalReviews đánh giá</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="rating-display">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <span class="star @(i <= product.AverageRating ? "text-warning" : "text-muted")">★</span>
+                                            }
+                                        </div>
+                                        <small class="text-danger">@product.AverageRating/5.0</small>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Đánh giá gần đây -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                    <h5>Đánh Giá Gần Đây</h5>
+                    <a href="@Url.Action("QuanLyDanhGia")" class="btn btn-primary btn-sm">Xem tất cả</a>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.RecentReviews != null)
+                    {
+                        foreach (var review in ViewBag.RecentReviews)
+                        {
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <img src="@Url.Content($"~/assets/images/product/{review.MaSanPham}/{review.HinhAnh}")"
+                                             alt="@review.TenSanPham" class="img-thumbnail" style="width: 60px; height: 60px;">
+                                    </div>
+                                    <div class="col-md-10">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h6>@review.TenSanPham</h6>
+                                                <small class="text-muted">@review.HoTen - @review.NgayDanhGia</small>
+                                            </div>
+                                            <div class="rating-display">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    <span class="star @(i <= review.DiemDanhGia ? "text-warning" : "text-muted")">★</span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <p class="mt-2 mb-0">@(review.BinhLuan.Length > 150 ? review.BinhLuan.Substring(0, 150) + "..." : review.BinhLuan)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Biểu đồ xu hướng đánh giá
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('reviewTrendChart').getContext('2d');
+
+    // Dữ liệu mẫu - trong thực tế sẽ được truyền từ Controller
+    const trendData = @Html.Raw(Json.Encode(ViewBag.TrendData ?? new object()));
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: trendData.labels || [],
+            datasets: [{
+                label: 'Số lượng đánh giá',
+                data: trendData.data || [],
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+
+<style>
+    .card-body-icon {
+        position: absolute;
+        z-index: 0;
+        top: -25px;
+        right: -25px;
+        font-size: 5rem;
+        -webkit-transform: rotate(15deg);
+        -ms-transform: rotate(15deg);
+        transform: rotate(15deg);
+    }
+
+    .card-title {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .rating-display .star {
+        font-size: 1.1rem;
+    }
+
+    .progress {
+        background-color: #e9ecef;
+    }
+
+    .img-thumbnail {
+        object-fit: cover;
+    }
+</style>
+
+@functions {
+    public string GetProgressBarClass(int stars)
+    {
+        switch (stars)
+        {
+            case 5: return "bg-success";
+            case 4: return "bg-info";
+            case 3: return "bg-warning";
+            case 2: return "bg-danger";
+            case 1: return "bg-dark";
+            default: return "bg-secondary";
+        }
+    }
+}

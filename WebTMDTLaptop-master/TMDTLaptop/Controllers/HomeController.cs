@@ -863,9 +863,19 @@ namespace TMDTLaptop.Controllers
                 var sanPham = JsonConvert.DeserializeObject<TMDTLaptop.Models.Class.SanPham>(result.product.ToString());
                 var sanPhamCungGia = result.similarProducts;
 
-               
+
+                var reviewResponse = await httpClient.GetAsync($"http://127.0.0.1:5000/api/get_reviews/{id}");
+                if (reviewResponse.IsSuccessStatusCode)
+                {
+                    var reviewResult = await reviewResponse.Content.ReadAsStringAsync();
+                    dynamic reviewData = JsonConvert.DeserializeObject(reviewResult);
+
+                    ViewBag.Reviews = reviewData.reviews;
+                    ViewBag.AverageRating = reviewData.averageRating;
+                    ViewBag.TotalReviews = reviewData.totalReviews;
+                }
+
                 ViewBag.SanPhamCungGia = sanPhamCungGia;
-                return View(sanPham);
             }
 
             return HttpNotFound();

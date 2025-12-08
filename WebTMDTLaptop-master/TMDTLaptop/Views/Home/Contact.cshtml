@@ -1,34 +1,668 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Contact";
     Layout = "~/Views/Shared/_LayoutHome.cshtml";
 }
-<style>
-    .breadcrumb-area {
-        background-image: url('@Url.Content("~/assets/images/banner/banner3.jpg")'); /* Đường dẫn tới hình ảnh */
-    }
-</style>
 
-<div class="breadcrumb-area">
-    <div class="container">
-        <div class="breadcrumb-content">
-            <h2>Liên hệ</h2>
-            <ul>
-                <li><a href="@Url.Action("Index","Home")">Trang chủ</a></li>
-                <li class="active">Liên hệ</li>
-            </ul>
+<!-- Success Alert -->
+@if (!string.IsNullOrEmpty(ViewBag.Message))
+{
+    <div class="alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3"
+         style="z-index: 9999; max-width: 500px;" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        @ViewBag.Message
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Breadcrumb Section -->
+<section class="breadcrumb-section position-relative overflow-hidden">
+    <div class="breadcrumb-bg"></div>
+    <div class="breadcrumb-overlay"></div>
+    <div class="container position-relative">
+        <div class="row">
+            <div class="col-12">
+                <div class="breadcrumb-content text-white text-center">
+                    <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInUp">Liên hệ</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center mb-0 animate__animated animate__fadeInUp animate__delay-1s">
+                            <li class="breadcrumb-item">
+                                <a href="@Url.Action("Index","Home")" class="text-white-50 text-decoration-none">
+                                    <i class="fas fa-home me-1"></i>Trang chủ
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active text-white" aria-current="page">
+                                Liên hệ
+                            </li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
         </div>
     </div>
-</div>
-<!-- Uren's Breadcrumb Area End Here -->
-<!-- Begin Contact Main Page Area -->
-<div class="contact-main-page">
-    @if (!string.IsNullOrEmpty(ViewBag.Message))
-    {
-        <div class="alert alert-success">
-            @ViewBag.Message
+</section>
+
+<!-- Contact Section -->
+<section class="contact-section py-5">
+    <div class="container-fluid">
+        <div class="row g-5">
+            <!-- Contact Information -->
+            <div class="col-lg-5 offset-lg-1 order-1 order-lg-2">
+                <div class="contact-info">
+                    <div class="section-header mb-5">
+                        <span class="badge bg-primary bg-gradient px-3 py-2 rounded-pill mb-3">
+                            <i class="fas fa-phone me-1"></i>THÔNG TIN LIÊN HỆ
+                        </span>
+                        <h2 class="display-6 fw-bold text-dark mb-3">Liên Hệ Với Chúng Tôi</h2>
+                        <p class="lead text-muted mb-4">
+                            Cửa hàng chúng tôi chuyên về các trang thiết bị điện tử.
+                            Hãy liên hệ với chúng tôi để được tư vấn và hỗ trợ tốt nhất.
+                        </p>
+                    </div>
+
+                    <!-- Contact Cards -->
+                    <div class="contact-cards">
+                        <!-- Address Card -->
+                        <div class="contact-card card border-0 shadow-sm mb-4 hover-lift">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-start">
+                                    <div class="contact-icon bg-primary text-white rounded-circle me-4">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </div>
+                                    <div class="contact-details">
+                                        <h5 class="fw-bold text-dark mb-2">Địa chỉ</h5>
+                                        <p class="text-muted mb-0">Đường Nguyễn Văn Cừ nối dài, Quận Ninh Kiều, TP. Cần Thơ</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phone Card -->
+                        <div class="contact-card card border-0 shadow-sm mb-4 hover-lift">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-start">
+                                    <div class="contact-icon bg-success text-white rounded-circle me-4">
+                                        <i class="fas fa-phone"></i>
+                                    </div>
+                                    <div class="contact-details">
+                                        <h5 class="fw-bold text-dark mb-2">Điện thoại</h5>
+                                        <p class="text-muted mb-1">
+                                            <strong>Di động:</strong>
+                                            <a href="tel:+84123456789" class="text-decoration-none">(08) 123 456 789</a>
+                                        </p>
+                                        <p class="text-muted mb-0">
+                                            <strong>Hotline:</strong>
+                                            <a href="tel:1900678456" class="text-decoration-none">1900 678 456</a>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Email Card -->
+                        <div class="contact-card card border-0 shadow-sm mb-4 hover-lift">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-start">
+                                    <div class="contact-icon bg-info text-white rounded-circle me-4">
+                                        <i class="fas fa-envelope"></i>
+                                    </div>
+                                    <div class="contact-details">
+                                        <h5 class="fw-bold text-dark mb-2">Email</h5>
+                                        <p class="text-muted mb-1">
+                                            <a href="mailto:luutrungnghi007@gmail.com" class="text-decoration-none">luutrungnghi007@gmail.com</a>
+                                        </p>
+                                        <p class="text-muted mb-0">
+                                            <a href="mailto:luutrungnghi269@gmail.com" class="text-decoration-none">luutrungnghi269@gmail.com</a>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Business Hours Card -->
+                        <div class="contact-card card border-0 shadow-sm mb-4 hover-lift">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-start">
+                                    <div class="contact-icon bg-warning text-white rounded-circle me-4">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div class="contact-details">
+                                        <h5 class="fw-bold text-dark mb-2">Giờ làm việc</h5>
+                                        <p class="text-muted mb-1"><strong>Thứ 2 - Thứ 6:</strong> 8:00 - 18:00</p>
+                                        <p class="text-muted mb-1"><strong>Thứ 7:</strong> 8:00 - 16:00</p>
+                                        <p class="text-muted mb-0"><strong>Chủ nhật:</strong> 9:00 - 15:00</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Social Links -->
+                    <div class="social-section mt-5">
+                        <h6 class="fw-bold text-dark mb-3">Theo dõi chúng tôi</h6>
+                        <div class="social-links d-flex gap-3">
+                            <a href="#" class="social-link bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" data-bs-toggle="tooltip" title="Facebook">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="#" class="social-link bg-info text-white rounded-circle d-flex align-items-center justify-content-center" data-bs-toggle="tooltip" title="Twitter">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a href="#" class="social-link bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" data-bs-toggle="tooltip" title="Instagram">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="#" class="social-link bg-success text-white rounded-circle d-flex align-items-center justify-content-center" data-bs-toggle="tooltip" title="WhatsApp">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Form -->
+            <div class="col-lg-6 order-2 order-lg-1">
+                <div class="contact-form-section">
+                    <div class="form-header mb-5">
+                        <span class="badge bg-success bg-gradient px-3 py-2 rounded-pill mb-3">
+                            <i class="fas fa-paper-plane me-1"></i>GỬI TIN NHẮN
+                        </span>
+                        <h2 class="display-6 fw-bold text-dark mb-3">Gửi Tin Nhắn Cho Chúng Tôi</h2>
+                        <p class="lead text-muted">
+                            Điền thông tin vào form dưới đây, chúng tôi sẽ phản hồi trong thời gian sớm nhất.
+                        </p>
+                    </div>
+
+                    <div class="contact-form-card card border-0 shadow-lg">
+                        <div class="card-body p-5">
+                            <form id="contact-form" action="@Url.Action("Contact","Home")" method="post" novalidate>
+                                <div class="row g-4">
+                                    <!-- Name Field -->
+                                    <div class="col-12">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control form-control-lg" id="con_name" name="con_name"
+                                                   placeholder="Nhập tên của bạn" required>
+                                            <label for="con_name">
+                                                <i class="fas fa-user me-2 text-primary"></i>Tên của bạn
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="invalid-feedback">
+                                                Vui lòng nhập tên của bạn.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Email Field -->
+                                    <div class="col-12">
+                                        <div class="form-floating">
+                                            <input type="email" class="form-control form-control-lg" id="con_email" name="con_email"
+                                                   placeholder="Nhập email của bạn" required>
+                                            <label for="con_email">
+                                                <i class="fas fa-envelope me-2 text-primary"></i>Email của bạn
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="invalid-feedback">
+                                                Vui lòng nhập email hợp lệ.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Subject Field -->
+                                    <div class="col-12">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control form-control-lg" id="con_subject" name="con_subject"
+                                                   placeholder="Nhập chủ đề">
+                                            <label for="con_subject">
+                                                <i class="fas fa-tag me-2 text-primary"></i>Chủ đề
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Message Field -->
+                                    <div class="col-12">
+                                        <div class="form-floating">
+                                            <textarea class="form-control" id="con_message" name="con_message"
+                                                      placeholder="Nhập tin nhắn của bạn" style="height: 150px;" required></textarea>
+                                            <label for="con_message">
+                                                <i class="fas fa-comment me-2 text-primary"></i>Tin nhắn của bạn
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="invalid-feedback">
+                                                Vui lòng nhập tin nhắn.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Submit Button -->
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary btn-lg w-100 py-3 submit-btn">
+                                            <i class="fas fa-paper-plane me-2"></i>
+                                            <span class="btn-text">Gửi tin nhắn</span>
+                                            <span class="spinner-border spinner-border-sm d-none ms-2" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Form Message -->
+                    <div class="form-message mt-4" id="form-message"></div>
+                </div>
+            </div>
         </div>
+    </div>
+</section>
+
+<!-- Map Section (Optional) -->
+<section class="map-section py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h3 class="fw-bold text-dark mb-3">Tìm chúng tôi trên bản đồ</h3>
+                <p class="text-muted">Ghé thăm cửa hàng của chúng tôi để trải nghiệm sản phẩm trực tiếp</p>
+            </div>
+            <div class="col-12">
+                <div class="map-container card border-0 shadow-sm">
+                    <div class="map-placeholder bg-light d-flex align-items-center justify-content-center text-center p-5">
+                        <div>
+                            <i class="fas fa-map-marked-alt fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted">Bản đồ Google Maps</h5>
+                            <p class="text-muted mb-0">Đường Nguyễn Văn Cừ nối dài, Quận Ninh Kiều, TP. Cần Thơ</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Contact Page Custom Styles */
+:root {
+    --primary-color: #0d6efd;
+    --success-color: #198754;
+    --info-color: #0dcaf0;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --transition: all 0.3s ease;
+}
+
+/* Breadcrumb Section */
+.breadcrumb-section {
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+}
+
+.breadcrumb-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('@Url.Content("~/assets/images/banner/banner3.jpg")') center/cover no-repeat;
+    z-index: -2;
+}
+
+.breadcrumb-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.8), rgba(25, 135, 84, 0.4));
+    z-index: -1;
+}
+
+.breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+    content: ">";
+    color: rgba(255,255,255,0.7);
+}
+
+/* Contact Section */
+.contact-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+}
+
+.section-header,
+.form-header {
+    text-align: center;
+}
+
+/* Contact Cards */
+.contact-card {
+    border-radius: 15px !important;
+    transition: var(--transition);
+    border-left: 4px solid transparent;
+}
+
+.contact-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+    border-left-color: var(--primary-color);
+}
+
+.contact-card:nth-child(1):hover { border-left-color: var(--primary-color); }
+.contact-card:nth-child(2):hover { border-left-color: var(--success-color); }
+.contact-card:nth-child(3):hover { border-left-color: var(--info-color); }
+.contact-card:nth-child(4):hover { border-left-color: var(--warning-color); }
+
+.contact-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+.contact-card:hover .contact-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.contact-details a {
+    color: var(--primary-color);
+    transition: var(--transition);
+}
+
+.contact-details a:hover {
+    color: var(--success-color);
+    text-decoration: underline !important;
+}
+
+/* Social Links */
+.social-link {
+    width: 50px;
+    height: 50px;
+    text-decoration: none;
+    transition: var(--transition);
+    font-size: 1.2rem;
+}
+
+.social-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* Contact Form */
+.contact-form-card {
+    border-radius: 20px !important;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.form-floating {
+    position: relative;
+}
+
+.form-floating > .form-control {
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    transition: var(--transition);
+    font-size: 1.1rem;
+    padding: 1rem 0.75rem;
+}
+
+.form-floating > .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    transform: translateY(-2px);
+}
+
+.form-floating > label {
+    padding: 1rem 0.75rem;
+    font-weight: 500;
+    color: var(--dark-color);
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+    color: var(--primary-color);
+}
+
+.submit-btn {
+    border-radius: 50px !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(13, 110, 253, 0.3);
+}
+
+.submit-btn:active {
+    transform: translateY(-1px);
+}
+
+.submit-btn.loading .btn-text {
+    opacity: 0;
+}
+
+.submit-btn.loading .spinner-border {
+    display: inline-block !important;
+}
+
+/* Form Validation */
+.was-validated .form-control:valid {
+    border-color: var(--success-color);
+}
+
+.was-validated .form-control:invalid {
+    border-color: var(--danger-color);
+}
+
+.invalid-feedback {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+/* Map Section */
+.map-container {
+    border-radius: 15px !important;
+    overflow: hidden;
+    height: 400px;
+}
+
+.map-placeholder {
+    height: 100%;
+    border-radius: 15px;
+}
+
+/* Animations */keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
     }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.animate__animated {
+    animation-duration: 1s;
+    animation-fill-mode: both;
+}
+
+.animate__fadeInUp {
+    animation-name: fadeInUp;
+}
+
+.animate__delay-1s {
+    animation-delay: 1s;
+}
+
+/* Hover Effects */
+.hover-lift {
+    transition: var(--transition);
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+}
+
+/* Responsive Design */
+media (max-width: 992px) {
+    .contact-section {
+        min-height: auto;
+    }
+
+    .section-header,
+    .form-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .contact-info,
+    .contact-form-section {
+        margin-bottom: 3rem;
+    }
+}
+
+media (max-width: 768px) {
+    .breadcrumb-section {
+        min-height: 200px;
+    }
+
+    .breadcrumb-content h1 {
+        font-size: 2.5rem;
+    }
+
+    .contact-card .card-body {
+        padding: 2rem !important;
+    }
+
+    .contact-form-card .card-body {
+        padding: 2rem !important;
+    }
+
+    .social-link {
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+    }
+
+    .map-container {
+        height: 300px;
+    }
+}
+
+media (max-width: 576px) {
+    .breadcrumb-content h1 {
+        font-size: 2rem;
+    }
+
+    .contact-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+
+    .contact-card .d-flex {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .contact-card .contact-icon {
+        margin: 0 auto 1rem auto;
+    }
+
+    .social-links {
+        justify-content: center;
+    }
+}
+
+/* Loading Animation */
+keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Success Animation */
+keyframes checkmark {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.success-icon {
+    animation: checkmark 0.6s ease-in-out;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation and submission
+    const contactForm = document.getElementById('contact-form');
+    const submitBtn = document.querySelector('.submit-btn');
+    const formMessage = document.getElementById('form-message');
+
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Form submission handling
+    if (contactForm) {
+        contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (this.checkValidity()) {
+                // Add loading state
+                submitBtn.classList.add('loading');
+                submitBtn.querySelector('.spinner-border').classList.remove('d-none');
+                submitBtn.disabled = true;
+
+                // Simulate form submission (replace with actual submission)
+                setTimeout(() => {
+                    // Remove loading state
+                    submitBtn.classList.remove('loading');
+                    submitBtn.querySelector('.spinner-border').classList.add('d-none');
+                    submitBtn.disabled = false;
+
+                    // Show success message
+                    showSuccessMessage('Tin nhắn của bạn đã được gửi thành công! Chúng tôi sẽ phản hồi sớm nhất.');
+
+                    // Reset form
+                    contactForm.reset();
+                    contactForm.classList.remove('was-validated');
+                }, 2000);
+            }
+
+            this.classList.add('was-validated');
+        });
+    }
+<<<<<<< HEAD
     <div class="container-fluid">
         <div class="row">
             <div class="col-lg-5 offset-lg-1 col-md-12 order-1 order-lg-2">
@@ -51,39 +685,293 @@
                         <p>project_nhom08@gmail.com</p>
                         <p>project_nhom08@gmail.com</p>
                     </div>
+=======
+
+    // Real-time validation
+    const formInputs = contactForm.querySelectorAll('input, textarea');
+    formInputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.value.trim() !== '') {
+                this.classList.add('is-valid');
+                this.classList.remove('is-invalid');
+            } else if (this.hasAttribute('required')) {
+                this.classList.add('is-invalid');
+                this.classList.remove('is-valid');
+            }
+        });
+
+        input.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid') && this.value.trim() !== '') {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        });
+    });
+
+    // Email validation
+    const emailInput = document.getElementById('con_email');
+    if (emailInput) {
+        emailInput.addEventListener('input', function() {
+            const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+            if (emailRegex.test(this.value)) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            } else if (this.value !== '') {
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
+            }
+        });
+    }
+
+    // Animate contact cards on scroll
+    const animateOnScroll = () => {
+        const cards = document.querySelectorAll('.contact-card');
+
+        cards.forEach((card, index) => {
+            const cardTop = card.getBoundingClientRect().top;
+            const cardVisible = 150;
+
+            if (cardTop < window.innerHeight - cardVisible) {
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateX(0)';
+                }, index * 200);
+            }
+        });
+    };
+
+    // Initialize card animation
+    document.querySelectorAll('.contact-card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateX(-30px)';
+        card.style.transition = 'all 0.6s ease';
+    });
+
+    // Social links hover effects
+    document.querySelectorAll('.social-link').forEach(link => {
+        link.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px) rotate(5deg)';
+        });
+
+        link.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) rotate(0)';
+        });
+    });
+
+    // Scroll animations
+    window.addEventListener('scroll', animateOnScroll);
+    animateOnScroll(); // Run on load
+
+    // Auto-hide alerts
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 5000);
+    });
+
+    // Character counter for message textarea
+    const messageTextarea = document.getElementById('con_message');
+    if (messageTextarea) {
+        const maxLength = 500;
+
+        // Create character counter
+        const counterDiv = document.createElement('div');
+        counterDiv.className = 'character-counter text-muted small mt-2 text-end';
+        counterDiv.textContent = `0/${maxLength}`;
+        messageTextarea.closest('.col-12').appendChild(counterDiv);
+
+        messageTextarea.addEventListener('input', function() {
+            const currentLength = this.value.length;
+            counterDiv.textContent = `${currentLength}/${maxLength}`;
+
+            if (currentLength > maxLength * 0.9) {
+                counterDiv.classList.add('text-warning');
+                counterDiv.classList.remove('text-muted');
+            } else {
+                counterDiv.classList.remove('text-warning');
+                counterDiv.classList.add('text-muted');
+            }
+        });
+    }
+});
+
+// Success message function
+function showSuccessMessage(message) {
+    const formMessage = document.getElementById('form-message');
+
+    formMessage.innerHTML = `
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle success-icon me-3 fs-4"></i>
+                <div>
+                    <strong>Thành công!</strong><br>
+                    ${message}
+>>>>>>> 2888fa2 (Cập nhật project lần 2)
                 </div>
             </div>
-            <div class="col-lg-6 col-md-12 order-2 order-lg-1">
-                <div class="contact-form-content">
-                    <h3 class="contact-page-title">Gửi Tin Nhắn Cho Chúng Tôi</h3>
-                    <div class="contact-form">
-                        <form id="contact-form" action="@Url.Action("Contact","Home")" method="post">
-                            <div class="form-group">
-                                <label>Tên Của Bạn <span class="required">*</span></label>
-                                <input type="text" name="con_name" id="con_name" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Email Của Bạn <span class="required">*</span></label>
-                                <input type="email" name="con_email" id="con_email" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Chủ Đề</label>
-                                <input type="text" name="con_subject" id="con_subject">
-                            </div>
-                            <div class="form-group form-group-2">
-                                <label>Tin Nhắn Của Bạn</label>
-                                <textarea name="con_message" id="con_message"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <button type="submit" value="submit" id="submit" class="uren-contact-form_btn" name="submit">Gửi</button>
-                            </div>
-                        </form>
-                    </div>
-                    <p class="form-messege"></p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+
+    // Scroll to message
+    formMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Auto-hide after 8 seconds
+    setTimeout(() => {
+        const alert = formMessage.querySelector('.alert');
+        if (alert) {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }
+    }, 8000);
+}
+
+// Error message function
+function showErrorMessage(message) {
+    const formMessage = document.getElementById('form-message');
+
+    formMessage.innerHTML = `
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-circle me-3 fs-4"></i>
+                <div>
+                    <strong>Lỗi!</strong><br>
+                    ${message}
                 </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+
+    formMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// Phone number formatting
+function formatPhoneNumber(input) {
+    // Remove all non-digit characters
+    let value = input.value.replace(/\D/g, '');
+
+    // Format as (XX) XXX XXX XXX
+    if (value.length >= 10) {
+        value = value.replace(/(\d{2})(\d{3})(\d{3})(\d{3})/, '($1) $2 $3 $4');
+    } else if (value.length >= 6) {
+        value = value.replace(/(\d{2})(\d{3})(\d{3})/, '($1) $2 $3');
+    } else if (value.length >= 3) {
+        value = value.replace(/(\d{2})(\d{3})/, '($1) $2');
+    }
+
+    input.value = value;
+}
+
+// Add phone field if needed (optional enhancement)
+function addPhoneField() {
+    const emailField = document.getElementById('con_email').closest('.col-12');
+    const phoneFieldHtml = `
+        <div class="col-12">
+            <div class="form-floating">
+                <input type="tel" class="form-control form-control-lg" id="con_phone" name="con_phone"
+                       placeholder="Nhập số điện thoại" oninput="formatPhoneNumber(this)">
+                <label for="con_phone">
+                    <i class="fas fa-phone me-2 text-primary"></i>Số điện thoại
+                </label>
             </div>
         </div>
-    </div>
-</div>
+    `;
 
+    emailField.insertAdjacentHTML('afterend', phoneFieldHtml);
+}
 
+// Smooth scroll for anchor links
+function smoothScrollToSection(targetId) {
+    const target = document.getElementById(targetId);
+    if (target) {
+        target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+}
+
+// Initialize map (placeholder for Google Maps integration)
+function initializeMap() {
+    // This would integrate with Google Maps API
+    console.log('Map would be initialized here with Google Maps API');
+
+    // Example: Replace placeholder with actual map
+    const mapPlaceholder = document.querySelector('.map-placeholder');
+    if (mapPlaceholder) {
+        // You can replace this with actual Google Maps embed code
+        mapPlaceholder.innerHTML = `
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3928.6667!2d105.7835!3d10.0302!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31a0895a51d60719%3A0x9d76b0035f6d53d0!2sCan%20Tho%2C%20Vietnam!5e0!3m2!1sen!2s!4v1234567890"
+                    width="100%" height="400" style="border:0; border-radius: 15px;"
+                    allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        `;
+    }
+}
+
+// Copy contact info to clipboard
+function copyToClipboard(text, type) {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast(`Đã sao chép ${type}: ${text}`, 'success');
+    }).catch(() => {
+        showToast('Không thể sao chép. Vui lòng thử lại.', 'error');
+    });
+}
+
+// Toast notification function
+function showToast(message, type = 'info') {
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+
+    const toastId = 'toast-' + Date.now();
+    const iconClass = type === 'success' ? 'fa-check-circle text-success' :
+                     type === 'error' ? 'fa-exclamation-circle text-danger' :
+                     'fa-info-circle text-info';
+
+    const toastHtml = `
+        <div class="toast" id="${toastId}" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="fas ${iconClass} me-2"></i>
+                <strong class="me-auto">Thông báo</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">${message}</div>
+        </div>
+    `;
+
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+
+    const toastElement = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+
+    toastElement.addEventListener('hidden.bs.toast', function() {
+        this.remove();
+    });
+}
+
+// Add click-to-copy functionality for contact info
+document.addEventListener('DOMContentLoaded', function() {
+    // Make phone numbers and emails clickable to copy
+    const contactLinks = document.querySelectorAll('.contact-details a');
+    contactLinks.forEach(link => {
+        if (link.href.startsWith('tel:') || link.href.startsWith('mailto:')) {
+            link.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                const text = this.textContent.trim();
+                const type = this.href.startsWith('tel:') ? 'số điện thoại' : 'email';
+                copyToClipboard(text, type);
+            });
+        }
+    });
+});
+</script>

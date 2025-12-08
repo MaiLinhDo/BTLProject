@@ -7,8 +7,8 @@ using System.Web.Mvc;
 
 namespace TMDTLaptop.Models.Class
 {
-    public class SanPham
-    {
+	public class SanPham
+	{
 
         public int MaSanPham { get; set; }
 
@@ -40,12 +40,11 @@ namespace TMDTLaptop.Models.Class
         public Nullable<int> SoLuong { get; set; }
         public double? TrungBinhSao { get; set; }
         public int? SoLuongDanhGia { get; set; }
+
         // Helper method để lấy số sao đầy
-        public int SaoDay => (int)Math.Floor((decimal)TrungBinhSao);
-
-
+        public int SaoDay => (int)Math.Floor((decimal)TrungBinhSao.GetValueOrDefault());
 
         // Helper method để lấy số sao rỗng
-        public int SaoRong => 5 - SaoDay;
+        public int SaoRong => Math.Max(0, 5 - SaoDay);
     }
 }

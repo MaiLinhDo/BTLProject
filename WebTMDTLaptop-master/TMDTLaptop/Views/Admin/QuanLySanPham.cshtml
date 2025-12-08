@@ -1,6 +1,10 @@
-﻿@{
+﻿@using System.Web
+@using TMDTLaptop.Models.Class
+@{
     ViewBag.Title = "Quản Lý Sản Phẩm";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    var specDefinitions = ViewBag.SpecDefinitions as List<ThongSoKyThuat> ?? new List<ThongSoKyThuat>();
+    var activeFilters = ViewBag.ActiveSpecFilters as IDictionary<int, string> ?? new Dictionary<int, string>();
 }
 
 <div class="container">
@@ -11,9 +15,48 @@
     <!-- Form tìm kiếm -->
     @using (Html.BeginForm("QuanLySanPham", "Admin", FormMethod.Get))
     {
-        <div class="input-group mb-3">
-            <input type="text" name="searchTerm" class="form-control" placeholder="Tìm kiếm sản phẩm..." value="@ViewBag.SearchTerm" />
-            <button class="btn btn-outline-secondary" type="submit">Tìm kiếm</button>
+        <div class="row g-2 mb-2">
+            <div class="col-md-8">
+                <input type="text" name="searchTerm" class="form-control" placeholder="Tìm kiếm sản phẩm..." value="@ViewBag.SearchTerm" />
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button class="btn btn-outline-secondary flex-grow-1" type="submit">Tìm kiếm</button>
+                <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" aria-expanded="@(activeFilters.Any() ? "true" : "false")">
+                    <i class="fas fa-sliders-h"></i>
+                </button>
+            </div>
+        </div>
+        <div class="collapse @(activeFilters.Any() ? "show" : "")" id="advancedFilters">
+            <div class="card card-body mb-3">
+                <h5 class="mb-3">Bộ lọc thông số kỹ thuật</h5>
+                @if (specDefinitions.Any())
+                {
+                    <div class="row g-3">
+                        @foreach (var spec in specDefinitions)
+                        {
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">@spec.TenThongSo @if (!string.IsNullOrWhiteSpace(spec.DonVi))
+                                {<small class="text-muted">(@spec.DonVi)</small>}</label>
+                                <input type="text"
+                                       name="spec_@spec.MaThongSo"
+                                       class="form-control"
+                                       value="@(activeFilters.ContainsKey(spec.MaThongSo) ? activeFilters[spec.MaThongSo] : string.Empty)"
+                                       placeholder="Nhập giá trị..." />
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Chưa có thông số kỹ thuật nào để lọc.</p>
+                }
+                <div class="mt-3">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-filter me-2"></i>Áp dụng
+                    </button>
+                    <a href="@Url.Action("QuanLySanPham")" class="btn btn-outline-secondary ms-2">Xóa bộ lọc</a>
+                </div>
+            </div>
         </div>
     }
 
@@ -89,10 +132,15 @@
 
     <nav aria-label="Page navigation">
         <ul class="pagination justify-content-center mt-4">
+            @{
+                var baseQuery = HttpUtility.ParseQueryString(Request.QueryString?.ToString() ?? string.Empty);
+            }
             @for (int i = 1; i <= ViewBag.TotalPages; i++)
             {
+                baseQuery["page"] = i.ToString();
+                var pageUrl = Url.Action("QuanLySanPham") + "?" + baseQuery.ToString();
                 <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
-                    <a class="page-link" href="@Url.Action("QuanLySanPham", new { page = i, searchTerm = ViewBag.SearchTerm })">@i</a>
+                    <a class="page-link" href="@pageUrl">@i</a>
                 </li>
             }
         </ul>

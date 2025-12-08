@@ -14,24 +14,58 @@
             <p>Ngày Nhập: @Model.NgayNhap.ToString("dd/MM/yyyy")</p>
             <p>Tổng Tiền: @Model.TongTien.ToString("N0") đ</p>
             <p>Ghi Chú: @Model.GhiChu</p>
+            <div class="mt-3">
+                <h5>Nhà cung cấp</h5>
+                <p class="mb-1"><strong>@(string.IsNullOrWhiteSpace(Model.TenNhaCungCap) ? "Chưa cập nhật" : Model.TenNhaCungCap)</strong></p>
+                @if (!string.IsNullOrWhiteSpace(Model.SoDienThoaiNCC) || !string.IsNullOrWhiteSpace(Model.EmailNCC))
+                {
+                    <p class="mb-0 text-muted">
+                        @(string.IsNullOrWhiteSpace(Model.SoDienThoaiNCC) ? "" : $"SĐT: {Model.SoDienThoaiNCC} ")
+                        @(string.IsNullOrWhiteSpace(Model.EmailNCC) ? "" : $" | Email: {Model.EmailNCC}")
+                    </p>
+                }
+            </div>
 
             <h5>Chi Tiết Sản Phẩm:</h5>
+            @{
+                var chiTiet = ViewBag.ChiTietPhieuNhapKho as List<TMDTLaptop.Models.Class.ChiTietPhieuNhapViewModel>;
+            }
+
             <table class="table">
                 <thead>
                     <tr>
                         <th>Tên Sản Phẩm</th>
                         <th>Số Lượng</th>
                         <th>Giá</th>
+                        <th>Serial/IMEI</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in ViewBag.ChiTietPhieuNhapKho)
+                    @if (chiTiet != null)
                     {
-                        <tr>
-                            <td>@item.TenSanPham</td>
-                            <td>@item.SoLuong</td>
-                            <td>@item.GiaNhap.ToString("N0") đ</td>
-                        </tr>
+                        foreach (var item in chiTiet)
+                        {
+                            <tr>
+                                <td>@item.TenSanPham</td>
+                                <td>@item.SoLuong</td>
+                                <td>@item.GiaNhap.ToString("N0") đ</td>
+                                <td>
+                                    @{
+                                        if (item.SerialNumbers != null && item.SerialNumbers.Any())
+                                        {
+                                            foreach (var serial in item.SerialNumbers)
+                                            {
+                                                <span class="badge bg-light text-dark border me-1">@serial</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa nhập serial</span>
+                                        }
+                                    }
+                                </td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>

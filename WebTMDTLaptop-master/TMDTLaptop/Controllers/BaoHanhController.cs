@@ -353,9 +353,58 @@ namespace TMDTLaptop.Controllers
             }
         }
 
-        
 
-        
+        // POST: Tạo thông tin vận chuyển
+        [HttpPost]
+        public async Task<JsonResult> TaoVanChuyen(int maPhieuBH, string loaiVanChuyen, string donViVanChuyen,
+                                                  string maVanDon, string diaChiLayHang, string diaChiTraHang)
+        {
+            var postData = new
+            {
+                MaPhieuBH = maPhieuBH,
+                LoaiVanChuyen = loaiVanChuyen,
+                DonViVanChuyen = donViVanChuyen,
+                MaVanDon = maVanDon,
+                DiaChiLayHang = diaChiLayHang,
+                DiaChiTraHang = diaChiTraHang
+            };
+
+            using (var client = new HttpClient())
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync($"{apiBaseUrl}/tao_van_chuyen_bao_hanh", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                return Json(new { success = data.success, message = data.message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> CapNhatXuLyNhaSanXuat(int maPhieuBH, string tenNhaSanXuat, string maPhieuNSX,
+                                                          string hinhThucXuLy, string moTaXuLy, decimal chiPhi, string trangThai)
+        {
+            var postData = new
+            {
+                MaPhieuBH = maPhieuBH,
+                TenNhaSanXuat = tenNhaSanXuat,
+                MaPhieuNSX = maPhieuNSX,
+                HinhThucXuLy = hinhThucXuLy,
+                MoTaXuLy = moTaXuLy,
+                ChiPhi = chiPhi,
+                TrangThai = trangThai
+            };
+
+            using (var client = new HttpClient())
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync($"{apiBaseUrl}/cap_nhat_xu_ly_nha_san_xuat", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                return Json(new { success = data.success, message = data.message });
+            }
+        }
 
         // GET: Thống kê bảo hành
         public async Task<ActionResult> ThongKeBaoHanh(DateTime? startDate, DateTime? endDate)
@@ -392,7 +441,41 @@ namespace TMDTLaptop.Controllers
             }
         }
 
-        
+        // GET: Trang quản lý vận chuyển
+        public async Task<ActionResult> QuanLyVanChuyen(int maPhieuBH)
+        {
+            using (var client = new HttpClient())
+            {
+                var postData = new { MaPhieuBH = maPhieuBH };
+                var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+
+                var response = await client.PostAsync($"{apiBaseUrl}/get_chi_tiet_bao_hanh", content);
+                var result = await response.Content.ReadAsStringAsync();
+                dynamic data = JsonConvert.DeserializeObject(result);
+
+                if ((bool)data.success)
+                {
+                    ViewBag.ChiTiet = data.chiTiet;
+                    ViewBag.MaPhieuBH = maPhieuBH;
+
+                    // Danh sách đơn vị vận chuyển
+                    ViewBag.DonViVanChuyenList = new List<SelectListItem>
+                    {
+                        new SelectListItem { Value = "Giao Hàng Nhanh", Text = "Giao Hàng Nhanh" },
+                        new SelectListItem { Value = "Giao Hàng Tiết Kiệm", Text = "Giao Hàng Tiết Kiệm" },
+                        new SelectListItem { Value = "ViettelPost", Text = "ViettelPost" },
+                        new SelectListItem { Value = "Vietnam Post", Text = "Vietnam Post" },
+                        new SelectListItem { Value = "J&T Express", Text = "J&T Express" }
+                    };
+
+                    return View();
+                }
+                else
+                {
+                    return HttpNotFound();
+                }
+            }
+        }
 
         // GET: Export báo cáo bảo hành
         public async Task<ActionResult> ExportBaoCao(DateTime? startDate, DateTime? endDate, string format = "excel")

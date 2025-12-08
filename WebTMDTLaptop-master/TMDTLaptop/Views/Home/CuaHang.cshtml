@@ -1,6 +1,13 @@
+﻿@using System.Web
+@using System.Collections.Specialized
+@using TMDTLaptop.Models.Class
 @{
     ViewBag.Title = "CuaHang";
     Layout = "~/Views/Shared/_LayoutHome.cshtml";
+    var specDefinitions = ViewBag.SpecDefinitions as List<ThongSoKyThuat> ?? new List<ThongSoKyThuat>();
+    var activeSpecFilters = ViewBag.ActiveSpecFilters as IDictionary<int, string> ?? new Dictionary<int, string>();
+    bool hasAdvancedFilters = activeSpecFilters.Any() || ViewBag.MinPrice != null || ViewBag.MaxPrice != null || !string.IsNullOrWhiteSpace(ViewBag.Brand as string);
+    var currentQuery = HttpUtility.ParseQueryString(Request.QueryString?.ToString() ?? string.Empty);
 }
 
 <!-- Breadcrumb Section -->
@@ -30,6 +37,15 @@
     </div>
 </section>
 
+@functions{
+    private string UpdateQuery(NameValueCollection original, int page)
+    {
+        var clone = HttpUtility.ParseQueryString(original?.ToString() ?? string.Empty);
+        clone["page"] = page.ToString();
+        return clone.ToString();
+    }
+}
+
 <!-- Shop Content Section -->
 <section class="shop-section py-5">
     <div class="container-fluid">
@@ -40,7 +56,8 @@
                     <div class="card-body p-4">
                         <!-- Basic Search Form -->
                         <div class="basic-search mb-3">
-                            <form action="@Url.Action("CuaHang", ViewBag.DanhMuc)" method="get" class="row align-items-center">
+                            <form action="@Url.Action("CuaHang")" method="get" class="row align-items-center">
+                                <input type="hidden" name="id" value="@ViewBag.DanhMuc" />
                                 <div class="col-lg-8 col-md-7 mb-3 mb-md-0">
                                     <div class="input-group input-group-lg">
                                         <span class="input-group-text bg-primary text-white">
@@ -56,7 +73,13 @@
                                         <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
                                             <i class="fas fa-search me-2"></i>Tìm kiếm
                                         </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-lg" id="btnAdvancedSearch">
+                                        <button type="button"
+                                                class="btn btn-outline-secondary btn-lg"
+                                                id="btnAdvancedSearch"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#advancedSearchPanel"
+                                                aria-expanded="@(hasAdvancedFilters ? "true" : "false")"
+                                                aria-controls="advancedSearchPanel">
                                             <i class="fas fa-sliders-h"></i>
                                         </button>
                                     </div>
@@ -65,7 +88,8 @@
                         </div>
 
                         <!-- Advanced Search Panel -->
-                        <div id="advancedSearchPanel" class="advanced-search-panel" style="display: none;">
+                        <div id="advancedSearchPanel"
+                             class="advanced-search-panel collapse @(hasAdvancedFilters ? "show" : "")">
                             <div class="card bg-light border-0 mt-4">
                                 <div class="card-header bg-primary text-white">
                                     <h6 class="mb-0">
@@ -73,7 +97,8 @@
                                     </h6>
                                 </div>
                                 <div class="card-body">
-                                    <form action="@Url.Action("CuaHang", ViewBag.DanhMuc)" method="get">
+                                    <form action="@Url.Action("CuaHang")" method="get">
+                                        <input type="hidden" name="id" value="@ViewBag.DanhMuc" />
                                         <div class="row g-3">
                                             <!-- Price Range -->
                                             <div class="col-md-4">
@@ -114,6 +139,27 @@
                                                     }
                                                 </select>
                                             </div>
+                                            @if (specDefinitions.Any())
+                                            {
+                                                <div class="col-12">
+                                                    <label class="form-label fw-bold">
+                                                        <i class="fas fa-microchip text-primary me-2"></i>Thông số kỹ thuật:
+                                                    </label>
+                                                    <div class="row g-3">
+                                                        @foreach (var spec in specDefinitions)
+                                                        {
+                                                            <div class="col-md-3">
+                                                                <label class="form-label">@spec.TenThongSo @if (!string.IsNullOrWhiteSpace(spec.DonVi)){<small class="text-muted">(@spec.DonVi)</small>}</label>
+                                                                <input type="text"
+                                                                       name="spec_@spec.MaThongSo"
+                                                                       class="form-control"
+                                                                       value="@(activeSpecFilters.ContainsKey(spec.MaThongSo) ? activeSpecFilters[spec.MaThongSo] : string.Empty)"
+                                                                       placeholder="Nhập @spec.TenThongSo" />
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
                                         </div>
                                         <div class="row mt-4">
                                             <div class="col-12">
@@ -211,7 +257,7 @@
                                 <div class="stars text-warning me-2">
                                     @{
                                         int saoDay = (int)Math.Floor(product.TrungBinhSao);
-                                        int saoRong = 5 - saoDay;
+                                        int saoRong = 5 - saoDay ;
                                     }
 
                                     @* Hiển thị sao đầy *@
@@ -271,12 +317,17 @@
                 <div class="col-12">
                     <div class="empty-state text-center py-5">
                         <div class="empty-state-content">
-                            <i class="fas fa-search fa-5x text-muted mb-4"></i>
-                            <h3 class="fw-bold text-muted mb-3">Không tìm thấy sản phẩm nào</h3>
-                            <p class="text-muted mb-4">Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc của bạn</p>
-                            <a href="@Url.Action("CuaHang", ViewBag.DanhMuc)" class="btn btn-primary">
-                                <i class="fas fa-undo me-2"></i>Xem tất cả sản phẩm
-                            </a>
+                            <i class="fas fa-box-open fa-5x text-muted mb-4"></i>
+                            <h3 class="fw-bold text-muted mb-3">Không tìm thấy sản phẩm phù hợp</h3>
+                            <p class="text-muted mb-4">Vui lòng điều chỉnh lại từ khóa hoặc sử dụng bộ lọc nâng cao.</p>
+                            <button type="button"
+                                    class="btn btn-outline-primary"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#advancedSearchPanel"
+                                    aria-expanded="true"
+                                    aria-controls="advancedSearchPanel">
+                                <i class="fas fa-sliders-h me-2"></i>Mở bộ lọc nâng cao
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -294,7 +345,7 @@
                                 <!-- Previous Button -->
                                 <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
                                     <a class="page-link"
-                                       href="@(ViewBag.CurrentPage > 1 ? Url.Action("CuaHang", new { id = ViewBag.DanhMuc, page = ViewBag.CurrentPage - 1, search = ViewBag.Search, minPrice = ViewBag.MinPrice, maxPrice = ViewBag.MaxPrice, brand = ViewBag.Brand }) : "#")"
+                                       href="@(ViewBag.CurrentPage > 1 ? Url.Action("CuaHang") + "?" + UpdateQuery(currentQuery, ViewBag.CurrentPage - 1) : "#")"
                                        aria-label="Previous">
                                         <i class="fas fa-chevron-left"></i>
                                     </a>
@@ -309,7 +360,7 @@
                                 @if (startPage > 1)
                                 {
                                     <li class="page-item">
-                                        <a class="page-link" href="@Url.Action("CuaHang", new { id = ViewBag.DanhMuc, page = 1, search = ViewBag.Search, minPrice = ViewBag.MinPrice, maxPrice = ViewBag.MaxPrice, brand = ViewBag.Brand })">1</a>
+                                        <a class="page-link" href="@Url.Action("CuaHang") + "?" + UpdateQuery(currentQuery, 1)">1</a>
                                     </li>
                                     if (startPage > 2)
                                     {
@@ -322,7 +373,7 @@
                                 @for (int i = startPage; i <= endPage; i++)
                                 {
                                     <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
-                                        <a class="page-link" href="@Url.Action("CuaHang", new { id = ViewBag.DanhMuc, page = i, search = ViewBag.Search, minPrice = ViewBag.MinPrice, maxPrice = ViewBag.MaxPrice, brand = ViewBag.Brand })">@i</a>
+                                        <a class="page-link" href="@Url.Action("CuaHang") + "?" + UpdateQuery(currentQuery, i)">@i</a>
                                     </li>
                                 }
 
@@ -335,14 +386,14 @@
                                         </li>
                                     }
                                     <li class="page-item">
-                                        <a class="page-link" href="@Url.Action("CuaHang", new { id = ViewBag.DanhMuc, page = ViewBag.TotalPages, search = ViewBag.Search, minPrice = ViewBag.MinPrice, maxPrice = ViewBag.MaxPrice, brand = ViewBag.Brand })">@ViewBag.TotalPages</a>
+                                        <a class="page-link" href="@Url.Action("CuaHang") + "?" + UpdateQuery(currentQuery, ViewBag.TotalPages)">@ViewBag.TotalPages</a>
                                     </li>
                                 }
 
                                 <!-- Next Button -->
                                 <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
                                     <a class="page-link"
-                                       href="@(ViewBag.CurrentPage < ViewBag.TotalPages ? Url.Action("CuaHang", new { id = ViewBag.DanhMuc, page = ViewBag.CurrentPage + 1, search = ViewBag.Search, minPrice = ViewBag.MinPrice, maxPrice = ViewBag.MaxPrice, brand = ViewBag.Brand }) : "#")"
+                                       href="@(ViewBag.CurrentPage < ViewBag.TotalPages ? Url.Action("CuaHang") + "?" + UpdateQuery(currentQuery, ViewBag.CurrentPage + 1) : "#")"
                                        aria-label="Next">
                                         <i class="fas fa-chevron-right"></i>
                                     </a>
@@ -1046,7 +1097,7 @@ keyframes fadeInUp {
             starsHTML += '<i class="fas fa-star-half-alt"></i>';
         }
 
-        // Empty stars
+        // Empty stars  
         for (let i = 0; i < emptyStars; i++) {
             starsHTML += '<i class="far fa-star"></i>';
         }
@@ -1104,17 +1155,17 @@ keyframes fadeInUp {
         transition: all 0.3s ease;
         margin-right: 2px;
     }
-
+    
     .stars i:hover {
         transform: scale(1.1);
         text-shadow: 0 0 10px rgba(255, 193, 7, 0.8);
     }
-
+    
     .product-rating {
         align-items: center;
         display: flex;
     }
-
+    
     .stars {
         white-space: nowrap;
     }
