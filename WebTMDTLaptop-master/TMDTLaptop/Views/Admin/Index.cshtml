@@ -4,7 +4,16 @@
 }
 
 <div class="container mt-4">
-    <h2 class="text-center mb-4 title-highlight">Báo cáo tháng</h2>
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3">
+        <h2 class="title-highlight mb-3 mb-md-0">Báo cáo tháng</h2>
+        <form method="get" class="d-flex align-items-center gap-2">
+            <label for="month" class="fw-semibold">Chọn tháng:</label>
+            <input type="month" class="form-control" id="month" name="month" value="@ViewBag.SelectedMonth" onchange="this.form.submit()" />
+            <noscript>
+                <button type="submit" class="btn btn-primary">Xem</button>
+            </noscript>
+        </form>
+    </div>
 
 
     <div class="row mb-4">
@@ -77,7 +86,7 @@
             </div>
         </div>
     </div>
-
+  
     <h3 class="text-center mb-3">Top 5 sản phẩm bán chạy</h3>
     <div class="card shadow-sm mb-4">
         <div class="card-body">
@@ -94,6 +103,38 @@
                         <tr>
                             <td>@product.TenSanPham</td>
                             <td>@product.SoLuong</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <h3 class="text-center mb-3">5 sản phẩm bán chậm</h3>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <table class="table table-bordered table-striped table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Tên sản phẩm</th>
+                        <th>Số lượng đã bán</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.SlowSellingProducts != null)
+                    {
+                        foreach (var product in ViewBag.SlowSellingProducts)
+                        {
+                            <tr>
+                                <td>@product.TenSanPham</td>
+                                <td>@product.SoLuong</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="2" class="text-center text-muted">Không có dữ liệu.</td>
                         </tr>
                     }
                 </tbody>
