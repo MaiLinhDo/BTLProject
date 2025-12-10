@@ -1,0 +1,39 @@
+﻿@model TMDTLaptop.Models.Class.NhaCungCap
+<div class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label">Tên nhà cung cấp</label>
+        @Html.TextBoxFor(m => m.TenNhaCungCap, new { @class = "form-control", required = "required" })
+        @Html.ValidationMessageFor(m => m.TenNhaCungCap, "", new { @class = "text-danger" })
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Mã số thuế</label>
+        @Html.TextBoxFor(m => m.MaSoThue, new { @class = "form-control" })
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Trạng thái</label>
+        @Html.DropDownListFor(m => m.TrangThai, new SelectList(new[]
+        {
+            new { Value = true, Text = "Hoạt động" },
+            new { Value = false, Text = "Ngừng hoạt động" }
+        }, "Value", "Text", Model.TrangThai ?? true), new { @class = "form-select" })
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Email</label>
+        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email" })
+        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Số điện thoại</label>
+        @Html.TextBoxFor(m => m.SoDienThoai, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.SoDienThoai, "", new { @class = "text-danger" })
+    </div>
+    <div class="col-12">
+        <label class="form-label">Địa chỉ</label>
+        @Html.TextBoxFor(m => m.DiaChi, new { @class = "form-control" })
+    </div>
+    <div class="col-12">
+        <label class="form-label">Ghi chú</label>
+        @Html.TextAreaFor(m => m.GhiChu, new { @class = "form-control", rows = 3 })
+    </div>
+</div>
+

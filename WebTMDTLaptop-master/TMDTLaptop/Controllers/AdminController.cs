@@ -127,7 +127,6 @@ namespace TMDTLaptop.Controllers
                 return RedirectToAction("QuanLyBanner");
             }
         }
-        // GET: Admin
         public async Task<ActionResult> Index(string month = null)
         {
             using (var client = new HttpClient())

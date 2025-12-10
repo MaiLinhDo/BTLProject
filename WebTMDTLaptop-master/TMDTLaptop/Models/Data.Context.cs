@@ -12,7 +12,8 @@ namespace TMDTLaptop.Models
     using System;
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
-    
+    using TMDTLaptop.Models.Class;
+
     public partial class LaptopStoreEntities : DbContext
     {
         public LaptopStoreEntities()

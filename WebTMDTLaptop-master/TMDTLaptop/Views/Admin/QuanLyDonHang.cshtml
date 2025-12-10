@@ -45,33 +45,6 @@
                             <td>@item.NgayDatHang.ToString("dd/MM/yyyy")</td>
                             <td>@(Convert.ToDecimal(item.TongTien ?? 0).ToString("N0")) đ</td>
                             <td>
-<<<<<<< HEAD
-                                <a href="@Url.Action("ChiTietDonHang", new { id = item.MaDonHang })" class="btn btn-info btn-sm">Xem Chi Tiết</a>
-                                @if (item.TrangThai == "Đang chờ xử lý" || item.TrangThai == "Đặt hàng thành công")
-                                {
-
-                                    <a href="@Url.Action("DuyetDonHang", new { id = item.MaDonHang })" class="btn btn-success btn-sm">Duyệt</a>
-                                    <a href="@Url.Action("HuyDonHang", new { id = item.MaDonHang })" class="btn btn-danger btn-sm">Hủy</a>
-                                }
-                                @{
-
-                                    // Kiểm tra điều kiện
-                                    if (item.TrangThai == "Đã Duyệt" || item.TrangThai == "Đã thanh toán")
-                                    {
-                                        <a href="@Url.Action("DuyetDonHang", "NV", new { id = item.MaDonHang })" class="btn btn-success btn-sm">Đã giao</a>
-
-                                    }
-                                }
-                                @{
-
-                                    // Kiểm tra điều kiện
-                                    if (item.TrangThai == "Đang chuẩn bị hàng")
-                                    {
-                                        <a href="@Url.Action("DuyetDonHang", "NV", new { id = item.MaDonHang })" class="btn btn-success btn-sm">Đã giao</a>
-
-                                    }
-                                }
-=======
                                 @{
                                     string statusClass = "";
                                     switch (item.TrangThai?.ToString() ?? "")
@@ -89,7 +62,6 @@
                                 <span class="badge @statusClass text-white">
                                     @item.TrangThai
                                 </span>
->>>>>>> 2888fa2 (Cập nhật project lần 2)
                             </td>
                             <td>
                                 <div class="btn-group" role="group">

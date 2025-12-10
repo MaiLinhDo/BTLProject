@@ -1,0 +1,218 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    var order = ViewBag.Order;
+    var details = ViewBag.Details as IEnumerable<dynamic> ?? new List<dynamic>();
+    string staffName = ViewBag.StaffName ?? "Admin";
+    string staffPhone = ViewBag.StaffPhone ?? "";
+    string staffEmail = ViewBag.StaffEmail ?? "";
+    DateTime printedAt = ViewBag.PrintedAt ?? DateTime.Now;
+}
+
+@section styles{
+    <style>
+        .invoice-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .invoice-header {
+            border-bottom: 2px solid #f1f1f1;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+        }
+        .invoice-brand {
+            font-size: 26px;
+            font-weight: 700;
+            color: #0d6efd;
+        }
+        .invoice-meta span {
+            display: block;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        .info-card {
+            border: 1px solid #eaeaea;
+            border-radius: 10px;
+            padding: 20px;
+            height: 100%;
+        }
+        .invoice-table th {
+            background: #0d6efd;
+            color: #fff;
+        }
+        .invoice-table td, .invoice-table th {
+            vertical-align: middle;
+        }
+        .summary-box {
+            border-radius: 12px;
+            padding: 20px;
+            background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
+            color: #fff;
+        }
+        .actions {
+            margin-top: 20px;
+        }
+        @@media print {
+            body {
+                background: #fff;
+                margin: 0;
+            }
+            .actions, .sidebar, .navbar, footer {
+                display: none !important;
+            }
+            .content-area,
+            .container,
+            .invoice-container {
+                margin: 0 !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+            .invoice-container {
+                box-shadow: none;
+                padding: 0;
+            }
+        }
+    </style>
+}
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3 actions">
+        <h2>Hóa Đơn Bán Hàng</h2>
+        <div class="btn-group">
+            <a href="@Url.Action("QuanLyDonHang")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại
+            </a>
+            <button class="btn btn-primary" onclick="window.print()">
+                <i class="fas fa-print me-2"></i>In hóa đơn
+            </button>
+        </div>
+    </div>
+
+    <div class="invoice-container">
+        <div class="invoice-header d-flex justify-content-between align-items-center">
+            <div>
+                <div class="invoice-brand">LaptopStore</div>
+                <div class="text-muted">Cửa hàng laptop & phụ kiện chính hãng</div>
+            </div>
+            <div class="text-end invoice-meta">
+                <span><strong>Mã hóa đơn:</strong> #@order.MaDonHang</span>
+                <span><strong>Ngày in:</strong> @printedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                <span><strong>Trạng thái:</strong> @order.TrangThai</span>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="info-card">
+                    <h5>Khách hàng</h5>
+                    <p class="mb-1"><strong>@order.HoTen</strong></p>
+                    <p class="mb-1">Điện thoại: @order.SoDienThoai</p>
+                    <p class="mb-0">Địa chỉ: @order.DiaChiGiaoHang</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-card">
+                    <h5>Nhân viên phụ trách</h5>
+                    <p class="mb-1"><strong>@staffName</strong></p>
+                    @if (!string.IsNullOrWhiteSpace(staffPhone))
+                    {
+                        <p class="mb-1">Điện thoại: @staffPhone</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(staffEmail))
+                    {
+                        <p class="mb-0">Email: @staffEmail</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered invoice-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Số lượng</th>
+                        <th>Đơn giá (đ)</th>
+                        <th>Thành tiền (đ)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int index = 1;
+                        decimal tongTien = 0;
+                    }
+                    @foreach (var item in details)
+                    {
+                        var lineTotal = (decimal)item.Gia * (int)item.SoLuong;
+                        tongTien += lineTotal;
+                        <tr>
+                            <td>@index</td>
+                            <td>@item.TenSanPham</td>
+                            <td>@item.SoLuong</td>
+                            <td>@string.Format("{0:N0}", item.Gia)</td>
+                            <td>@string.Format("{0:N0}", lineTotal)</td>
+                        </tr>
+                        index++;
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                @if (ViewBag.Code != null)
+                {
+                    <div class="alert alert-info h-100">
+                        <h6 class="text-uppercase mb-2">Thông tin khuyến mãi</h6>
+                        <p class="mb-1">Mã giảm giá: <strong>@ViewBag.Code</strong></p>
+                        <p class="mb-0">Giảm: <strong>@ViewBag.GiamGia %</strong></p>
+                    </div>
+                }
+            </div>
+            <div class="col-md-6">
+                <div class="summary-box">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tạm tính:</span>
+                        <strong>@string.Format("{0:N0}", tongTien) đ</strong>
+                    </div>
+                    @if (ViewBag.GiamGia != null && ViewBag.GiamGia > 0)
+                    {
+                        var discountAmount = tongTien * (decimal)ViewBag.GiamGia / 100;
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Giảm giá (@ViewBag.GiamGia %):</span>
+                            <strong>-@string.Format("{0:N0}", discountAmount) đ</strong>
+                        </div>
+                        <hr />
+                        <div class="d-flex justify-content-between">
+                            <span>Tổng thanh toán:</span>
+                            <strong style="font-size: 1.4rem">
+                                @string.Format("{0:N0}", tongTien - discountAmount) đ
+                            </strong>
+                        </div>
+                    }
+                    else
+                    {
+                        <hr />
+                        <div class="d-flex justify-content-between">
+                            <span>Tổng thanh toán:</span>
+                            <strong style="font-size: 1.4rem">
+                                @string.Format("{0:N0}", tongTien) đ
+                            </strong>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 text-center text-muted">
+            <p class="mb-0">Cảm ơn quý khách đã mua hàng tại LaptopStore!</p>
+            <small>Phiếu in lúc @printedAt.ToString("HH:mm dd/MM/yyyy")</small>
+        </div>
+    </div>
+</div>
+

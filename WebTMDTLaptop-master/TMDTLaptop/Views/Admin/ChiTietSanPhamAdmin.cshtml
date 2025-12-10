@@ -1,0 +1,154 @@
+﻿@model TMDTLaptop.Models.Class.SanPham
+@using TMDTLaptop.Models.Class
+@{
+    ViewBag.Title = "Chi Tiết Sản Phẩm";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    var thongSo = ViewBag.ThongSoKyThuat as List<ThongSoKyThuat> ?? new List<ThongSoKyThuat>();
+    var sanPhamCungGia = ViewBag.SanPhamCungGia as List<SanPham> ?? new List<SanPham>();
+    var serials = ViewBag.SerialNumbers as List<SerialNumberViewModel> ?? new List<SerialNumberViewModel>();
+    var serialCount = ViewBag.SerialCount as int? ?? serials.Count;
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+        <h2>@ViewBag.Title</h2>
+        <a class="btn btn-secondary" href="@Url.Action("QuanLySanPham")"><i class="fas fa-arrow-left me-2"></i>Quay lại</a>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="row g-0">
+            <div class="col-md-4">
+                @if (!string.IsNullOrWhiteSpace(Model.HinhAnh))
+                {
+                    <img src="@Url.Content("~/assets/images/product/" + Model.MaSanPham + "/" + Model.HinhAnh)" class="img-fluid rounded-start" alt="@Model.TenSanPham" />
+                }
+                else
+                {
+                    <div class="p-4 text-center text-muted">Chưa có hình ảnh</div>
+                }
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h3 class="card-title">@Model.TenSanPham</h3>
+                    <p class="text-muted">Mã sản phẩm: @Model.MaSanPham</p>
+                    <div class="mb-3">
+                        <span class="h4 text-primary me-3">@Model.Gia.ToString("N0") đ</span>
+                        @if (Model.GiaMoi.HasValue)
+                        {
+                            <span class="badge bg-danger">Giá KM: @Model.GiaMoi.Value.ToString("N0") đ</span>
+                        }
+                    </div>
+                    <p>
+                        <span class="badge @(Model.TrangThai == true ? "bg-success" : "bg-secondary")">
+                            @(Model.TrangThai == true ? "Đang bán" : "Ngừng bán")
+                        </span>
+                        <span class="badge bg-info ms-2">Số lượng: @Model.SoLuong</span>
+                        <span class="badge bg-dark ms-2">Serial: @serialCount</span>
+                    </p>
+                    <div class="mt-3">
+                        <h5>Mô tả</h5>
+                        @Html.Raw(Model.MoTa)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="card-title mb-0">Mã định danh / Serial</h4>
+                <span class="badge bg-primary fs-6">Tổng: @serialCount</span>
+            </div>
+            @if (serials.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã serial</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày nhập</th>
+                                <th>Ngày bán</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var serial in serials)
+                            {
+                                <tr>
+                                    <td>@serial.SerialNumber</td>
+                                    <td>@(string.IsNullOrWhiteSpace(serial.TrangThai) ? "Chưa xác định" : serial.TrangThai)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(serial.NgayNhap) ? "-" : serial.NgayNhap)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(serial.NgayBan) ? "-" : serial.NgayBan)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted mb-0">Chưa có mã định danh nào cho sản phẩm này.</p>
+            }
+        </div>
+    </div>
+
+    @if (thongSo.Any())
+    {
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h4 class="card-title mb-3">Thông số kỹ thuật</h4>
+                <div class="row">
+                    @foreach (var spec in thongSo)
+                    {
+                        <div class="col-md-4 mb-3">
+                            <div class="border rounded p-3 h-100">
+                                <div class="fw-semibold">@spec.TenThongSo @if(!string.IsNullOrWhiteSpace(spec.DonVi)){<small class="text-muted">(@spec.DonVi)</small>}</div>
+                                <div>@spec.GiaTri</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (sanPhamCungGia.Any())
+    {
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h4 class="card-title mb-3">Sản phẩm cùng mức giá</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã</th>
+                                <th>Tên</th>
+                                <th>Giá</th>
+                                <th>Kho</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var sp in sanPhamCungGia)
+                            {
+                                <tr>
+                                    <td>@sp.MaSanPham</td>
+                                    <td>@sp.TenSanPham</td>
+                                    <td>@sp.Gia.ToString("N0") đ</td>
+                                    <td>@sp.SoLuong</td>
+                                    <td>
+                                        <a href="@Url.Action("ChiTietSanPhamAdmin", new { id = sp.MaSanPham })" class="btn btn-outline-primary btn-sm">
+                                            Xem
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+

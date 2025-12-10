@@ -1,0 +1,23 @@
+﻿@model TMDTLaptop.Models.Class.NhaCungCap
+@{
+    ViewBag.Title = "Thêm Nhà Cung Cấp";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="container">
+    <h2 class="mt-4 mb-4">@ViewBag.Title</h2>
+    @using (Html.BeginForm("ThemNhaCungCap", "Admin", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        <div class="card">
+            <div class="card-body">
+                @Html.Partial("_NhaCungCapForm", Model)
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Lưu
+                </button>
+                <a href="@Url.Action("QuanLyNhaCungCap")" class="btn btn-secondary ms-2">Hủy</a>
+            </div>
+        </div>
+    }
+</div>
+

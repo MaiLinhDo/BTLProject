@@ -107,6 +107,7 @@
                             </td>
                             <td>
                                 <a href="@Url.Action("SuaSanPham", new { id = item.MaSanPham })" class="btn btn-warning btn-sm">Sửa</a>
+                                <a href="@Url.Action("ChiTietSanPhamAdmin", new { id = item.MaSanPham })" class="btn btn-info btn-sm">Chi tiết</a>
                                 @if (item.TrangThai == true) // Nếu sản phẩm đang mở bán
                                 {
                                     <a href="@Url.Action("CapNhatTrangThaiSP", new { id = item.MaSanPham, status = false })" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn ngưng bán sản phẩm này?');">Ngưng Bán</a>
