@@ -52,7 +52,12 @@
                                 <td>
                                     @{
                                         string statusClass = "";
-                                        switch (item.TrangThai?.ToString() ?? "")
+                                        string trangThai = "";
+                                        if (item.TrangThai != null)
+                                        {
+                                            trangThai = item.TrangThai.ToString();
+                                        }
+                                        switch (trangThai)
                                         {
                                             case "Chờ xử lý": statusClass = "bg-warning"; break;
                                             case "Đã duyệt": statusClass = "bg-info"; break;
@@ -182,12 +187,111 @@ function viewReturnDetail(returnId) {
     $('#returnDetailModal').modal('show');
     $('#returnDetailContent').html('<p>Đang tải thông tin...</p>');
 
-    // Gọi API để lấy chi tiết
-    $.get('@Url.Action("ChiTietDoiTra")/' + returnId, function(data) {
-        $('#returnDetailContent').html(data);
+    // Gọi API để lấy chi tiết - returns JSON
+    $.getJSON('@Url.Action("ChiTietDoiTra")?id=' + returnId, function(data) {
+        if (data.success && data.returnDetail) {
+            var d = data.returnDetail;
+            var statusClass = getStatusBadgeClass(d.TrangThai || '');
+            var loaiClass = d.LoaiYeuCau === 'Đổi' ? 'bg-info' : 'bg-warning';
+            
+            // Build products table with images and serial numbers
+            var productsHtml = '';
+            if (d.Products && d.Products.length > 0) {
+                var totalAmount = 0;
+                d.Products.forEach(function(p) {
+                    var itemTotal = (p.Gia || 0) * (p.SoLuong || 0);
+                    totalAmount += itemTotal;
+                    var imgSrc = p.HinhAnh ? '/assets/images/product/' + p.MaSanPham + '/' + p.HinhAnh : '/assets/images/no-image.png';
+                    
+                    // Format serial numbers
+                    var serialHtml = '';
+                    if (p.SerialNumbers && p.SerialNumbers.length > 0) {
+                        serialHtml = p.SerialNumbers.map(function(s) {
+                            return '<span class="badge bg-secondary me-1 mb-1">' + s + '</span>';
+                        }).join('');
+                    } else {
+                        serialHtml = '<small class="text-muted">Chưa có</small>';
+                    }
+                    
+                    productsHtml += '<tr>' +
+                        '<td style="width:60px"><img src="' + imgSrc + '" class="img-thumbnail" style="width:50px;height:50px;object-fit:cover" onerror="this.src=\'/assets/images/no-image.png\'"></td>' +
+                        '<td><strong>' + (p.TenSanPham || 'N/A') + '</strong><br><small class="text-muted">Mã: #' + (p.MaSanPham || 'N/A') + '</small></td>' +
+                        '<td><span class="badge bg-primary">' + (p.SoLuong || 0) + '</span></td>' +
+                        '<td>' + serialHtml + '</td>' +
+                        '<td class="text-success">' + formatNumber(p.Gia || 0) + ' đ</td>' +
+                        '<td><strong class="text-danger">' + formatNumber(itemTotal) + ' đ</strong></td></tr>';
+                });
+                productsHtml += '<tr class="table-warning"><td colspan="5" class="text-end"><strong>Tổng tiền:</strong></td><td><strong class="text-danger">' + formatNumber(d.TongTien || 0) + ' đ</strong></td></tr>';
+            } else {
+                productsHtml = '<tr><td colspan="6" class="text-center text-muted">Không có sản phẩm nào</td></tr>';
+            }
+            
+            // Build error images section
+            var errorImagesHtml = '';
+            if (d.HinhAnhLoi && d.HinhAnhLoi.length > 0) {
+                errorImagesHtml = '<div class="card mb-3"><div class="card-header bg-info text-white"><h6 class="mb-0"><i class="fas fa-images"></i> Hình ảnh minh chứng</h6></div><div class="card-body"><div class="row">';
+                d.HinhAnhLoi.forEach(function(img) {
+                    var imgPath = '/assets/images/returns/' + d.MaDoiTra + '/' + img;
+                    errorImagesHtml += '<div class="col-md-3 col-sm-4 col-6 mb-2">' +
+                        '<a href="' + imgPath + '" target="_blank">' +
+                        '<img src="' + imgPath + '" class="img-thumbnail" style="width:100%;height:100px;object-fit:cover" onerror="this.style.display=\'none\'">' +
+                        '</a></div>';
+                });
+                errorImagesHtml += '</div><p class="text-muted mb-0 mt-2"><small>Tổng cộng: ' + d.HinhAnhLoi.length + ' hình ảnh. Click để xem phóng to.</small></p></div></div>';
+            } else {
+                errorImagesHtml = '<div class="card mb-3"><div class="card-header bg-info text-white"><h6 class="mb-0"><i class="fas fa-images"></i> Hình ảnh minh chứng</h6></div><div class="card-body text-center text-muted"><i class="fas fa-image" style="font-size:2rem;opacity:0.3"></i><p class="mb-0">Không có hình ảnh minh chứng</p></div></div>';
+            }
+            
+            var actionHtml = '';
+            if (d.TrangThai !== 'Đã xử lý' && d.TrangThai !== 'Từ chối') {
+                if (d.TrangThai === 'Chờ xử lý') {
+                    actionHtml = '<button class="btn btn-success" onclick="updateReturnStatus(' + d.MaDoiTra + ', \'Đã duyệt\')"><i class="fas fa-check"></i> Duyệt</button> ' +
+                                 '<button class="btn btn-danger" onclick="rejectReturn(' + d.MaDoiTra + ')"><i class="fas fa-times"></i> Từ chối</button>';
+                } else if (d.TrangThai === 'Đã duyệt') {
+                    actionHtml = '<button class="btn btn-primary" onclick="updateReturnStatus(' + d.MaDoiTra + ', \'Chờ lấy hàng\')"><i class="fas fa-truck"></i> Chờ lấy hàng</button>';
+                } else if (d.TrangThai === 'Chờ lấy hàng') {
+                    actionHtml = '<button class="btn btn-warning" onclick="updateReturnStatus(' + d.MaDoiTra + ', \'Đang xử lý\')"><i class="fas fa-spinner"></i> Đang xử lý</button>';
+                } else if (d.TrangThai === 'Đang xử lý') {
+                    actionHtml = '<button class="btn btn-success" onclick="updateReturnStatus(' + d.MaDoiTra + ', \'Đã xử lý\')"><i class="fas fa-check-circle"></i> Hoàn tất</button>';
+                }
+            }
+
+            var html = '<div class="row mb-3">' +
+                '<div class="col-md-6"><div class="card"><div class="card-header bg-primary text-white"><h6 class="mb-0">Thông tin yêu cầu</h6></div><div class="card-body">' +
+                '<p><strong>Mã đổi trả:</strong> #' + (d.MaDoiTra || 'N/A') + '</p>' +
+                '<p><strong>Mã đơn hàng:</strong> #' + (d.MaDonHang || 'N/A') + '</p>' +
+                '<p><strong>Loại:</strong> <span class="badge ' + loaiClass + ' text-white">' + (d.LoaiYeuCau || 'N/A') + '</span></p>' +
+                '<p><strong>Ngày tạo:</strong> ' + (d.NgayTao || 'N/A') + '</p>' +
+                '<p><strong>Trạng thái:</strong> <span class="badge ' + statusClass + ' text-white">' + (d.TrangThai || 'N/A') + '</span></p>' +
+                '</div></div></div>' +
+                '<div class="col-md-6"><div class="card"><div class="card-header bg-success text-white"><h6 class="mb-0">Thông tin khách hàng</h6></div><div class="card-body">' +
+                '<p><strong>Họ tên:</strong> ' + (d.HoTen || 'N/A') + '</p>' +
+                '<p><strong>SĐT:</strong> ' + (d.SoDienThoai || 'N/A') + '</p>' +
+                '<p><strong>Email:</strong> ' + (d.Email || 'N/A') + '</p>' +
+                '<p><strong>Địa chỉ:</strong> ' + (d.DiaChiGiaoHang || 'N/A') + '</p>' +
+                '</div></div></div></div>' +
+                '<div class="card mb-3"><div class="card-header bg-warning text-white"><h6 class="mb-0">Lý do đổi trả</h6></div><div class="card-body">' +
+                '<p><strong>Lý do:</strong> ' + (d.LyDo || 'Không có') + '</p>' +
+                '<p><strong>Mô tả:</strong> ' + (d.MoTa || 'Không có') + '</p></div></div>' +
+                errorImagesHtml +
+                '<div class="card mb-3"><div class="card-header bg-dark text-white"><h6 class="mb-0">Sản phẩm</h6></div><div class="card-body">' +
+                '<table class="table table-hover"><thead><tr><th>Ảnh</th><th>Tên SP</th><th>SL</th><th>Serial</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>' + productsHtml + '</tbody></table></div></div>';
+            
+            if (actionHtml) {
+                html += '<div class="card"><div class="card-header bg-secondary text-white"><h6 class="mb-0">Hành động</h6></div><div class="card-body">' + actionHtml + '</div></div>';
+            }
+            
+            $('#returnDetailContent').html(html);
+        } else {
+            $('#returnDetailContent').html('<p class="text-danger">' + (data.message || 'Không thể tải thông tin chi tiết.') + '</p>');
+        }
     }).fail(function() {
         $('#returnDetailContent').html('<p class="text-danger">Không thể tải thông tin chi tiết.</p>');
     });
+}
+
+function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 // Cập nhật trạng thái đổi trả
 function updateReturnStatus(returnId, newStatus) {

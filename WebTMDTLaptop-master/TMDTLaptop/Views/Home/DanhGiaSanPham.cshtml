@@ -351,7 +351,7 @@
                         <div class="product-section">
                             <div class="row align-items-center">
                                 <div class="col-md-4 text-center mb-3 mb-md-0">
-                                    <img src="@Url.Content($"~/assets/images/product/{ViewBag.Product.MaSanPham}/{ViewBag.Product.HinhAnh}")"
+                                    <img src="@Url.Content("~/assets/images/product/" + ViewBag.Product.MaSanPham + "/" + ViewBag.Product.HinhAnh)"
                                          alt="@ViewBag.Product.TenSanPham"
                                          class="product-image">
                                 </div>
@@ -382,6 +382,7 @@
                         <!-- Review Form -->
                         @using (Html.BeginForm("DanhGiaSanPham", "Home", FormMethod.Post, new { @class = "review-form" }))
                         {
+                            @Html.AntiForgeryToken()
                             <input type="hidden" name="orderId" value="@ViewBag.OrderId" />
                             <input type="hidden" name="productId" value="@ViewBag.Product.MaSanPham" />
                             <input type="hidden" name="diemDanhGia" id="hiddenRating" value="0" />

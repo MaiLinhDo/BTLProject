@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 import requests
+from urllib.parse import quote
 from app.services.home_service import add_user_to_db
 
 login_api = Blueprint('login_api', __name__)
@@ -7,7 +8,7 @@ login_api = Blueprint('login_api', __name__)
 # Cấu hình
 client_id = "612988759993-1sbf3oa0uanaq6ckmcka0m25qvtk5c4e.apps.googleusercontent.com"
 client_secret = "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"
-redirect_uri = "https://localhost:44373/Home/GoogleLoginCallback"
+redirect_uri = "http://localhost:59774/Home/GoogleLoginCallback"
 token_endpoint = "https://oauth2.googleapis.com/token"
 user_info_endpoint = "https://www.googleapis.com/oauth2/v2/userinfo"
 
@@ -15,12 +16,16 @@ user_info_endpoint = "https://www.googleapis.com/oauth2/v2/userinfo"
 @login_api.route('/api/google-login', methods=['GET'])
 def google_login():
     authorization_endpoint = "https://accounts.google.com/o/oauth2/auth"
+    # Encode redirect_uri để đảm bảo URL được gửi đúng cách
+    encoded_redirect_uri = quote(redirect_uri, safe='')
     url = f"{authorization_endpoint}?response_type=code" + \
           f"&client_id={client_id}" + \
-          f"&redirect_uri={redirect_uri}" + \
+          f"&redirect_uri={encoded_redirect_uri}" + \
           f"&scope=email%20profile" + \
           f"&access_type=online" + \
           f"&prompt=select_account"
+    print(f"🔍 Google Login URL: {url}")
+    print(f"🔍 Redirect URI: {redirect_uri}")
     return jsonify({"redirect_url": url})
 
 # API Google Callback: Xử lý mã xác thực và thêm người dùng

@@ -83,6 +83,7 @@ namespace TMDTLaptop.Controllers
                             SoDienThoai = pendingOrder.SoDienThoai,
                             TrangThai = pendingOrder.TrangThai,
                             MaVoucher = pendingOrder.MaVoucher,
+                            HinhThucThanhToan = "VNPAY", // Thanh toán qua VNPay
                             ChiTietDonHang = cart.Select(item => new
                             {
                                 MaSanPham = item.MaSanPham,

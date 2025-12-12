@@ -624,8 +624,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Form validation
     function checkFormValidity() {
-        const soLuong = document.getElementById('soLuongBH')?.value;
-        const moTa = moTaTextarea?.value.trim();
+        const soLuongElement = document.getElementById('soLuongBH');
+        const soLuong = soLuongElement ? soLuongElement.value : '';
+        const moTa = moTaTextarea ? moTaTextarea.value.trim() : '';
 
         if (soLuong && moTa && moTa.length >= 10) {
             if (submitBtn) submitBtn.disabled = false;

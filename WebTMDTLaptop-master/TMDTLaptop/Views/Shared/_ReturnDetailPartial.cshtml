@@ -12,34 +12,39 @@
                     <table class="table table-borderless mb-0">
                         <tr>
                             <td><strong>Mã đổi trả:</strong></td>
-                            <td>#@Model.MaDoiTra</td>
+                            <td>#@(Model.MaDoiTra ?? "N/A")</td>
                         </tr>
                         <tr>
                             <td><strong>Mã đơn hàng:</strong></td>
                             <td>
                                 <a href="@Url.Action("ChiTietDonHang", new { id = Model.MaDonHang })" target="_blank">
-                                    #@Model.MaDonHang
+                                    #@(Model.MaDonHang ?? "N/A")
                                 </a>
                             </td>
                         </tr>
                         <tr>
                             <td><strong>Loại yêu cầu:</strong></td>
                             <td>
-                                <span class="badge @(Model.LoaiYeuCau == "Đổi" ? "bg-info" : "bg-warning") text-white">
-                                    @Model.LoaiYeuCau
+                                @{
+                                    string loaiYeuCau = Model.LoaiYeuCau?.ToString() ?? "";
+                                    string badgeClass = loaiYeuCau == "Đổi" ? "bg-info" : "bg-warning";
+                                }
+                                <span class="badge @badgeClass text-white">
+                                    @(loaiYeuCau != "" ? loaiYeuCau : "N/A")
                                 </span>
                             </td>
                         </tr>
                         <tr>
                             <td><strong>Ngày tạo:</strong></td>
-                            <td>@Model.NgayTao</td>
+                            <td>@(Model.NgayTao ?? "N/A")</td>
                         </tr>
                         <tr>
                             <td><strong>Trạng thái:</strong></td>
                             <td>
                                 @{
+                                    string trangThai = Model.TrangThai?.ToString() ?? "";
                                     string statusClass = "";
-                                    switch (Model.TrangThai?.ToString() ?? "")
+                                    switch (trangThai)
                                     {
                                         case "Chờ xử lý": statusClass = "bg-warning"; break;
                                         case "Đã duyệt": statusClass = "bg-info"; break;
@@ -51,7 +56,7 @@
                                     }
                                 }
                                 <span class="badge @statusClass text-white">
-                                    @Model.TrangThai
+                                    @(trangThai != "" ? trangThai : "N/A")
                                 </span>
                             </td>
                         </tr>
@@ -69,23 +74,23 @@
                     <table class="table table-borderless mb-0">
                         <tr>
                             <td><strong>Họ tên:</strong></td>
-                            <td>@Model.HoTen</td>
+                            <td>@(Model.HoTen ?? "N/A")</td>
                         </tr>
                         <tr>
                             <td><strong>Số điện thoại:</strong></td>
-                            <td>@Model.SoDienThoai</td>
+                            <td>@(Model.SoDienThoai ?? "N/A")</td>
                         </tr>
                         <tr>
                             <td><strong>Email:</strong></td>
-                            <td>@Model.Email</td>
+                            <td>@(Model.Email ?? "N/A")</td>
                         </tr>
                         <tr>
-                            <td><strong>Địa chí giao hàng:</strong></td>
-                            <td>@Model.DiaChiGiaoHang</td>
+                            <td><strong>Địa chỉ giao hàng:</strong></td>
+                            <td>@(Model.DiaChiGiaoHang ?? "N/A")</td>
                         </tr>
                         <tr>
                             <td><strong>Ngày đặt hàng:</strong></td>
-                            <td>@Model.NgayDatHang</td>
+                            <td>@(Model.NgayDatHang ?? "N/A")</td>
                         </tr>
                     </table>
                 </div>
@@ -104,60 +109,13 @@
                     <div class="row">
                         <div class="col-md-6">
                             <strong>Lý do:</strong>
-                            <p class="mt-2 p-2 bg-light border rounded">@Model.LyDo</p>
+                            <p class="mt-2 p-2 bg-light border rounded">@(Model.LyDo ?? "Không có")</p>
                         </div>
                         <div class="col-md-6">
                             <strong>Mô tả chi tiết:</strong>
-                            <p class="mt-2 p-2 bg-light border rounded">@Model.MoTa</p>
+                            <p class="mt-2 p-2 bg-light border rounded">@(Model.MoTa ?? "Không có")</p>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Hình ảnh minh chứng -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h6 class="mb-0"><i class="fas fa-images"></i> Hình ảnh minh chứng</h6>
-                </div>
-                <div class="card-body">
-                    @if (Model.HinhAnhLoi != null && Model.HinhAnhLoi.Count > 0)
-                    {
-                        <div class="row">
-                            @foreach (var image in Model.HinhAnhLoi)
-                            {
-                                <div class="col-md-3 col-sm-4 col-6 mb-3">
-                                    <div class="image-container" style="position: relative; cursor: pointer;"
-                                         onclick="showImageModal('/assets/images/returns/@Model.MaDoiTra/@image')">
-                                        <img src="~/assets/images/returns/@Model.MaDoiTra/@image"
-                                             alt="Hình ảnh minh chứng"
-                                             class="img-fluid rounded shadow-sm"
-                                             style="width: 100%; height: 150px; object-fit: cover; transition: transform 0.3s ease;"
-                                             onerror="this.src='~/assets/images/no-image.png'">
-                                        <div class="image-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-                                                                          background: rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.3s ease;
-                                                                          display: flex; align-items: center; justify-content: center; border-radius: 0.375rem;">
-                                            <i class="fas fa-expand text-white" style="font-size: 1.5rem;"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                        <p class="text-muted mb-0">
-                            <i class="fas fa-info-circle"></i>
-                            Tổng cộng: @Model.HinhAnhLoi.Count hình ảnh. Click vào hình để xem phóng to.
-                        </p>
-                    }
-                    else
-                    {
-                        <div class="text-center py-4">
-                            <i class="fas fa-image text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
-                            <p class="text-muted mt-2 mb-0">Không có hình ảnh minh chứng</p>
-                        </div>
-                    }
                 </div>
             </div>
         </div>
@@ -175,7 +133,6 @@
                         <table class="table table-hover">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Hình ảnh</th>
                                     <th>Tên sản phẩm</th>
                                     <th>Số lượng</th>
                                     <th>Đơn giá</th>
@@ -188,33 +145,21 @@
                                     decimal totalAmount = 0;
                                     foreach (var product in Model.Products)
                                     {
-                                        decimal itemTotal = (decimal)product.Gia * (int)product.SoLuong;
+                                        decimal gia = product.Gia != null ? (decimal)product.Gia : 0;
+                                        int soLuong = product.SoLuong != null ? (int)product.SoLuong : 0;
+                                        decimal itemTotal = gia * soLuong;
                                         totalAmount += itemTotal;
                                         <tr>
                                             <td>
-                                                @if (!string.IsNullOrEmpty(product.HinhAnh?.ToString()))
-                                                {
-                                                    <img src="~/assets/images/product/@product.MaSanPham/@product.HinhAnh" alt="@product.TenSanPham"
-                                                         class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
-                                                }
-                                                else
-                                                {
-                                                    <div class="bg-light d-flex align-items-center justify-content-center"
-                                                         style="width: 60px; height: 60px;">
-                                                        <i class="fas fa-image text-muted"></i>
-                                                    </div>
-                                                }
-                                            </td>
-                                            <td>
-                                                <strong>@product.TenSanPham</strong>
+                                                <strong>@(product.TenSanPham ?? "N/A")</strong>
                                                 <br>
-                                                <small class="text-muted">Mã: #@product.MaSanPham</small>
+                                                <small class="text-muted">Mã: #@(product.MaSanPham ?? "N/A")</small>
                                             </td>
                                             <td>
-                                                <span class="badge bg-primary">@product.SoLuong</span>
+                                                <span class="badge bg-primary">@soLuong</span>
                                             </td>
                                             <td>
-                                                <span class="text-success">@string.Format("{0:N0}", product.Gia) đ</span>
+                                                <span class="text-success">@string.Format("{0:N0}", gia) đ</span>
                                             </td>
                                             <td>
                                                 <strong class="text-danger">@string.Format("{0:N0}", itemTotal) đ</strong>
@@ -222,14 +167,14 @@
                                         </tr>
                                     }
                                     <tr class="table-warning">
-                                        <td colspan="4" class="text-end"><strong>Tổng tiền đơn hàng:</strong></td>
-                                        <td><strong class="text-danger fs-5">@string.Format("{0:N0}", Model.TongTien) đ</strong></td>
+                                        <td colspan="3" class="text-end"><strong>Tổng tiền đơn hàng:</strong></td>
+                                        <td><strong class="text-danger fs-5">@string.Format("{0:N0}", Model.TongTien ?? 0) đ</strong></td>
                                     </tr>
                                 }
                                 else
                                 {
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted">Không có sản phẩm nào</td>
+                                        <td colspan="4" class="text-center text-muted">Không có sản phẩm nào</td>
                                     </tr>
                                 }
                             </tbody>
@@ -241,7 +186,10 @@
     </div>
 
     <!-- Hành động -->
-    @if (Model.TrangThai != "Đã xử lý" && Model.TrangThai != "Từ chối")
+    @{
+        string currentStatus = Model.TrangThai?.ToString() ?? "";
+    }
+    @if (currentStatus != "Đã xử lý" && currentStatus != "Từ chối")
     {
         <div class="row">
             <div class="col-12">
@@ -251,7 +199,7 @@
                     </div>
                     <div class="card-body">
                         <div class="btn-group" role="group">
-                            @if (Model.TrangThai == "Chờ xử lý")
+                            @if (currentStatus == "Chờ xử lý")
                             {
                                 <button type="button" class="btn btn-success" onclick="updateReturnStatusInModal(@Model.MaDoiTra, 'Đã duyệt')">
                                     <i class="fas fa-check"></i> Duyệt yêu cầu
@@ -260,19 +208,19 @@
                                     <i class="fas fa-times"></i> Từ chối
                                 </button>
                             }
-                            else if (Model.TrangThai == "Đã duyệt")
+                            else if (currentStatus == "Đã duyệt")
                             {
                                 <button type="button" class="btn btn-primary" onclick="updateReturnStatusInModal(@Model.MaDoiTra, 'Chờ lấy hàng')">
                                     <i class="fas fa-truck"></i> Chờ lấy hàng
                                 </button>
                             }
-                            else if (Model.TrangThai == "Chờ lấy hàng")
+                            else if (currentStatus == "Chờ lấy hàng")
                             {
                                 <button type="button" class="btn btn-warning" onclick="updateReturnStatusInModal(@Model.MaDoiTra, 'Đang xử lý')">
                                     <i class="fas fa-spinner"></i> Đang xử lý
                                 </button>
                             }
-                            else if (Model.TrangThai == "Đang xử lý")
+                            else if (currentStatus == "Đang xử lý")
                             {
                                 <button type="button" class="btn btn-success" onclick="completeReturnInModal(@Model.MaDoiTra)">
                                     <i class="fas fa-check-circle"></i> Hoàn tất
@@ -304,10 +252,6 @@
 
     .return-detail-content .table tr:not(:last-child) td {
         border-bottom: 1px solid #eee;
-    }
-
-    .return-detail-content .img-thumbnail {
-        border: 1px solid #ddd;
     }
 
     .return-detail-content .btn-group .btn {
@@ -358,48 +302,6 @@ function rejectReturnInModal(returnId) {
 function completeReturnInModal(returnId) {
     if (confirm('Xác nhận hoàn tất xử lý đổi trả?')) {
         updateReturnStatusInModal(returnId, 'Đã xử lý');
-    }
-}
-
-// Hiển thị modal hình ảnh
-function showImageModal(imageSrc) {
-    // Tạo modal nếu chưa có
-    if (!document.getElementById('imageModalReturn')) {
-        const modal = document.createElement('div');
-        modal.id = 'imageModalReturn';
-        modal.className = 'image-modal';
-        modal.innerHTML = `
-            <span class="close-btn" onclick="closeImageModal()">&times;</span>
-            <img id="modalImageReturn" src="" alt="Hình ảnh phóng to">
-        `;
-        document.body.appendChild(modal);
-
-        // Close modal khi click outside
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                closeImageModal();
-            }
-        });
-
-        // Close modal với ESC key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && modal.style.display === 'flex') {
-                closeImageModal();
-            }
-        });
-    }
-
-    const modal = document.getElementById('imageModalReturn');
-    const modalImage = document.getElementById('modalImageReturn');
-    modalImage.src = imageSrc;
-    modal.style.display = 'flex';
-}
-
-// Đóng modal hình ảnh
-function closeImageModal() {
-    const modal = document.getElementById('imageModalReturn');
-    if (modal) {
-        modal.style.display = 'none';
     }
 }
 </script>

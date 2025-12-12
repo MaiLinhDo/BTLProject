@@ -70,7 +70,7 @@
                                     </div>
                                     <div class="contact-details">
                                         <h5 class="fw-bold text-dark mb-2">Địa chỉ</h5>
-                                        <p class="text-muted mb-0">Đường Nguyễn Văn Cừ nối dài, Quận Ninh Kiều, TP. Cần Thơ</p>
+                                        <p class="text-muted mb-0">3 Đ. Cầu Giấy, Ngọc Khánh, Đống Đa, Hà Nội, Việt Nam</p>
                                     </div>
                                 </div>
                             </div>
@@ -107,11 +107,8 @@
                                     </div>
                                     <div class="contact-details">
                                         <h5 class="fw-bold text-dark mb-2">Email</h5>
-                                        <p class="text-muted mb-1">
-                                            <a href="mailto:luutrungnghi007@gmail.com" class="text-decoration-none">luutrungnghi007@gmail.com</a>
-                                        </p>
                                         <p class="text-muted mb-0">
-                                            <a href="mailto:luutrungnghi269@gmail.com" class="text-decoration-none">luutrungnghi269@gmail.com</a>
+                                            <a href="mailto:projectnhom8@gmail.com" class="text-decoration-none">projectnhom8@gmail.com</a>
                                         </p>
                                     </div>
                                 </div>
@@ -267,7 +264,7 @@
                         <div>
                             <i class="fas fa-map-marked-alt fa-4x text-muted mb-3"></i>
                             <h5 class="text-muted">Bản đồ Google Maps</h5>
-                            <p class="text-muted mb-0">Đường Nguyễn Văn Cừ nối dài, Quận Ninh Kiều, TP. Cần Thơ</p>
+                            <p class="text-muted mb-0">3 Đ. Cầu Giấy, Ngọc Khánh, Đống Đa, Hà Nội, Việt Nam</p>
                         </div>
                     </div>
                 </div>
@@ -632,6 +629,9 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 
+    // Initialize Google Maps
+    initializeMap();
+
     // Form submission handling
     if (contactForm) {
         contactForm.addEventListener('submit', function(e) {
@@ -662,30 +662,6 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.add('was-validated');
         });
     }
-<<<<<<< HEAD
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-5 offset-lg-1 col-md-12 order-1 order-lg-2">
-                <div class="contact-page-side-content">
-                    <h3 class="contact-page-title">Liên Hệ Với Chúng Tôi</h3>
-                    <p class="contact-page-message">
-                        Cửa hàng chúng tôi chuyên về các trang thiết bị điện tử
-                    </p>
-                    <div class="single-contact-block">
-                        <h4><i class="fa fa-fax"></i> Địa Chỉ</h4>
-                        <p>3 Đ. Cầu Giấy, Ngọc Khánh, Đống Đa, Hà Nội, Việt Nam</p>
-                    </div>
-                    <div class="single-contact-block">
-                        <h4><i class="fa fa-phone"></i> Điện Thoại</h4>
-                        <p>Di Động: (08) 123 456 789</p>
-                        <p>Hotline: 1900 678 456</p>
-                    </div>
-                    <div class="single-contact-block last-child">
-                        <h4><i class="fa fa-envelope-o"></i> Email</h4>
-                        <p>project_nhom08@gmail.com</p>
-                        <p>project_nhom08@gmail.com</p>
-                    </div>
-=======
 
     // Real-time validation
     const formInputs = contactForm.querySelectorAll('input, textarea');
@@ -894,18 +870,15 @@ function smoothScrollToSection(targetId) {
     }
 }
 
-// Initialize map (placeholder for Google Maps integration)
+// Initialize map (Google Maps integration)
 function initializeMap() {
-    // This would integrate with Google Maps API
-    console.log('Map would be initialized here with Google Maps API');
-
-    // Example: Replace placeholder with actual map
     const mapPlaceholder = document.querySelector('.map-placeholder');
     if (mapPlaceholder) {
-        // You can replace this with actual Google Maps embed code
+        // Google Maps embed for: 3 Đ. Cầu Giấy, Ngọc Khánh, Đống Đa, Hà Nội, Việt Nam
+        const address = encodeURIComponent('3 Đ. Cầu Giấy, Ngọc Khánh, Đống Đa, Hà Nội, Việt Nam');
         mapPlaceholder.innerHTML = `
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3928.6667!2d105.7835!3d10.0302!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31a0895a51d60719%3A0x9d76b0035f6d53d0!2sCan%20Tho%2C%20Vietnam!5e0!3m2!1sen!2s!4v1234567890"
-                    width="100%" height="400" style="border:0; border-radius: 15px;"
+            <iframe src="https://www.google.com/maps?q=${address}&output=embed"
+                    width="100%" height="450" style="border:0; border-radius: 15px;"
                     allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
             </iframe>
         `;

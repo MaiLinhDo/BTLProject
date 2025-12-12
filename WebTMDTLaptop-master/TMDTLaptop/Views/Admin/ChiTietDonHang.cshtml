@@ -26,6 +26,23 @@
             {
                 <p><strong>Đã áp dụng mã giảm giá giảm:</strong> @ViewBag.GiamGia %</p>
             }
+            <p><strong>Hình thức thanh toán:</strong> 
+                @{
+                    string hinhThucThanhToan = "";
+                    if (ViewBag.Order.HinhThucThanhToan != null)
+                    {
+                        hinhThucThanhToan = ViewBag.Order.HinhThucThanhToan.ToString();
+                    }
+                    else
+                    {
+                        hinhThucThanhToan = "COD";
+                    }
+                    
+                    string paymentBadgeClass = hinhThucThanhToan == "VNPAY" ? "bg-primary" : "bg-secondary";
+                    string paymentText = hinhThucThanhToan == "VNPAY" ? "VNPay (ĐÃ thanh toán)" : "COD (Thanh toán khi nhận hàng)";
+                }
+                <span class="badge @paymentBadgeClass text-white">@paymentText</span>
+            </p>
             <p><strong>Địa Chỉ Giao Hàng:</strong> @ViewBag.Order.DiaChiGiaoHang</p>
             <p><strong>Số Điện Thoại:</strong> @ViewBag.Order.SoDienThoai</p>
             <p><strong>Trạng Thái:</strong> @ViewBag.Order.TrangThai</p>
@@ -41,20 +58,45 @@
                         <th scope="col">Mã Sản Phẩm</th>
                         <th scope="col">Tên Sản Phẩm</th>
                         <th scope="col">Số Lượng</th>
+                        <th scope="col">Serial Number</th>
                         <th scope="col">Đơn Giá</th>
                         <th scope="col">Thành Tiền</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var chiTiet in ViewBag.Details)
+                    @if (ViewBag.Details != null)
                     {
+                        foreach (var chiTiet in ViewBag.Details)
+                        {
                         <tr>
                             <td>@chiTiet.MaSanPham</td>
                             <td>@chiTiet.TenSanPham</td>
                             <td>@chiTiet.SoLuong</td>
+                            <td>
+                                @if (chiTiet.SerialNumbers != null && chiTiet.SerialNumbers.Count > 0)
+                                {
+                                    <div style="max-width: 300px;">
+                                        @foreach (var serial in chiTiet.SerialNumbers)
+                                        {
+                                            <span class="badge bg-info text-white me-1 mb-1">@serial</span>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Chưa có serial</span>
+                                }
+                            </td>
                             <td>@chiTiet.Gia đ</td>
                             <td>@((chiTiet.SoLuong * chiTiet.Gia)) đ</td>
 
+                        </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">Không có dữ liệu</td>
                         </tr>
                     }
                 </tbody>

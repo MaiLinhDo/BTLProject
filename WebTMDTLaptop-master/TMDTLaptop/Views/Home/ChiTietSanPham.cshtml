@@ -4,14 +4,14 @@
 }
 @{
     // Đường dẫn đến thư mục chứa hình ảnh của sản phẩm
-    var imagePath = Server.MapPath($"~/assets/images/product/{Model.MaSanPham}");
+    var imagePath = Server.MapPath("~/assets/images/product/" + Model.MaSanPham);
     var imageFiles = new List<string>();
 
     // Nếu thư mục tồn tại, lấy tất cả các file hình ảnh (jpg, png, gif)
     if (Directory.Exists(imagePath))
     {
-        var files = Directory.GetFiles(imagePath, "*.*", SearchOption.TopDirectoryOnly)
-            .Where(file => file.EndsWith(".jpg") || file.EndsWith(".png") || file.EndsWith(".gif")).ToList();
+        string[] allFiles = Directory.GetFiles(imagePath, "*.*", SearchOption.TopDirectoryOnly);
+        var files = allFiles.Where(file => file.EndsWith(".jpg") || file.EndsWith(".png") || file.EndsWith(".gif")).ToList();
 
         imageFiles.AddRange(files);
     }
@@ -85,10 +85,10 @@
                                 {
                                     <div class="col-3">
                                         <div class="thumbnail-wrapper">
-                                            <img src="@Url.Content($"~/assets/images/product/{Model.MaSanPham}/" + Path.GetFileName(file))"
+                                            <img src="@Url.Content("~/assets/images/product/" + Model.MaSanPham + "/" + Path.GetFileName(file))"
                                                  alt="@Model.TenSanPham"
                                                  class="img-fluid thumbnail-image rounded-3"
-                                                 data-image="@Url.Content($"~/assets/images/product/{Model.MaSanPham}/" + Path.GetFileName(file))"
+                                                 data-image="@Url.Content("~/assets/images/product/" + Model.MaSanPham + "/" + Path.GetFileName(file))"
                                                  role="button">
                                         </div>
                                     </div>
@@ -415,7 +415,7 @@
                                 <div class="slider-item">
                                     <div class="product-card card border-0 shadow-sm h-100 overflow-hidden">
                                         <div class="product-image position-relative">
-                                            <img src="@Url.Content($"~/assets/images/product/{sp.MaSanPham}/{sp.HinhAnh}")"
+                                            <img src="@Url.Content("~/assets/images/product/" + sp.MaSanPham + "/" + sp.HinhAnh)"
                                                  alt="@sp.TenSanPham"
                                                  class="card-img-top product-img">
 

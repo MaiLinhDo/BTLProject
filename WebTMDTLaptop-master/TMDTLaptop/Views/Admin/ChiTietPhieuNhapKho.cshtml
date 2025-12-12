@@ -19,8 +19,8 @@
                 @if (!string.IsNullOrWhiteSpace(Model.SoDienThoaiNCC) || !string.IsNullOrWhiteSpace(Model.EmailNCC))
                 {
                     <p class="mb-0 text-muted">
-                        @(string.IsNullOrWhiteSpace(Model.SoDienThoaiNCC) ? "" : $"SĐT: {Model.SoDienThoaiNCC} ")
-                        @(string.IsNullOrWhiteSpace(Model.EmailNCC) ? "" : $" | Email: {Model.EmailNCC}")
+                        @(string.IsNullOrWhiteSpace(Model.SoDienThoaiNCC) ? "" : "SĐT: " + Model.SoDienThoaiNCC + " ")
+                        @(string.IsNullOrWhiteSpace(Model.EmailNCC) ? "" : " | Email: " + Model.EmailNCC)
                     </p>
                 }
             </div>

@@ -358,18 +358,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Cart item removal
-    document.querySelectorAll('.cart-item .btn-outline-danger').forEach(button => {
-        button.addEventListener('click', function() {
-            const cartItem = this.closest('.cart-item');
-            cartItem.style.animation = 'fadeOut 0.3s ease';
-            setTimeout(() => {
-                cartItem.remove();
-                // Update cart count and total
-                updateCartInfo();
-            }, 300);
-        });
-    });
+    // Cart item removal - DISABLED: Handled by GioHang.cshtml with confirmation modal
+    // This code was causing items to be deleted immediately before confirmation
+    // document.querySelectorAll('.cart-item .btn-outline-danger').forEach(button => {
+    //     button.addEventListener('click', function() {
+    //         const cartItem = this.closest('.cart-item');
+    //         cartItem.style.animation = 'fadeOut 0.3s ease';
+    //         setTimeout(() => {
+    //             cartItem.remove();
+    //             // Update cart count and total
+    //             updateCartInfo();
+    //         }, 300);
+    //     });
+    // });
 
     function updateCartInfo() {
         // Update cart count and total price

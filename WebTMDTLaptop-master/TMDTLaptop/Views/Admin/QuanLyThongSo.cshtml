@@ -90,7 +90,8 @@
         <ul class="pagination justify-content-center">
             @for (int i = 1; i <= (ViewBag.TotalPages ?? 1); i++)
             {
-                var query = HttpUtility.ParseQueryString(Request.QueryString?.ToString() ?? string.Empty);
+                var queryString = Request.QueryString != null ? Request.QueryString.ToString() : string.Empty;
+                var query = HttpUtility.ParseQueryString(queryString);
                 query["page"] = i.ToString();
                 var url = Url.Action("QuanLyThongSo") + "?" + query.ToString();
                 <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">

@@ -50,6 +50,26 @@ def list_specs():
     """
     cursor.execute(query, params + [(page - 1) * page_size, page_size])
     rows = cursor.fetchall()
+    
+    # Lấy danh sách giá trị cho từng thông số
+    specs = []
+    for row in rows:
+        spec = serialize_spec(row)
+        
+        # Chỉ lấy giá trị nếu active=1 (đây là API dùng cho client)
+        if active_only == "1":
+            cursor.execute("""
+                SELECT DISTINCT GiaTri 
+                FROM SanPhamThongSo 
+                WHERE MaThongSo = ? AND LTRIM(RTRIM(GiaTri)) <> ''
+                ORDER BY GiaTri
+            """, (row.MaThongSo,))
+            values = [r[0] for r in cursor.fetchall()]
+            spec["Values"] = values
+        else:
+            spec["Values"] = []
+            
+        specs.append(spec)
 
     count_query = f"SELECT COUNT(*) FROM ThongSoKyThuat {where_clause}"
     cursor.execute(count_query, params)
@@ -59,7 +79,7 @@ def list_specs():
 
     return jsonify({
         "success": True,
-        "specs": [serialize_spec(row) for row in rows],
+        "specs": specs,
         "totalPages": (total_count + page_size - 1) // page_size
     })
 

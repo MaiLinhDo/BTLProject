@@ -5,22 +5,28 @@
 }
 
 <!-- Success/Error Messages -->
-@if (!string.IsNullOrEmpty(errorMessage))
+@{
+    var successMessage = ViewBag.SuccessMessage as string;
+    var tempErrorMessage = TempData["ErrorMessage"] as string;
+    var tempSuccessMessage = TempData["SuccessMessage"] as string;
+}
+
+@if (!string.IsNullOrEmpty(errorMessage) || !string.IsNullOrEmpty(tempErrorMessage))
 {
     <div class="alert alert-danger alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3"
-         style="z-index: 9999; max-width: 500px;" role="alert">
+         style="z-index: 9999; max-width: 500px; animation: slideDown 0.5s ease;" id="errorAlert" role="alert">
         <i class="fas fa-exclamation-triangle me-2"></i>
-        @errorMessage
+        <strong>Lỗi!</strong> @(errorMessage ?? tempErrorMessage)
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
 
-@if (TempData["SuccessMessage"] != null)
+@if (!string.IsNullOrEmpty(successMessage) || !string.IsNullOrEmpty(tempSuccessMessage))
 {
     <div class="alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3"
-         style="z-index: 9999; max-width: 500px;" role="alert">
+         style="z-index: 9999; max-width: 500px; animation: slideDown 0.5s ease;" id="successAlert" role="alert">
         <i class="fas fa-check-circle me-2"></i>
-        @Html.Raw(TempData["SuccessMessage"])
+        <strong>Thành công!</strong> @Html.Raw(successMessage ?? tempSuccessMessage)
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
@@ -302,7 +308,7 @@
                                     </h4>
                                 </div>
                                 <div class="card-body p-5">
-                                    <form action="@Url.Action("HoSo", "Home")" method="post" id="profileForm" novalidate>
+                                    <form action="@Url.Action("HoSo", "Home")" method="post" id="profileForm">
                                         <!-- Personal Information -->
                                         <div class="form-section mb-5">
                                             <h5 class="section-title text-primary mb-4">
@@ -503,6 +509,23 @@
     --light-color: #f8f9fa;
     --dark-color: #212529;
     --transition: all 0.3s ease;
+}
+
+/* Alert Animation */
+@@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#successAlert, #errorAlert {
+    animation: slideDown 0.5s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* Breadcrumb Section */
@@ -767,8 +790,34 @@ let wards = [];
 let currentAddress = '@Html.Raw(Json.Encode(Model.DiaChi))';
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Auto-hide alert messages
-    const alerts = document.querySelectorAll('.alert');
+    // Kiểm tra và hiển thị thông báo thành công
+    const successAlert = document.getElementById('successAlert');
+    if (successAlert) {
+        // Scroll đến thông báo
+        setTimeout(() => {
+            successAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Highlight thông báo
+            successAlert.style.border = '2px solid #198754';
+        }, 100);
+        // Tự động ẩn sau 5 giây
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(successAlert);
+            bsAlert.close();
+        }, 5000);
+    }
+    
+    // Kiểm tra và hiển thị thông báo lỗi
+    const errorAlert = document.getElementById('errorAlert');
+    if (errorAlert) {
+        setTimeout(() => {
+            errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Highlight thông báo
+            errorAlert.style.border = '2px solid #dc3545';
+        }, 100);
+    }
+    
+    // Auto-hide alert messages (fallback cho các alert khác)
+    const alerts = document.querySelectorAll('.alert:not(#successAlert):not(#errorAlert)');
     alerts.forEach(alert => {
         setTimeout(() => {
             const bsAlert = new bootstrap.Alert(alert);
@@ -789,19 +838,96 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (profileForm) {
         profileForm.addEventListener('submit', function(e) {
+            console.log('Form submit event triggered');
+            
+            // Cập nhật địa chỉ đầy đủ trước khi submit
             updateFullAddress();
-
-            if (!this.checkValidity() || !validatePasswordMatch()) {
+            
+            const fullAddressInput = document.getElementById('fullAddress');
+            const addressDetail = document.getElementById('addressDetail');
+            const provinceSelect = document.getElementById('province');
+            const districtSelect = document.getElementById('district');
+            const wardSelect = document.getElementById('ward');
+            
+            // Kiểm tra các trường bắt buộc
+            if (!addressDetail || !addressDetail.value.trim()) {
                 e.preventDefault();
                 e.stopPropagation();
-                showToast('Vui lòng kiểm tra và điền đầy đủ thông tin', 'error');
-            } else {
-                // Add loading state
-                submitBtn.classList.add('loading');
-                submitBtn.querySelector('.spinner-border').classList.remove('d-none');
-                submitBtn.disabled = true;
+                showToast('Vui lòng nhập địa chỉ chi tiết', 'error');
+                this.classList.add('was-validated');
+                return false;
+            }
+            
+            if (!provinceSelect || !provinceSelect.value) {
+                e.preventDefault();
+                e.stopPropagation();
+                showToast('Vui lòng chọn Tỉnh/Thành phố', 'error');
+                this.classList.add('was-validated');
+                return false;
+            }
+            
+            if (!districtSelect || !districtSelect.value) {
+                e.preventDefault();
+                e.stopPropagation();
+                showToast('Vui lòng chọn Quận/Huyện', 'error');
+                this.classList.add('was-validated');
+                return false;
+            }
+            
+            if (!wardSelect || !wardSelect.value) {
+                e.preventDefault();
+                e.stopPropagation();
+                showToast('Vui lòng chọn Phường/Xã', 'error');
+                this.classList.add('was-validated');
+                return false;
+            }
+            
+            // Kiểm tra địa chỉ đã được cập nhật vào hidden field
+            if (!fullAddressInput || !fullAddressInput.value || fullAddressInput.value.trim() === '') {
+                e.preventDefault();
+                e.stopPropagation();
+                showToast('Vui lòng chọn đầy đủ địa chỉ', 'error');
+                this.classList.add('was-validated');
+                return false;
             }
 
+            // Kiểm tra validation form
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.classList.add('was-validated');
+                showToast('Vui lòng điền đầy đủ thông tin bắt buộc', 'error');
+                return false;
+            }
+
+            // Kiểm tra mật khẩu nếu có thay đổi
+            const newPassword = document.getElementById('matKhauMoi').value;
+            const confirmPassword = document.getElementById('xacNhanMatKhauMoi').value;
+            if (newPassword || confirmPassword) {
+                if (!validatePasswordMatch()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showToast('Mật khẩu mới và xác nhận mật khẩu không khớp', 'error');
+                    return false;
+                }
+            }
+
+            // Log để debug
+            console.log('Form submitting with data:');
+            console.log('tenKhachHang:', document.getElementById('tenKhachHang').value);
+            console.log('soDienThoai:', document.getElementById('soDienThoai').value);
+            console.log('diaChi:', fullAddressInput.value);
+            console.log('Form will submit now...');
+
+            // Add loading state
+            if (submitBtn) {
+                submitBtn.classList.add('loading');
+                const spinner = submitBtn.querySelector('.spinner-border');
+                if (spinner) spinner.classList.remove('d-none');
+                submitBtn.disabled = true;
+            }
+            
+            // Cho phép form submit - KHÔNG preventDefault nếu validation pass
             this.classList.add('was-validated');
         });
     }
@@ -979,31 +1105,56 @@ function updateFullAddress() {
     const provinceSelect = document.getElementById('province');
     const districtSelect = document.getElementById('district');
     const wardSelect = document.getElementById('ward');
-    const addressDetail = document.getElementById('addressDetail').value.trim();
+    const addressDetail = document.getElementById('addressDetail');
     const fullAddressInput = document.getElementById('fullAddress');
     const addressPreview = document.getElementById('addressPreview');
 
+    if (!fullAddressInput) return;
+
     let addressParts = [];
 
-    if (addressDetail) addressParts.push(addressDetail);
-
-    if (wardSelect.value) {
-        const selectedWard = wards.find(w => w.code == wardSelect.value);
-        if (selectedWard) addressParts.push(selectedWard.name);
+    // Lấy địa chỉ chi tiết
+    if (addressDetail && addressDetail.value.trim()) {
+        addressParts.push(addressDetail.value.trim());
     }
 
-    if (districtSelect.value) {
-        const selectedDistrict = districts.find(d => d.code == districtSelect.value);
-        if (selectedDistrict) addressParts.push(selectedDistrict.name);
+    // Lấy tên phường/xã từ select box
+    if (wardSelect && wardSelect.value) {
+        const selectedWardOption = wardSelect.options[wardSelect.selectedIndex];
+        if (selectedWardOption && selectedWardOption.text && selectedWardOption.text !== 'Chọn Phường/Xã') {
+            addressParts.push(selectedWardOption.text);
+        }
     }
 
-    if (provinceSelect.value) {
-        const selectedProvince = provinces.find(p => p.code == provinceSelect.value);
-        if (selectedProvince) addressParts.push(selectedProvince.name);
+    // Lấy tên quận/huyện từ select box
+    if (districtSelect && districtSelect.value) {
+        const selectedDistrictOption = districtSelect.options[districtSelect.selectedIndex];
+        if (selectedDistrictOption && selectedDistrictOption.text && selectedDistrictOption.text !== 'Chọn Quận/Huyện') {
+            addressParts.push(selectedDistrictOption.text);
+        }
+    }
+
+    // Lấy tên tỉnh/thành phố từ select box
+    if (provinceSelect && provinceSelect.value) {
+        const selectedProvinceOption = provinceSelect.options[provinceSelect.selectedIndex];
+        if (selectedProvinceOption && selectedProvinceOption.text && selectedProvinceOption.text !== 'Chọn Tỉnh/Thành phố') {
+            addressParts.push(selectedProvinceOption.text);
+        }
     }
 
     const fullAddress = addressParts.join(', ');
     fullAddressInput.value = fullAddress;
+    
+    // Cập nhật preview
+    if (addressPreview) {
+        if (fullAddress) {
+            addressPreview.innerHTML = `<strong class="text-success">${fullAddress}</strong>`;
+        } else {
+            addressPreview.innerHTML = '<em class="text-muted">Địa chỉ sẽ hiển thị tại đây...</em>';
+        }
+    }
+    
+    console.log('Full address updated:', fullAddress);
 
     if (fullAddress) {
         addressPreview.innerHTML = `<strong>${fullAddress}</strong>`;

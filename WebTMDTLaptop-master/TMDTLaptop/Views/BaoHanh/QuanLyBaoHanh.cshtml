@@ -86,7 +86,12 @@
                                 <td>
                                     @{
                                         string statusClass = "";
-                                        switch (item.TrangThai?.ToString() ?? "")
+                                        string trangThai = "";
+                                        if (item.TrangThai != null)
+                                        {
+                                            trangThai = item.TrangThai.ToString();
+                                        }
+                                        switch (trangThai)
                                         {
                                             case "Chờ xử lý": statusClass = "bg-warning"; break;
                                             case "Đã duyệt": statusClass = "bg-info"; break;

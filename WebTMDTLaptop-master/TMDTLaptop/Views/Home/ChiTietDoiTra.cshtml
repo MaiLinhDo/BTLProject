@@ -320,7 +320,8 @@
                     <div class="info-value">
                         @{
                             string statusClass = "";
-                            switch (ViewBag.ChiTiet.TrangThai?.ToString() ?? "")
+                            string trangThaiValue = ViewBag.ChiTiet.TrangThai != null ? ViewBag.ChiTiet.TrangThai.ToString() : "";
+                            switch (trangThaiValue)
                             {
                                 case "Chờ xử lý": statusClass = "status-cho-xu-ly"; break;
                                 case "Đã duyệt": statusClass = "status-da-duyet"; break;

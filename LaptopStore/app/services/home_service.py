@@ -211,42 +211,82 @@ def dang_nhap_tai_khoan(username, password):
     conn.close()
     return {"success": True, "message": "Đăng nhập thành công.", "user": user_info}
 def capnhat_thong_tin_service(data):
-    username = data.get("Username")
-    hoten = data.get("HoTen")
-    sodienthoai = data.get("SoDienThoai")
-    diachi = data.get("DiaChi")
-    matkhauhientai = data.get("MatKhauHienTai")
-    matkhaumoi = data.get("MatKhauMoi")
-    xacnhanmatkhaumoi = data.get("XacNhanMatKhauMoi")
+    try:
+        username = data.get("Username")
+        hoten = data.get("HoTen")
+        sodienthoai = data.get("SoDienThoai")
+        diachi = data.get("DiaChi")
+        matkhauhientai = data.get("MatKhauHienTai")
+        matkhaumoi = data.get("MatKhauMoi")
+        xacnhanmatkhaumoi = data.get("XacNhanMatKhauMoi")
 
-    conn = get_connection()
-    cursor = conn.cursor()
+        print(f"=== capnhat_thong_tin_service ===")
+        print(f"Username: {username}")
+        print(f"HoTen: {hoten}")
+        print(f"SoDienThoai: {sodienthoai}")
+        print(f"DiaChi: {diachi}")
+        print(f"MatKhauHienTai: {'***' if matkhauhientai else 'None'}")
+        print(f"MatKhauMoi: {'***' if matkhaumoi else 'None'}")
 
-    cursor.execute("SELECT * FROM TaiKhoan WHERE Username = ?", (username,))
-    user = cursor.fetchone()
+        if not username:
+            return {"success": False, "message": "Thiếu thông tin tên đăng nhập."}
 
-    if not user:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM TaiKhoan WHERE Username = ?", (username,))
+        user = cursor.fetchone()
+
+        if not user:
+            conn.close()
+            print(f"User not found: {username}")
+            return {"success": False, "message": "Tài khoản không tồn tại."}
+
+        print(f"Found user: {user.Username}")
+
+        if matkhauhientai:
+            if user.Password != matkhauhientai:
+                conn.close()
+                print("Current password incorrect")
+                return {"success": False, "message": "Mật khẩu hiện tại không đúng."}
+            if matkhaumoi != xacnhanmatkhaumoi:
+                conn.close()
+                print("New password confirmation mismatch")
+                return {"success": False, "message": "Xác nhận mật khẩu mới không khớp."}
+            cursor.execute("UPDATE TaiKhoan SET Password = ? WHERE Username = ?", (matkhaumoi, username))
+            print("Password updated")
+
+        print(f"Updating user info: HoTen={hoten}, SoDienThoai={sodienthoai}, DiaChi={diachi}")
+        
+        # Đảm bảo các giá trị không null
+        if not hoten:
+            hoten = user.HoTen
+        if not sodienthoai:
+            sodienthoai = user.SoDienThoai
+        if not diachi:
+            diachi = user.DiaChi
+            
+        cursor.execute("""
+            UPDATE TaiKhoan SET HoTen = ?, SoDienThoai = ?, DiaChi = ?
+            WHERE Username = ?
+        """, (hoten, sodienthoai, diachi, username))
+
+        conn.commit()
+        print("Database committed successfully")
+        
+        # Verify update
+        cursor.execute("SELECT HoTen, SoDienThoai, DiaChi FROM TaiKhoan WHERE Username = ?", (username,))
+        updated_user = cursor.fetchone()
+        print(f"Updated user info: HoTen={updated_user.HoTen}, SoDienThoai={updated_user.SoDienThoai}, DiaChi={updated_user.DiaChi}")
+        
         conn.close()
-        return {"success": False, "message": "Tài khoản không tồn tại."}
 
-    if matkhauhientai:
-        if user.Password != matkhauhientai:
-            conn.close()
-            return {"success": False, "message": "Mật khẩu hiện tại không đúng."}
-        if matkhaumoi != xacnhanmatkhaumoi:
-            conn.close()
-            return {"success": False, "message": "Xác nhận mật khẩu mới không khớp."}
-        cursor.execute("UPDATE TaiKhoan SET Password = ? WHERE Username = ?", (matkhaumoi, username))
-
-    cursor.execute("""
-        UPDATE TaiKhoan SET HoTen = ?, SoDienThoai = ?, DiaChi = ?
-        WHERE Username = ?
-    """, (hoten, sodienthoai, diachi, username))
-
-    conn.commit()
-    conn.close()
-
-    return {"success": True, "message": "Cập nhật thông tin thành công."}
+        return {"success": True, "message": "Cập nhật thông tin thành công."}
+    except Exception as e:
+        print(f"Exception in capnhat_thong_tin_service: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return {"success": False, "message": f"Lỗi khi cập nhật: {str(e)}"}
 def get_user_profile(username):
     conn = get_connection()
     cursor = conn.cursor()

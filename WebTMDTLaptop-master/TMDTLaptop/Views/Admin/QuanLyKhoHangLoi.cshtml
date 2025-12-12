@@ -33,11 +33,11 @@
             <table class="table table-striped">
                 <thead class="thead-dark">
                     <tr>
-                        <th>Mã Kho Lỗi</th>
+                        <th>Mã Serial</th>
                         <th>Tên Sản Phẩm</th>
-                        <th>Số Lượng</th>
-                        <th>Ngày Nhập</th>
-                        <th>Lý Do</th>
+                        <th>Serial Number</th>
+                        <th>Trạng Thái</th>
+                        <th>Ngày Cập Nhật</th>
                         <th>Hành Động</th>
                     </tr>
                 </thead>
@@ -50,12 +50,14 @@
                                 <td>@item.MaKhoLoi</td>
                                 <td>@item.TenSanPham</td>
                                 <td>
-                                    <span class="badge bg-warning text-white">@item.SoLuong</span>
+                                    <span class="badge bg-info text-white">@item.SerialNumber</span>
                                 </td>
-                                <td>@DateTime.Parse(item.NgayNhap.ToString()).ToString("dd/MM/yyyy HH:mm")</td>
-                                <td>@item.LyDo</td>
                                 <td>
-                                    <button class="btn btn-danger btn-sm" onclick="xoaKhoHangLoi(@item.MaKhoLoi)">
+                                    <span class="badge bg-danger text-white">@item.TrangThai</span>
+                                </td>
+                                <td>@(item.NgayNhap != null ? DateTime.Parse(item.NgayNhap.ToString()).ToString("dd/MM/yyyy HH:mm") : "N/A")</td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" onclick="xoaKhoHangLoi(@item.MaKhoLoi)" disabled title="Chức năng tạm khóa cho Serial">
                                         <i class="fas fa-trash"></i> Xóa
                                     </button>
                                 </td>

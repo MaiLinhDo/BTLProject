@@ -23,7 +23,8 @@ def get_phieunhapkho():
     if search_string:
         query = """
             SELECT pn.MaPhieuNhap, pn.NgayNhap, pn.TongTien, pn.GhiChu,
-                   pn.MaNhaCungCap, ISNULL(ncc.TenNhaCungCap, N'') AS TenNhaCungCap
+                   pn.MaNhaCungCap, ISNULL(ncc.TenNhaCungCap, N'') AS TenNhaCungCap,
+                   pn.NguoiTao, pn.TrangThai, pn.SoPhieuNhap, pn.NgayCapNhat
             FROM PhieuNhapKho pn
             LEFT JOIN NhaCungCap ncc ON pn.MaNhaCungCap = ncc.MaNhaCungCap
             WHERE pn.MaPhieuNhap = ?
@@ -34,7 +35,8 @@ def get_phieunhapkho():
     else:
         query = """
             SELECT pn.MaPhieuNhap, pn.NgayNhap, pn.TongTien, pn.GhiChu,
-                   pn.MaNhaCungCap, ISNULL(ncc.TenNhaCungCap, N'') AS TenNhaCungCap
+                   pn.MaNhaCungCap, ISNULL(ncc.TenNhaCungCap, N'') AS TenNhaCungCap,
+                   pn.NguoiTao, pn.TrangThai, pn.SoPhieuNhap, pn.NgayCapNhat
             FROM PhieuNhapKho pn
             LEFT JOIN NhaCungCap ncc ON pn.MaNhaCungCap = ncc.MaNhaCungCap
             ORDER BY pn.NgayNhap DESC
@@ -52,7 +54,11 @@ def get_phieunhapkho():
             "TongTien": row[2],
             "GhiChu": row[3],
             "MaNhaCungCap": row[4],
-            "TenNhaCungCap": row[5]
+            "TenNhaCungCap": row[5],
+            "NguoiTao": row[6],
+            "TrangThai": row[7],
+            "SoPhieuNhap": row[8],
+            "NgayCapNhat": row[9] if len(row) > 9 else None
         }
         for row in rows
     ]
@@ -89,7 +95,8 @@ def get_chitiet_phieunhap():
     # Truy vấn phiếu nhập kho
     query_phieu = """
         SELECT pn.MaPhieuNhap, pn.NgayNhap, pn.TongTien, pn.GhiChu,
-               pn.MaNhaCungCap, ISNULL(ncc.TenNhaCungCap, N''), ISNULL(ncc.SoDienThoai, N''), ISNULL(ncc.Email, N'')
+               pn.MaNhaCungCap, ISNULL(ncc.TenNhaCungCap, N''), ISNULL(ncc.SoDienThoai, N''), ISNULL(ncc.Email, N''),
+               pn.NguoiTao, pn.TrangThai, pn.SoPhieuNhap, pn.NgayCapNhat
         FROM PhieuNhapKho pn
         LEFT JOIN NhaCungCap ncc ON pn.MaNhaCungCap = ncc.MaNhaCungCap
         WHERE pn.MaPhieuNhap = ?
@@ -109,7 +116,11 @@ def get_chitiet_phieunhap():
         "MaNhaCungCap": row[4],
         "TenNhaCungCap": row[5],
         "SoDienThoaiNCC": row[6],
-        "EmailNCC": row[7]
+        "EmailNCC": row[7],
+        "NguoiTao": row[8] if len(row) > 8 else None,
+        "TrangThai": row[9] if len(row) > 9 else None,
+        "SoPhieuNhap": row[10] if len(row) > 10 else None,
+        "NgayCapNhat": row[11] if len(row) > 11 else None
     }
 
     # Truy vấn chi tiết phiếu nhập kho
@@ -180,12 +191,15 @@ def create_phieunhap():
 
         # Tạo phiếu nhập kho mới
         insert_phieu = """
-            INSERT INTO PhieuNhapKho (NgayNhap, TongTien, GhiChu, MaNhaCungCap)
+            INSERT INTO PhieuNhapKho (NgayNhap, TongTien, GhiChu, MaNhaCungCap, NguoiTao, TrangThai, SoPhieuNhap, NgayCapNhat)
             OUTPUT INSERTED.MaPhieuNhap
-            VALUES (?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, GETDATE())
         """
         ngay_nhap = datetime.now()
-        cursor.execute(insert_phieu, (ngay_nhap, 0, phieu_nhap.get("GhiChu", ""), supplier_id))
+        nguoi_tao = phieu_nhap.get("NguoiTao")
+        trang_thai = phieu_nhap.get("TrangThai", "Đã nhập")
+        so_phieu_nhap = phieu_nhap.get("SoPhieuNhap")
+        cursor.execute(insert_phieu, (ngay_nhap, 0, phieu_nhap.get("GhiChu", ""), supplier_id, nguoi_tao, trang_thai, so_phieu_nhap))
         ma_phieu = cursor.fetchone()[0]
 
         tong_tien = 0
@@ -225,12 +239,16 @@ def create_phieunhap():
                     VALUES (?, ?, ?, ?, N'Trong kho')
                 """, (ma_san_pham, ma_chi_tiet, ma_phieu, serial))
 
-            # Cập nhật số lượng tồn kho sản phẩm
+            # Cập nhật SoLuong = số serial "Trong kho" (tồn dư) sau khi nhập kho
             cursor.execute("""
                 UPDATE SanPham
-                SET SoLuong = SoLuong + ?
+                SET SoLuong = (
+                    SELECT COUNT(*) 
+                    FROM SanPhamSerial 
+                    WHERE MaSanPham = ? AND TrangThai = N'Trong kho'
+                )
                 WHERE MaSanPham = ?
-            """, (so_luong, ma_san_pham))
+            """, (ma_san_pham, ma_san_pham))
 
             tong_tien += thanh_tien
 

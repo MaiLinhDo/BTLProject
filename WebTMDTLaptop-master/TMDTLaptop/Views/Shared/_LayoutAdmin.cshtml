@@ -23,12 +23,15 @@
         }
 
         .sidebar {
+            width: 250px;
             height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
             background-color: #343a40;
             padding-top: 20px;
+            overflow-y: auto;
+            z-index: 1000;
         }
 
             .sidebar a {
@@ -68,7 +71,14 @@
 
     <!-- Sidebar -->
     <div class="sidebar">
-        @if (Session["Quyen"] != null && Int32.TryParse(Session["Quyen"].ToString(), out int quyenadmin) && quyenadmin == 1)
+        @{
+            int quyenadmin = 0;
+            int quyennv = 0;
+            int quyencskh = 0;
+            bool hasQuyen = Session["Quyen"] != null;
+            string quyenValue = Session["Quyen"] != null ? Session["Quyen"].ToString() : "null";
+        }
+        @if (hasQuyen && Int32.TryParse(quyenValue, out quyenadmin) && quyenadmin == 1)
         {
             <a href="@Url.Action("Index","Admin")" class="active"><i class="fas fa-home"></i> Dashboard</a>
             <a href="@Url.Action("QuanLyBanner", "Admin")"><i class="fas fa-images"></i> Quản lý banner</a>
@@ -86,11 +96,8 @@
             <a href="@Url.Action("QuanLyTonKho", "Admin")">
                     <i class="fas fa-warehouse"></i> Quản lý tồn kho
                 </a>
-            <a class="nav-link" href="@Url.Action("QuanLyDoiTra", "Admin")">
-                <i class="fas fa-ticket-alt"></i> Quản lý Trả hàng
-            </a>
-            <a class="nav-link" href="@Url.Action("QuanLyVoucher", "Admin")">
-                <i class="fas fa-ticket-alt"></i> Quản lý Voucher
+            <a href="@Url.Action("QuanLyKhoHangLoi", "Admin")">
+                <i class="fas fa-exclamation-triangle"></i> Quản lý kho hàng lỗi
             </a>
             <a href="@Url.Action("QuanLyPhieuNhapKho", "Admin")">
                 <i class="fas fa-warehouse"></i> Quản lý nhập kho
@@ -98,8 +105,8 @@
             <a class="nav-link" href="@Url.Action("QuanLyDoiTra", "Admin")">
                 <i class="fas fa-ticket-alt"></i> Quản lý Trả hàng
             </a>
-            <a href="@Url.Action("QuanLyKhoHangLoi", "Admin")">
-                <i class="fas fa-exclamation-triangle"></i> Quản lý kho hàng lỗi
+            <a class="nav-link" href="@Url.Action("QuanLyVoucher", "Admin")">
+                <i class="fas fa-ticket-alt"></i> Quản lý Voucher
             </a>
             <a href="@Url.Action("QuanLyBaoHanh", "BaoHanh")">
                 <i class="fas fa-tools"></i> Quản lý bảo hành
@@ -108,7 +115,7 @@
             <a href="@Url.Action("DoiMatKhau", "Admin")"><i class="fas fa-lock"></i> Đổi mật khẩu</a>
             <a href="@Url.Action("DangXuat","Login")"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
         }
-        else if (Session["Quyen"] != null && Int32.TryParse(Session["Quyen"].ToString(), out int quyennv) && quyennv == 2)
+        else if (hasQuyen && Int32.TryParse(quyenValue, out quyennv) && quyennv == 2)
         {
             //  <a href="@Url.Action("Index","NV")" class="active"><i class="fas fa-home"></i> Dashboard</a>
             <a href="@Url.Action("QuanLyPhieuNhapKho", "Admin")">
@@ -129,7 +136,7 @@
 
             <a href="@Url.Action("DangXuat","Login")"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
         }
-        else if (Session["Quyen"] != null && Int32.TryParse(Session["Quyen"].ToString(), out int quyencskh) && quyencskh == 4)
+        else if (hasQuyen && Int32.TryParse(quyenValue, out quyencskh) && quyencskh == 4)
         {
             <a href="@Url.Action("QuanLyTonKho", "Admin")">
                 <i class="fas fa-warehouse"></i> Quản lý tồn kho
@@ -139,6 +146,15 @@
             <a href="@Url.Action("Index", "ChamSocKH")">
                 <i class="fas fa-sign-out-alt"></i> Quay lại
             </a>
+        }
+        else
+        {
+            <!-- Hiển thị menu mặc định nếu chưa đăng nhập -->
+            <a href="@Url.Action("DangNhap", "Login")"><i class="fas fa-sign-in-alt"></i> Đăng nhập</a>
+            <div style="color: #fff; padding: 15px; font-size: 12px;">
+                <p>Chưa đăng nhập</p>
+                <p>Session Quyen: @quyenValue</p>
+            </div>
         }
 
     </div>

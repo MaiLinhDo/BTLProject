@@ -175,14 +175,15 @@
                 if (!message) return;
 
                 // Append user message
-                appendMessage("<?php echo $username; ?>", message, true);
+                var username = '@(Session["Username"] ?? "Khách hàng")';
+                appendMessage(username, message, true);
                 $('#message').val('');
 
                 // Show waiting indicator
                 $('#waitingIndicator').show();
 
                 $.ajax({
-                    url: ' http://127.0.0.1:5000/api/chat',
+                    url: 'http://127.0.0.1:5000/api/chat',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({ mess: message }),
@@ -193,11 +194,25 @@
                         // Animate AI response
                         animateResponse("AI", data.response);
                     },
-                    error: function () {
+                    error: function (xhr, status, error) {
                         // Hide waiting indicator
                         $('#waitingIndicator').hide();
 
-                        appendMessage("AI", "Xin lỗi, có lỗi xảy ra!", false);
+                        console.error('Error:', status, error);
+                        console.error('Response:', xhr.responseText);
+                        
+                        var errorMsg = "Xin lỗi, có lỗi xảy ra!";
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            errorMsg = xhr.responseJSON.error;
+                        } else if (xhr.status === 0) {
+                            errorMsg = "Không thể kết nối đến server. Vui lòng kiểm tra API có đang chạy không.";
+                        } else if (xhr.status === 404) {
+                            errorMsg = "Không tìm thấy API endpoint. Vui lòng kiểm tra lại.";
+                        } else if (xhr.status === 500) {
+                            errorMsg = "Lỗi server. Vui lòng thử lại sau.";
+                        }
+                        
+                        appendMessage("AI", errorMsg, false);
                     }
                 });
             });

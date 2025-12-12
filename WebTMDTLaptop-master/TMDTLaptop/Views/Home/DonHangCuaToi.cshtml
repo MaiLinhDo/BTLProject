@@ -585,6 +585,11 @@
 </main>
 
 <script>
+// Base URLs generated from Razor
+const chiTietDonHangUrl = '@Url.Action("ChiTietDonHang", "Home")';
+const taoYeuCauDoiTraUrl = '@Url.Action("TaoYeuCauDoiTra", "Home")';
+const danhGiaSanPhamUrl = '@Url.Action("DanhGiaSanPham", "Home")';
+
 let currentPage = 1;
 const ordersPerPage = 6; // 2 hàng x 3 cột = 6 đơn hàng mỗi trang
 let totalPages = 1;
@@ -738,7 +743,7 @@ function createProductList(products) {
 }
 
 function createOrderActions(order) {
-    let actions = [`<a href="@Url.Action("ChiTietDonHang", "Home")?id=${order.MaDonHang}" class="btn btn-detail">Xem chi tiết</a>`];
+    let actions = [`<a href="${chiTietDonHangUrl}?id=${order.MaDonHang}" class="btn btn-detail">Xem chi tiết</a>`];
 
     if (order.CanCancel) {
         actions.push(`<button class="btn btn-cancel" onclick="cancelOrder(${order.MaDonHang})">Hủy đơn hàng</button>`);
@@ -749,12 +754,12 @@ function createOrderActions(order) {
     }
 
     if (order.CanReturn) {
-        actions.push(`<a href="@Url.Action("TaoYeuCauDoiTra")?orderId=${order.MaDonHang}" class="btn btn-return">Đổi/Trả hàng</a>`);
+        actions.push(`<a href="${taoYeuCauDoiTraUrl}?orderId=${order.MaDonHang}" class="btn btn-return">Đổi/Trả hàng</a>`);
     }
 
     if (order.CanReview && order.Products) {
         order.Products.forEach(product => {
-            actions.push(`<a href="@Url.Action("DanhGiaSanPham")?orderId=${order.MaDonHang}&productId=${product.MaSanPham}" class="btn btn-review">Đánh giá ${product.TenSanPham}</a>`);
+            actions.push(`<a href="${danhGiaSanPhamUrl}?orderId=${order.MaDonHang}&productId=${product.MaSanPham}" class="btn btn-review">Đánh giá ${product.TenSanPham}</a>`);
         });
     }
 

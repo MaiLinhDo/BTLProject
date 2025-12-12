@@ -40,9 +40,23 @@ def api_dang_nhap():
     return jsonify(result)
 @api.route('/api/capnhat-thongtin', methods=['POST'])
 def capnhat_thong_tin():
-    data = request.json
-    response = home_service.capnhat_thong_tin_service(data)
-    return jsonify(response)
+    try:
+        data = request.json
+        print("=== API capnhat-thongtin - Received Data ===")
+        print(f"Data: {data}")
+        
+        if not data:
+            print("Error: No data received")
+            return jsonify({"success": False, "message": "Không nhận được dữ liệu."})
+        
+        response = home_service.capnhat_thong_tin_service(data)
+        print(f"Response: {response}")
+        return jsonify(response)
+    except Exception as e:
+        print(f"Exception in capnhat_thong_tin: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "message": f"Lỗi server: {str(e)}"})
 @api.route('/api/hoso', methods=['GET'])
 def api_hoso():
     taikhoan = request.args.get('username')  # Giả sử username được truyền qua query string

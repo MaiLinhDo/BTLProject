@@ -6,6 +6,140 @@
     var specDefinitions = ViewBag.SpecDefinitions as List<ThongSoKyThuat> ?? new List<ThongSoKyThuat>();
     var specValues = ViewBag.SpecValues as List<ThongSoKyThuat> ?? new List<ThongSoKyThuat>();
     var specDict = specValues.ToDictionary(s => s.MaThongSo, s => s.GiaTri ?? string.Empty);
+    
+    // Helper function để lấy danh sách giá trị cho từng thông số
+    Func<string, List<string>> GetSpecValues = (specName) =>
+    {
+        var values = new List<string>();
+        specName = specName.ToLower();
+        
+        if (specName.Contains("cpu") && !specName.Contains("tốc độ") && !specName.Contains("nhân") && !specName.Contains("luồng"))
+        {
+            values = new List<string> { "", "Intel Core i3", "Intel Core i5", "Intel Core i7", "Intel Core i9", "AMD Ryzen 3", "AMD Ryzen 5", "AMD Ryzen 7", "AMD Ryzen 9", "Apple M1", "Apple M2", "Apple M3" };
+        }
+        else if (specName.Contains("tốc độ cpu"))
+        {
+            values = new List<string> { "", "1.6", "1.8", "2.0", "2.2", "2.4", "2.6", "2.8", "3.0", "3.2", "3.4", "3.6", "3.8", "4.0", "4.2", "4.4", "4.6", "4.8", "5.0" };
+        }
+        else if (specName.Contains("số nhân cpu"))
+        {
+            values = new List<string> { "", "2", "4", "6", "8", "10", "12", "14", "16", "18", "20" };
+        }
+        else if (specName.Contains("số luồng cpu"))
+        {
+            values = new List<string> { "", "4", "6", "8", "10", "12", "14", "16", "20", "24", "28", "32" };
+        }
+        else if (specName.Contains("ram") && !specName.Contains("loại") && !specName.Contains("tốc độ") && !specName.Contains("khe") && !specName.Contains("tối đa"))
+        {
+            values = new List<string> { "", "4", "8", "16", "32", "64" };
+        }
+        else if (specName.Contains("loại ram"))
+        {
+            values = new List<string> { "", "DDR4", "DDR5", "LPDDR4", "LPDDR4X", "LPDDR5", "LPDDR5X" };
+        }
+        else if (specName.Contains("tốc độ ram"))
+        {
+            values = new List<string> { "", "2133", "2400", "2666", "2933", "3200", "3600", "3733", "4266", "4800", "5200", "5600", "6000", "6400" };
+        }
+        else if (specName.Contains("số khe ram"))
+        {
+            values = new List<string> { "", "1", "2", "4" };
+        }
+        else if (specName.Contains("ram tối đa"))
+        {
+            values = new List<string> { "", "8", "16", "32", "64", "128" };
+        }
+        else if (specName.Contains("ổ cứng") && !specName.Contains("loại") && !specName.Contains("thứ 2"))
+        {
+            values = new List<string> { "", "128", "256", "512", "1024", "2048", "4096" };
+        }
+        else if (specName.Contains("loại ổ cứng"))
+        {
+            values = new List<string> { "", "SSD SATA", "SSD NVMe", "HDD", "SSD M.2", "SSD PCIe" };
+        }
+        else if (specName.Contains("ổ cứng thứ 2"))
+        {
+            values = new List<string> { "", "128", "256", "512", "1024", "2048" };
+        }
+        else if (specName.Contains("kích thước màn hình"))
+        {
+            values = new List<string> { "", "11.6", "12.5", "13.3", "14", "15.6", "16", "17.3", "18" };
+        }
+        else if (specName.Contains("độ phân giải"))
+        {
+            values = new List<string> { "", "HD (1366x768)", "HD+ (1600x900)", "Full HD (1920x1080)", "2K (2560x1440)", "4K (3840x2160)", "Retina", "OLED" };
+        }
+        else if (specName.Contains("công nghệ màn hình"))
+        {
+            values = new List<string> { "", "IPS", "OLED", "LCD", "TN", "VA", "Mini LED", "Micro LED" };
+        }
+        else if (specName.Contains("tần số quét"))
+        {
+            values = new List<string> { "", "60", "90", "120", "144", "165", "240", "300" };
+        }
+        else if (specName.Contains("độ sáng"))
+        {
+            values = new List<string> { "", "200", "250", "300", "350", "400", "450", "500", "600", "1000", "1200" };
+        }
+        else if (specName.Contains("card đồ họa"))
+        {
+            values = new List<string> { "", "Intel UHD Graphics", "Intel Iris Xe", "AMD Radeon Graphics", "NVIDIA GeForce GTX 1650", "NVIDIA GeForce RTX 3050", "NVIDIA GeForce RTX 3060", "NVIDIA GeForce RTX 3070", "NVIDIA GeForce RTX 4050", "NVIDIA GeForce RTX 4060", "NVIDIA GeForce RTX 4070", "AMD Radeon RX 6600M", "AMD Radeon RX 6700M" };
+        }
+        else if (specName.Contains("vram"))
+        {
+            values = new List<string> { "", "2", "4", "6", "8", "12", "16" };
+        }
+        else if (specName.Contains("dung lượng pin"))
+        {
+            values = new List<string> { "", "30", "40", "45", "50", "56", "60", "70", "80", "90", "100" };
+        }
+        else if (specName.Contains("thời lượng pin"))
+        {
+            values = new List<string> { "", "4", "6", "8", "10", "12", "14", "16", "18", "20" };
+        }
+        else if (specName.Contains("công suất sạc"))
+        {
+            values = new List<string> { "", "45", "65", "90", "100", "135", "180", "230" };
+        }
+        else if (specName.Contains("usb-c"))
+        {
+            values = new List<string> { "", "0", "1", "2", "3", "4" };
+        }
+        else if (specName.Contains("hdmi"))
+        {
+            values = new List<string> { "", "0", "1", "2" };
+        }
+        else if (specName.Contains("thunderbolt"))
+        {
+            values = new List<string> { "", "0", "1", "2", "3", "4" };
+        }
+        else if (specName.Contains("wi-fi"))
+        {
+            values = new List<string> { "", "Wi-Fi 5 (802.11ac)", "Wi-Fi 6 (802.11ax)", "Wi-Fi 6E", "Wi-Fi 7" };
+        }
+        else if (specName.Contains("bluetooth"))
+        {
+            values = new List<string> { "", "Bluetooth 4.0", "Bluetooth 4.2", "Bluetooth 5.0", "Bluetooth 5.1", "Bluetooth 5.2", "Bluetooth 5.3" };
+        }
+        else if (specName.Contains("webcam"))
+        {
+            values = new List<string> { "", "0.3", "0.9", "1.0", "2.0", "5.0", "8.0" };
+        }
+        else if (specName.Contains("trọng lượng"))
+        {
+            values = new List<string> { "", "0.8", "1.0", "1.2", "1.4", "1.6", "1.8", "2.0", "2.2", "2.5", "3.0" };
+        }
+        else if (specName.Contains("hệ điều hành"))
+        {
+            values = new List<string> { "", "Windows 11 Home", "Windows 11 Pro", "Windows 10 Home", "Windows 10 Pro", "macOS", "Ubuntu", "FreeDOS", "Không có OS" };
+        }
+        else if (specName.Contains("bảo hành"))
+        {
+            values = new List<string> { "", "12", "18", "24", "36", "48", "60" };
+        }
+        
+        return values.Count > 0 ? values : new List<string> { "" };
+    };
 }
 
 <div class="container">
@@ -97,11 +231,28 @@
                                             <small class="text-muted">(@spec.DonVi)</small>
                                         }
                                     </label>
-                                    <input type="text"
-                                           class="form-control spec-input"
-                                           data-id="@spec.MaThongSo"
-                                           value="@(specDict.ContainsKey(spec.MaThongSo) ? specDict[spec.MaThongSo] : string.Empty)"
-                                           placeholder="Nhập giá trị..." />
+                                    @{
+                                        var specValues = GetSpecValues(spec.TenThongSo);
+                                        var currentValue = specDict.ContainsKey(spec.MaThongSo) ? specDict[spec.MaThongSo] : string.Empty;
+                                    }
+                                    @if (specValues.Count > 1)
+                                    {
+                                        <select class="form-control spec-input"
+                                                data-id="@spec.MaThongSo">
+                                            @foreach (var val in specValues)
+                                            {
+                                                <option value="@val" @(val == currentValue ? "selected" : "")>@(string.IsNullOrEmpty(val) ? "-- Chọn giá trị --" : val)</option>
+                                            }
+                                        </select>
+                                    }
+                                    else
+                                    {
+                                        <input type="text"
+                                               class="form-control spec-input"
+                                               data-id="@spec.MaThongSo"
+                                               value="@currentValue"
+                                               placeholder="Nhập giá trị..." />
+                                    }
                                 </div>
                             }
                         </div>
@@ -129,7 +280,7 @@
                 const specs = [];
                 document.querySelectorAll(".spec-input").forEach(function (input) {
                     const value = (input.value || "").trim();
-                    if (value) {
+                    if (value && value !== "-- Chọn giá trị --") {
                         specs.push({
                             MaThongSo: parseInt(input.dataset.id),
                             GiaTri: value

@@ -7,7 +7,12 @@
     var specDefinitions = ViewBag.SpecDefinitions as List<ThongSoKyThuat> ?? new List<ThongSoKyThuat>();
     var activeSpecFilters = ViewBag.ActiveSpecFilters as IDictionary<int, string> ?? new Dictionary<int, string>();
     bool hasAdvancedFilters = activeSpecFilters.Any() || ViewBag.MinPrice != null || ViewBag.MaxPrice != null || !string.IsNullOrWhiteSpace(ViewBag.Brand as string);
-    var currentQuery = HttpUtility.ParseQueryString(Request.QueryString?.ToString() ?? string.Empty);
+    string queryStringValue = "";
+    if (Request.QueryString != null)
+    {
+        queryStringValue = Request.QueryString.ToString();
+    }
+    var currentQuery = HttpUtility.ParseQueryString(queryStringValue);
 }
 
 <!-- Breadcrumb Section -->
@@ -40,7 +45,12 @@
 @functions{
     private string UpdateQuery(NameValueCollection original, int page)
     {
-        var clone = HttpUtility.ParseQueryString(original?.ToString() ?? string.Empty);
+        string originalString = "";
+        if (original != null)
+        {
+            originalString = original.ToString();
+        }
+        var clone = HttpUtility.ParseQueryString(originalString);
         clone["page"] = page.ToString();
         return clone.ToString();
     }
@@ -54,9 +64,13 @@
             <div class="col-12">
                 <div class="shop-toolbar card border-0 shadow-sm">
                     <div class="card-body p-4">
-                        <!-- Basic Search Form -->
-                        <div class="basic-search mb-3">
-                            <form action="@Url.Action("CuaHang")" method="get" class="row align-items-center">
+                        <!-- Unified Search Form -->
+                        <form action="@Url.Action("CuaHang")" method="get">
+                            <input type="hidden" name="id" value="@ViewBag.DanhMuc" />
+                            
+                            <!-- Basic Search Section -->
+                            <div class="basic-search mb-3">
+                                <div class="row align-items-center">
                                 <input type="hidden" name="id" value="@ViewBag.DanhMuc" />
                                 <div class="col-lg-8 col-md-7 mb-3 mb-md-0">
                                     <div class="input-group input-group-lg">
@@ -84,8 +98,8 @@
                                         </button>
                                     </div>
                                 </div>
-                            </form>
-                        </div>
+                                </div> <!-- End row -->
+                            </div> <!-- End basic-search -->
 
                         <!-- Advanced Search Panel -->
                         <div id="advancedSearchPanel"
@@ -97,8 +111,7 @@
                                     </h6>
                                 </div>
                                 <div class="card-body">
-                                    <form action="@Url.Action("CuaHang")" method="get">
-                                        <input type="hidden" name="id" value="@ViewBag.DanhMuc" />
+                                    <!-- Advanced Inputs -->
                                         <div class="row g-3">
                                             <!-- Price Range -->
                                             <div class="col-md-4">
@@ -173,10 +186,57 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </form>
+                                    <!-- removed inner form close -->
                                 </div>
                             </div>
                         </div>
+                        </form> <!-- End Unified Form -->
+
+                        <!-- Dropdown Population Script -->
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                fetch('http://127.0.0.1:5000/api/spec-definitions?active=1')
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success && data.specs) {
+                                            data.specs.forEach(spec => {
+                                                if (spec.Values && spec.Values.length > 0) {
+                                                    const inputName = 'spec_' + spec.MaThongSo;
+                                                    const input = document.querySelector(`input[name="${inputName}"]`);
+                                                    
+                                                    if (input) {
+                                                        // Create Select element
+                                                        const select = document.createElement('select');
+                                                        select.name = inputName;
+                                                        select.className = 'form-select';
+                                                        
+                                                        // Default option
+                                                        const defaultOption = document.createElement('option');
+                                                        defaultOption.value = '';
+                                                        defaultOption.text = 'Tất cả';
+                                                        select.appendChild(defaultOption);
+                                                        
+                                                        // Value options
+                                                        spec.Values.forEach(val => {
+                                                            const option = document.createElement('option');
+                                                            option.value = val;
+                                                            option.text = val;
+                                                            if (input.value === val) {
+                                                                option.selected = true;
+                                                            }
+                                                            select.appendChild(option);
+                                                        });
+                                                        
+                                                        // Replace input with select
+                                                        input.parentNode.replaceChild(select, input);
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    })
+                                    .catch(err => console.error('Error fetching spec values:', err));
+                            });
+                        </script>
 
                         <!-- Results Info -->
                         <div class="results-info mt-3 d-flex justify-content-between align-items-center text-muted">

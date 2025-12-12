@@ -99,7 +99,7 @@
                                         <tr>
                                             <td><strong>Trạng thái:</strong></td>
                                             <td>
-                                                <span class="badge @GetStatusBadgeClass(ViewBag.ChiTiet.TrangThai?.ToString())">
+                                                <span class="badge @GetStatusBadgeClass(ViewBag.ChiTiet.TrangThai != null ? ViewBag.ChiTiet.TrangThai.ToString() : "")">
                                                     @ViewBag.ChiTiet.TrangThai
                                                 </span>
                                             </td>

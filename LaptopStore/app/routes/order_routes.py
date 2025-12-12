@@ -198,23 +198,28 @@ def them_donhang():
         "SoLuong": row.SoLuong,
         "Gia": float(row.Gia)
     } for row in details_rows]
-   # Giảm số lượng trong kho khi đặt hàng
-    for row in details_rows:
-        product = get_product_by_id(row.MaSanPham)  # Lấy sản phẩm từ cơ sở dữ liệu
-        if product:
-            # Cập nhật số lượng tồn kho
-            product["SoLuong"] -= row.SoLuong
-            if product["SoLuong"] < 0:
-                return jsonify({"success": False, "message": "Số lượng sản phẩm không đủ."})
+    
+    # Tạo bảo hành tự động
+    create_auto_warranty(order_row.MaDonHang)
 
-            # Lưu lại thay đổi số lượng sản phẩm
-            conn = get_connection()
-            cursor = conn.cursor()
-            query = "Update SanPham Set SoLuong = ? where MaSanPham = ?"
-            cursor.execute(query, (product["SoLuong"], row.MaSanPham))
-            conn.commit()
-            conn.close()
-        #    update_product_quantity(product)
+    # Kiểm tra tồn dư (số serial "Trong kho") trước khi đặt hàng
+    # SoLuong = số serial "Trong kho" (tồn dư)
+    for row in details_rows:
+        conn_check = get_connection()
+        cursor_check = conn_check.cursor()
+        cursor_check.execute("""
+            SELECT COUNT(*) 
+            FROM SanPhamSerial 
+            WHERE MaSanPham = ? AND TrangThai = N'Trong kho'
+        """, (row.MaSanPham,))
+        ton_du = cursor_check.fetchone()[0]
+        conn_check.close()
+        
+        if ton_du < row.SoLuong:
+            return jsonify({
+                "success": False, 
+                "message": f"Sản phẩm {row.MaSanPham}: Tồn dư không đủ (còn {ton_du}, cần {row.SoLuong})."
+            })
     giam_gia = float(voucher_row.GiamGia) if voucher_row else None
 
     return jsonify({
@@ -240,33 +245,67 @@ def get_order_detail():
     details_rows = result["details_rows"]
     user_row = result["user_row"]
     voucher_row = result["voucher_row"]
+    serial_map = result.get("serial_map", {})
+
+    # Lấy HinhThucThanhToan từ order_row
+    hinh_thuc_thanh_toan = "COD"
+    try:
+        # Kiểm tra xem có thuộc tính HinhThucThanhToan không
+        if hasattr(order_row, 'HinhThucThanhToan') and order_row.HinhThucThanhToan:
+            hinh_thuc_thanh_toan = order_row.HinhThucThanhToan
+        # Hoặc kiểm tra theo index nếu là tuple
+        elif isinstance(order_row, tuple) and len(order_row) > 8 and order_row[8]:
+            hinh_thuc_thanh_toan = order_row[8]
+    except:
+        pass
+
+    # Xử lý user_row null
+    ho_ten = ""
+    if user_row:
+        ho_ten = user_row.HoTen if hasattr(user_row, 'HoTen') else (user_row[1] if isinstance(user_row, tuple) and len(user_row) > 1 else "")
 
     order = {
-        "MaDonHang": order_row.MaDonHang,
-        "MaTaiKhoan": order_row.MaTaiKhoan,
-        "HoTen": user_row.HoTen,
-        "NgayDatHang": order_row.NgayDatHang.strftime("%Y-%m-%d"),
-        "TongTien": float(order_row.TongTien),
-        "MaVoucher": order_row.MaVoucher,
-        "DiaChiGiaoHang": order_row.DiaChiGiaoHang,
-        "SoDienThoai": order_row.SoDienThoai,
-        "TrangThai": order_row.TrangThai
+        "MaDonHang": order_row.MaDonHang if hasattr(order_row, 'MaDonHang') else order_row[0],
+        "MaTaiKhoan": order_row.MaTaiKhoan if hasattr(order_row, 'MaTaiKhoan') else order_row[1],
+        "HoTen": ho_ten,
+        "NgayDatHang": order_row.NgayDatHang.strftime("%Y-%m-%d") if hasattr(order_row, 'NgayDatHang') else order_row[2].strftime("%Y-%m-%d") if isinstance(order_row, tuple) and len(order_row) > 2 else "",
+        "TongTien": float(order_row.TongTien) if hasattr(order_row, 'TongTien') else float(order_row[3]) if isinstance(order_row, tuple) and len(order_row) > 3 else 0,
+        "MaVoucher": order_row.MaVoucher if hasattr(order_row, 'MaVoucher') else (order_row[4] if isinstance(order_row, tuple) and len(order_row) > 4 else None),
+        "DiaChiGiaoHang": order_row.DiaChiGiaoHang if hasattr(order_row, 'DiaChiGiaoHang') else (order_row[5] if isinstance(order_row, tuple) and len(order_row) > 5 else ""),
+        "SoDienThoai": order_row.SoDienThoai if hasattr(order_row, 'SoDienThoai') else (order_row[6] if isinstance(order_row, tuple) and len(order_row) > 6 else ""),
+        "TrangThai": order_row.TrangThai if hasattr(order_row, 'TrangThai') else (order_row[7] if isinstance(order_row, tuple) and len(order_row) > 7 else ""),
+        "HinhThucThanhToan": hinh_thuc_thanh_toan
     }
 
     details = [{
-        "MaDonHang": row.MaDonHang,
-        "MaSanPham": row.MaSanPham,
-        "TenSanPham": row.TenSanPham,
-        "SoLuong": row.SoLuong,
-        "Gia": float(row.Gia)
+        "MaDonHang": row.MaDonHang if hasattr(row, 'MaDonHang') else row[0],
+        "MaSanPham": row.MaSanPham if hasattr(row, 'MaSanPham') else row[1],
+        "TenSanPham": row.TenSanPham if hasattr(row, 'TenSanPham') else row[4],
+        "SoLuong": row.SoLuong if hasattr(row, 'SoLuong') else row[2],
+        "Gia": float(row.Gia) if hasattr(row, 'Gia') else float(row[3]),
+        "SerialNumbers": serial_map.get(row.MaSanPham if hasattr(row, 'MaSanPham') else row[1], [])
     } for row in details_rows]
+
+    # Xử lý voucher_row null
+    giam_gia = None
+    code = None
+    if voucher_row:
+        if hasattr(voucher_row, 'GiamGia') and voucher_row.GiamGia is not None:
+            giam_gia = float(voucher_row.GiamGia)
+        elif isinstance(voucher_row, tuple) and len(voucher_row) > 0 and voucher_row[0] is not None:
+            giam_gia = float(voucher_row[0])
+        
+        if hasattr(voucher_row, 'Code'):
+            code = voucher_row.Code
+        elif isinstance(voucher_row, tuple) and len(voucher_row) > 1:
+            code = voucher_row[1]
 
     return jsonify({
         "success": True,
         "order": order,
         "details": details,
-        "giamGia": float(voucher_row.GiamGia)if voucher_row and voucher_row.GiamGia is not None else None,
-        "code": voucher_row.Code if voucher_row else None
+        "giamGia": giam_gia,
+        "code": code
     })
 @order_routes.route('/api/update_order_status', methods=['PUT'])
 def update_order_status_route():
@@ -298,16 +337,27 @@ def get_orders():
     params = []
     query = "SELECT DonHang.*, TaiKhoan.HoTen FROM DonHang JOIN TaiKhoan ON DonHang.MaTaiKhoan = TaiKhoan.MaTaiKhoan"
     
-    if (status and searchTerm):
-        query += " WHERE TaiKhoan.HoTen LIKE ? AND DonHang.TrangThai LIKE ?"
-        params.append(f"%{searchTerm}%")
+    # Kiểm tra searchTerm có phải là số (mã đơn hàng) không
+    is_numeric_search = searchTerm and searchTerm.strip().isdigit()
+    
+    where_conditions = []
+    
+    if searchTerm:
+        if is_numeric_search:
+            # Tìm theo mã đơn hàng
+            where_conditions.append("DonHang.MaDonHang = ?")
+            params.append(int(searchTerm.strip()))
+        else:
+            # Tìm theo tên khách hàng
+            where_conditions.append("TaiKhoan.HoTen LIKE ?")
+            params.append(f"%{searchTerm}%")
+    
+    if status:
+        where_conditions.append("DonHang.TrangThai LIKE ?")
         params.append(f"%{status}%")
-    elif(searchTerm and not status):
-        query += " WHERE TaiKhoan.HoTen LIKE ?"
-        params.append(f"%{searchTerm}%")
-    elif ( status and not searchTerm):
-        query += " WHERE DonHang.TrangThai LIKE ?"
-        params.append(f"%{status}%")
+    
+    if where_conditions:
+        query += " WHERE " + " AND ".join(where_conditions)
     
     cursor.execute(query,params)
     all_orders = cursor.fetchall()
@@ -438,7 +488,7 @@ def get_bao_hanh_tu_dong():
         FROM BaoHanhTuDong BH
         INNER JOIN SanPham SP ON BH.MaSanPham = SP.MaSanPham
         WHERE BH.MaTaiKhoan = ?
-        ORDER BY BH.NgayBatDau DESC
+        ORDER BY CASE WHEN BH.TrangThai = N'Hoạt động' THEN 0 ELSE 1 END, BH.NgayBatDau DESC
         OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
     """, (ma_tai_khoan, offset, page_size))
     
@@ -955,7 +1005,7 @@ def get_return_detail(return_id):
         conn.close()
         return jsonify({"success": False, "message": "Không tìm thấy yêu cầu đổi trả"})
     
-    # Lấy chi tiết sản phẩm trong đơn hàng
+    # Lấy chi tiết sản phẩm trong đơn hàng kèm SerialNumbers
     cursor.execute("""
         SELECT CT.MaSanPham, SP.TenSanPham, CT.SoLuong, CT.Gia, SP.HinhAnh
         FROM ChiTietDonHang CT
@@ -963,14 +1013,35 @@ def get_return_detail(return_id):
         WHERE CT.MaDonHang = ?
     """, (row[1],))
     
+    product_rows = cursor.fetchall()
+    
+    # Lấy serial numbers cho đơn hàng này
+    cursor.execute("""
+        SELECT MaSanPham, SerialNumber
+        FROM SanPhamSerial
+        WHERE MaDonHang = ?
+    """, (row[1],))
+    serial_rows = cursor.fetchall()
+    
+    # Tạo map MaSanPham -> [SerialNumbers]
+    serial_map = {}
+    for s_row in serial_rows:
+        ma_sp = s_row[0]
+        serial = s_row[1]
+        if ma_sp not in serial_map:
+            serial_map[ma_sp] = []
+        serial_map[ma_sp].append(serial)
+    
     products = []
-    for product_row in cursor.fetchall():
+    for product_row in product_rows:
+        ma_sp = product_row[0]
         products.append({
-            "MaSanPham": product_row[0],
+            "MaSanPham": ma_sp,
             "TenSanPham": product_row[1],
             "SoLuong": product_row[2],
             "Gia": float(product_row[3]),
-            "HinhAnh": product_row[4]
+            "HinhAnh": product_row[4],
+            "SerialNumbers": serial_map.get(ma_sp, [])
         })
     
     # Parse hình ảnh lỗi
@@ -1025,6 +1096,42 @@ def update_return_status():
     """, (new_status, return_id))
     
     if cursor.rowcount > 0:
+        # Nếu đã duyệt, cập nhật trạng thái đơn hàng và serial numbers
+        print(f"DEBUG: update_return_status called with return_id={return_id}, new_status='{new_status}'")
+        
+        if new_status in ["Đã duyệt", "Đã đồng ý"]:
+             # Lấy MaDonHang
+             cursor.execute("SELECT MaDonHang FROM DonDoiTra WHERE MaDoiTra = ?", (return_id,))
+             row = cursor.fetchone()
+             if row:
+                 ma_don_hang = row[0]
+                 print(f"DEBUG: Found Order {ma_don_hang} for Return {return_id}. Updating status...")
+                 
+                 # Cập nhật trạng thái đơn hàng
+                 cursor.execute("""
+                     UPDATE DonHang
+                     SET TrangThai = N'Đã đồng ý yêu cầu đổi trả'
+                     WHERE MaDonHang = ?
+                 """, (ma_don_hang,))
+                 
+                 # Cập nhật trạng thái Serial Number thành 'Lỗi'
+                 # Remove strict check for 'Đã bán' in case it differs slightly, 
+                 # assuming all serials in this order are returning.
+                 cursor.execute("""
+                     UPDATE SanPhamSerial
+                     SET TrangThai = N'Lỗi'
+                     WHERE MaDonHang = ?
+                 """, (ma_don_hang,))
+                 print(f"DEBUG: Updated Serial Numbers for Order {ma_don_hang} to 'Lỗi'. Rows affected: {cursor.rowcount}")
+
+                 # Cập nhật trạng thái Bảo Hành Tự Động thành 'Không hoạt động'
+                 cursor.execute("""
+                     UPDATE BaoHanhTuDong
+                     SET TrangThai = N'Không hoạt động'
+                     WHERE MaDonHang = ?
+                 """, (ma_don_hang,))
+                 print(f"DEBUG: Deactivated Warranty for Order {ma_don_hang}. Rows affected: {cursor.rowcount}")
+        
         conn.commit()
         conn.close()
         return jsonify({"success": True, "message": "Cập nhật trạng thái thành công"})
@@ -1182,6 +1289,13 @@ def create_return_with_images():
         
         ma_doi_tra = cursor.fetchone()[0]
         
+        # Cập nhật trạng thái đơn hàng thành "Đang yêu cầu đổi trả hàng"
+        cursor.execute("""
+            UPDATE DonHang 
+            SET TrangThai = N'Đang yêu cầu đổi trả hàng'
+            WHERE MaDonHang = ?
+        """, (ma_don_hang,))
+        
         conn.commit()
         
         return jsonify({
@@ -1336,4 +1450,149 @@ def get_user_return_detail():
         return jsonify({"success": True, "chiTiet": chi_tiet})
         
     except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@order_routes.route('/api/get_available_serials', methods=['POST'])
+def get_available_serials():
+    """Lấy danh sách serial numbers có sẵn (TrangThai = 'Trong kho') cho các sản phẩm trong đơn hàng"""
+    data = request.json
+    order_id = data.get("orderId")
+    
+    if not order_id:
+        return jsonify({"success": False, "message": "Thiếu orderId"}), 400
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # Lấy chi tiết đơn hàng
+        cursor.execute("""
+            SELECT CT.MaSanPham, CT.SoLuong, SP.TenSanPham
+            FROM ChiTietDonHang CT
+            JOIN SanPham SP ON CT.MaSanPham = SP.MaSanPham
+            WHERE CT.MaDonHang = ?
+        """, (order_id,))
+        details = cursor.fetchall()
+        
+        result = []
+        for detail in details:
+            ma_san_pham = detail[0]
+            so_luong = detail[1]
+            ten_san_pham = detail[2]
+            
+            # Lấy serial numbers có sẵn (TrangThai = 'Trong kho')
+            cursor.execute("""
+                SELECT MaSerial, SerialNumber
+                FROM SanPhamSerial
+                WHERE MaSanPham = ? AND TrangThai = N'Trong kho'
+                ORDER BY MaSerial
+            """, (ma_san_pham,))
+            
+            serials = [{"MaSerial": row[0], "SerialNumber": row[1]} for row in cursor.fetchall()]
+            
+            result.append({
+                "MaSanPham": ma_san_pham,
+                "TenSanPham": ten_san_pham,
+                "SoLuong": so_luong,
+                "SerialNumbers": serials
+            })
+        
+        conn.close()
+        return jsonify({"success": True, "products": result})
+    
+    except Exception as e:
+        conn.close()
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@order_routes.route('/api/update_order_with_serials', methods=['POST'])
+def update_order_with_serials():
+    """Cập nhật trạng thái đơn hàng và gán serial numbers đã chọn"""
+    data = request.json
+    order_id = data.get("orderId")
+    status = data.get("status")
+    selected_serials = data.get("selectedSerials", {})  # {MaSanPham: [MaSerial1, MaSerial2, ...]}
+    
+    if not order_id or not status:
+        return jsonify({"success": False, "message": "Thiếu dữ liệu"}), 400
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # Kiểm tra đơn hàng
+        cursor.execute("SELECT * FROM DonHang WHERE MaDonHang = ?", (order_id,))
+        order_row = cursor.fetchone()
+        if not order_row:
+            conn.close()
+            return jsonify({"success": False, "message": "Không tìm thấy đơn hàng"}), 404
+        
+        # Lấy chi tiết đơn hàng để kiểm tra số lượng
+        cursor.execute("""
+            SELECT MaSanPham, SoLuong
+            FROM ChiTietDonHang
+            WHERE MaDonHang = ?
+        """, (order_id,))
+        details = cursor.fetchall()
+        
+        # Kiểm tra số lượng serial đã chọn khớp với số lượng sản phẩm
+        for detail in details:
+            ma_san_pham = detail[0]
+            so_luong = detail[1]
+            selected_count = len(selected_serials.get(str(ma_san_pham), []))
+            
+            if selected_count != so_luong:
+                conn.close()
+                return jsonify({
+                    "success": False,
+                    "message": f"Sản phẩm {ma_san_pham}: Số lượng serial đã chọn ({selected_count}) không khớp với số lượng đặt ({so_luong})"
+                }), 400
+        
+        # Cập nhật serial numbers đã chọn và trừ số lượng sản phẩm
+        for ma_san_pham_str, serial_ids in selected_serials.items():
+            ma_san_pham = int(ma_san_pham_str)
+            so_luong_ban = len(serial_ids)
+            
+            for serial_id in serial_ids:
+                cursor.execute("""
+                    UPDATE SanPhamSerial
+                    SET TrangThai = N'Đã bán',
+                        NgayBan = GETDATE(),
+                        MaDonHang = ?
+                    WHERE MaSerial = ? AND MaSanPham = ? AND TrangThai = N'Trong kho'
+                """, (order_id, serial_id, ma_san_pham))
+                
+                if cursor.rowcount == 0:
+                    conn.rollback()
+                    conn.close()
+                    return jsonify({
+                        "success": False,
+                        "message": f"Serial {serial_id} không tồn tại hoặc đã được bán"
+                    }), 400
+            
+            # Cập nhật SoLuong = số serial "Trong kho" (tồn dư) sau khi bán
+            cursor.execute("""
+                UPDATE SanPham
+                SET SoLuong = (
+                    SELECT COUNT(*) 
+                    FROM SanPhamSerial 
+                    WHERE MaSanPham = ? AND TrangThai = N'Trong kho'
+                )
+                WHERE MaSanPham = ?
+            """, (ma_san_pham, ma_san_pham))
+        
+        # Cập nhật trạng thái đơn hàng
+        cursor.execute("""
+            UPDATE DonHang
+            SET TrangThai = ?
+            WHERE MaDonHang = ?
+        """, (status, order_id))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({"success": True, "message": "Cập nhật thành công"})
+    
+    except Exception as e:
+        conn.rollback()
+        conn.close()
         return jsonify({"success": False, "message": str(e)}), 500

@@ -75,7 +75,7 @@
                                             <tr class="cart-item" data-product-id="@item.MaSanPham">
                                                 <!-- Remove Button -->
                                                 <td class="text-center">
-                                                    <button class="btn btn-outline-danger btn-sm rounded-circle remove-item"
+                                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-circle remove-item"
                                                             data-id="@item.MaSanPham" data-bs-toggle="tooltip" title="Xóa sản phẩm">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
@@ -83,7 +83,7 @@
                                                 <!-- Product Image -->
                                                 <td>
                                                     <div class="product-image">
-                                                        <img src="@Url.Content($"~/assets/images/product/{item.MaSanPham}/{item.HinhAnh}")"
+                                                        <img src="@Url.Content("~/assets/images/product/" + item.MaSanPham + "/" + item.HinhAnh)"
                                                              alt="@item.TenSanPham" class="img-fluid rounded">
                                                     </div>
                                                 </td>
@@ -134,13 +134,13 @@
                                         <div class="card-body">
                                             <div class="row align-items-center">
                                                 <div class="col-3">
-                                                    <img src="@Url.Content($"~/assets/images/product/{item.MaSanPham}/{item.HinhAnh}")"
+                                                    <img src="@Url.Content("~/assets/images/product/" + item.MaSanPham + "/" + item.HinhAnh)"
                                                          alt="@item.TenSanPham" class="img-fluid rounded">
                                                 </div>
                                                 <div class="col-9">
                                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                                         <h6 class="product-name mb-1">@item.TenSanPham</h6>
-                                                        <button class="btn btn-outline-danger btn-sm rounded-circle remove-item"
+                                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-circle remove-item"
                                                                 data-id="@item.MaSanPham">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
@@ -915,22 +915,41 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    // Remove item functionality
+    // Remove item functionality - WITH CONFIRMATION MODAL
     let itemToRemove = null;
-    const removeModal = new bootstrap.Modal(document.getElementById('removeConfirmModal'));
-    document.querySelectorAll('.remove-item').forEach(btn => {
-        btn.addEventListener('click', function() {
-            itemToRemove = this.getAttribute('data-id');
-            removeModal.show();
+    const removeModalElement = document.getElementById('removeConfirmModal');
+    if (removeModalElement) {
+        const removeModal = new bootstrap.Modal(removeModalElement);
+        
+        // Prevent default behavior and show modal FIRST
+        document.querySelectorAll('.remove-item').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation(); // Prevent other listeners
+                itemToRemove = this.getAttribute('data-id');
+                if (itemToRemove) {
+                    removeModal.show();
+                }
+            }, true); // Use capture phase to run before other listeners
         });
-    });
-    document.getElementById('confirmRemoveBtn').addEventListener('click', function() {
-        if (itemToRemove) {
-            removeItem(itemToRemove);
-            removeModal.hide();
-            itemToRemove = null;
+        
+        // Only remove after confirmation
+        const confirmBtn = document.getElementById('confirmRemoveBtn');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', function() {
+                if (itemToRemove) {
+                    const productId = itemToRemove;
+                    removeModal.hide();
+                    // Small delay to ensure modal is closed
+                    setTimeout(() => {
+                        removeItem(productId);
+                        itemToRemove = null;
+                    }, 100);
+                }
+            });
         }
-    });
+    }
     // Manual coupon application
     const applyCouponBtn = document.getElementById('apply_coupon');
     if (applyCouponBtn) {

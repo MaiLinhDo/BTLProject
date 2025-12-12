@@ -9,7 +9,7 @@
 
     <!-- Thanh tìm kiếm -->
     <form class="form-inline d-flex align-items-center mb-3 gap-2" method="get" action="@Url.Action("QuanLyDonHang")">
-        <input type="text" name="searchTerm" class="form-control" style="width: 250px" placeholder="Tìm kiếm..." value="@ViewBag.SearchTerm" />
+        <input type="text" name="searchTerm" class="form-control" style="width: 250px" placeholder="Tìm theo mã đơn hoặc tên khách hàng..." value="@ViewBag.SearchTerm" />
         <select name="status" class="form-control" style="width: 250px">
             <option value="">Tất cả trạng thái</option>
             <option value="Đặt hàng thành công" @(ViewBag.Status == "Đặt hàng thành công" ? "selected" : "")>Đặt hàng thành công</option>
@@ -32,6 +32,7 @@
                         <th scope="col">Khách hàng</th>
                         <th scope="col">Ngày Đặt</th>
                         <th scope="col">Tổng Tiền</th>
+                        <th scope="col">Hình thức thanh toán</th>
                         <th scope="col">Trạng Thái</th>
                         <th scope="col">Hành Động</th>
                     </tr>
@@ -46,15 +47,38 @@
                             <td>@(Convert.ToDecimal(item.TongTien ?? 0).ToString("N0")) đ</td>
                             <td>
                                 @{
+                                    string hinhThucThanhToan = "";
+                                    if (item.HinhThucThanhToan != null)
+                                    {
+                                        hinhThucThanhToan = item.HinhThucThanhToan.ToString();
+                                    }
+                                    else
+                                    {
+                                        hinhThucThanhToan = "COD";
+                                    }
+                                    
+                                    string paymentBadgeClass = hinhThucThanhToan == "VNPAY" ? "bg-primary" : "bg-secondary";
+                                    string paymentText = hinhThucThanhToan == "VNPAY" ? "VNPay (ĐÃ thanh toán)" : "COD (Thanh toán khi nhận hàng)";
+                                }
+                                <span class="badge @paymentBadgeClass text-white">
+                                    @paymentText
+                                </span>
+                            </td>
+                            <td>
+                                @{
                                     string statusClass = "";
-                                    switch (item.TrangThai?.ToString() ?? "")
+                                    string statusForBadge = (item.TrangThai != null ? item.TrangThai.ToString() : "").Trim();
+                                    switch (statusForBadge)
                                     {
                                         case "Đặt hàng thành công": statusClass = "bg-info"; break;
+                                        case "Đang chờ xử lý": statusClass = "bg-warning"; break;
+                                        case "Đã thanh toán": statusClass = "bg-success"; break;
                                         case "Đang chuẩn bị hàng": statusClass = "bg-warning"; break;
                                         case "Đã giao cho đơn vị vận chuyển": statusClass = "bg-primary"; break;
                                         case "Đơn hàng sẽ sớm được giao đến bạn": statusClass = "bg-secondary"; break;
                                         case "Đã giao": statusClass = "bg-success"; break;
                                         case "Đã hủy": statusClass = "bg-danger"; break;
+                                        case "Đã Hủy": statusClass = "bg-danger"; break;
                                         case "Đã trả hàng": statusClass = "bg-dark"; break;
                                         default: statusClass = "bg-secondary"; break;
                                     }
@@ -83,16 +107,51 @@
                                         </button>
                                         <div class="dropdown-menu" aria-labelledby="statusDropdown@(item.MaDonHang)">
                                             @{
-                                                var nextStatuses = OrderStatusHelper.GetNextValidStatuses(item.TrangThai?.ToString() ?? "");
-                                                foreach (var status in nextStatuses)
+                                                // Lấy trạng thái từ dynamic object
+                                                string currentStatus = "";
+                                                if (item.TrangThai != null)
                                                 {
-                                                    <a class="dropdown-item" href="javascript:void(0)"
-                                                       onclick="updateOrderStatus('@item.MaDonHang', '@status')">
-                                                        @status
-                                                    </a>
+                                                    currentStatus = item.TrangThai.ToString().Trim();
+                                                }
+                                                
+                                                var nextStatuses = OrderStatusHelper.GetNextValidStatuses(currentStatus);
+                                                
+                                                // Nếu không có trạng thái tiếp theo, thử tìm với các biến thể
+                                                if ((nextStatuses == null || nextStatuses.Count == 0) && !string.IsNullOrEmpty(currentStatus))
+                                                {
+                                                    // Thử các biến thể của trạng thái "Đã thanh toán"
+                                                    string statusLower = currentStatus.ToLower();
+                                                    if (statusLower.Contains("thanh toán") || statusLower.Contains("thanh toan"))
+                                                    {
+                                                        nextStatuses = new List<string> { "Đang chuẩn bị hàng" };
+                                                    }
+                                                }
+                                                
+                                                if (nextStatuses != null && nextStatuses.Count > 0)
+                                                {
+                                                    foreach (var status in nextStatuses)
+                                                    {
+                                                        if (status == "Đang chuẩn bị hàng")
+                                                        {
+                                                            <a class="dropdown-item" href="@Url.Action("ChonSerialNumbers", "Admin", new { id = item.MaDonHang })">
+                                                                @status
+                                                            </a>
+                                                        }
+                                                        else
+                                                        {
+                                                            <a class="dropdown-item" href="javascript:void(0)"
+                                                               onclick="updateOrderStatus('@item.MaDonHang', '@status')">
+                                                                @status
+                                                            </a>
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="dropdown-item-text text-muted">Không thể cập nhật</span>
                                                 }
                                             }
-                                            @if (OrderStatusHelper.CanCancelOrder(item.TrangThai?.ToString() ?? ""))
+                                            @if (OrderStatusHelper.CanCancelOrder(currentStatus))
                                             {
                                                 <div class="dropdown-divider"></div>
                                                 <a class="dropdown-item text-danger" href="javascript:void(0)"

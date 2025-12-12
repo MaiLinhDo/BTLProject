@@ -285,6 +285,9 @@ namespace TMDTLaptop.Controllers
                         Session["Username"] = result.user.Username.ToString();
                         Session["FullName"] = result.user.HoTen.ToString();
 
+                        // Lấy giỏ hàng từ session hiện tại (nếu có - khi chưa đăng nhập đã thêm sản phẩm)
+                        var sessionCart = Session["Cart"] as List<ModelGioHang> ?? new List<ModelGioHang>();
+
                         // Chuẩn bị dữ liệu để gửi
                         var requestData = new
                         {
@@ -297,7 +300,7 @@ namespace TMDTLaptop.Controllers
                             Encoding.UTF8,
                             "application/json");
 
-                        // Gửi request POST đến API Python
+                        // Gửi request POST đến API Python để lấy giỏ hàng từ database
                         var responsegiohang = await client.PostAsync("http://127.0.0.1:5000/api/giohang", jsonContent);
 
                         // Kiểm tra response
@@ -305,14 +308,46 @@ namespace TMDTLaptop.Controllers
                         {
                             // Đọc và parse JSON response
                             var jsonString = await responsegiohang.Content.ReadAsStringAsync();
-                            cart = JsonConvert.DeserializeObject<List<ModelGioHang>>(jsonString);
+                            var dbCart = JsonConvert.DeserializeObject<List<ModelGioHang>>(jsonString) ?? new List<ModelGioHang>();
+                            
+                            // Merge giỏ hàng session với giỏ hàng từ database
+                            cart = MergeCarts(sessionCart, dbCart);
+                            
+                            // Lưu giỏ hàng đã merge vào session
+                            Session["Cart"] = cart;
+                            
+                            // Đồng bộ giỏ hàng đã merge lên database
                             if (cart != null && cart.Any())
                             {
-                                Session["Cart"] = cart;
+                                var cartData = cart.Select(item => new
+                                {
+                                    item.MaSanPham,
+                                    item.SoLuong,
+                                    item.Gia
+                                }).ToList();
+
+                                var syncRequestData = new
+                                {
+                                    username = text,
+                                    cart = cartData
+                                };
+
+                                var syncJsonContent = new StringContent(
+                                    JsonConvert.SerializeObject(syncRequestData),
+                                    Encoding.UTF8,
+                                    "application/json");
+
+                                // Gửi request để cập nhật giỏ hàng lên database
+                                await client.PostAsync("http://127.0.0.1:5000/api/dangxuat", syncJsonContent);
                             }
-
-
                         }
+                        else
+                        {
+                            // Nếu không lấy được từ database, giữ nguyên giỏ hàng session
+                            cart = sessionCart;
+                            Session["Cart"] = cart;
+                        }
+                        
                         return RedirectToAction("Index", "Home");
                     }
                     else
@@ -448,15 +483,60 @@ namespace TMDTLaptop.Controllers
             }
         }
 
+        /// <summary>
+        /// Merge hai giỏ hàng lại với nhau. Nếu cùng sản phẩm thì cộng số lượng, nếu khác thì thêm vào.
+        /// </summary>
+        private List<ModelGioHang> MergeCarts(List<ModelGioHang> sessionCart, List<ModelGioHang> dbCart)
+        {
+            var mergedCart = new List<ModelGioHang>();
+
+            // Bắt đầu với giỏ hàng từ database
+            if (dbCart != null && dbCart.Any())
+            {
+                mergedCart.AddRange(dbCart);
+            }
+
+            // Merge với giỏ hàng từ session
+            if (sessionCart != null && sessionCart.Any())
+            {
+                foreach (var sessionItem in sessionCart)
+                {
+                    var existingItem = mergedCart.FirstOrDefault(c => c.MaSanPham == sessionItem.MaSanPham);
+                    if (existingItem != null)
+                    {
+                        // Nếu sản phẩm đã có trong giỏ hàng database, cộng số lượng
+                        existingItem.SoLuong += sessionItem.SoLuong;
+                    }
+                    else
+                    {
+                        // Nếu sản phẩm chưa có, thêm vào
+                        mergedCart.Add(new ModelGioHang
+                        {
+                            MaSanPham = sessionItem.MaSanPham,
+                            TenSanPham = sessionItem.TenSanPham,
+                            SoLuong = sessionItem.SoLuong,
+                            Gia = sessionItem.Gia,
+                            GiaMoi = sessionItem.GiaMoi,
+                            HinhAnh = sessionItem.HinhAnh
+                        });
+                    }
+                }
+            }
+
+            return mergedCart;
+        }
+
+        [HttpGet]
         public async Task<ActionResult> HoSo(string mess = "")
         {
             if (!string.IsNullOrEmpty(mess))
                 ViewBag.ErrorMessage = mess;
+            
             // Lấy tên đăng nhập từ session
             var taikhoan = Session["Username"] as string;
             if (string.IsNullOrEmpty(taikhoan))
             {
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction("DangNhap", "Home");
             }
 
             // Khởi tạo HttpClient để gọi API
@@ -472,7 +552,6 @@ namespace TMDTLaptop.Controllers
                 {
                     // Đọc dữ liệu JSON trả về từ API
                     var jsonResponse = await response.Content.ReadAsStringAsync();
-
                     // Dùng dynamic để tự động phân tích JSON mà không cần ép kiểu
                     dynamic apiData = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
 
@@ -482,7 +561,6 @@ namespace TMDTLaptop.Controllers
                         var orders = JsonConvert.DeserializeObject<List<DonHang>>(apiData.orders.ToString());
 
                         ViewBag.Orders = orders;
-
                         return View(user);
                     }
                     else
@@ -499,6 +577,112 @@ namespace TMDTLaptop.Controllers
                     return View();
                 }
             }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> HoSo(string tenKhachHang, string soDienThoai, string diaChi, string matKhauHienTai, string matKhauMoi, string xacNhanMatKhauMoi)
+        {
+            var taikhoan = Session["Username"] as string;
+            if (string.IsNullOrEmpty(taikhoan))
+            {
+                return RedirectToAction("DangNhap", "Home");
+            }
+
+            // Lấy dữ liệu từ form (ưu tiên parameter, fallback về Request.Form)
+            tenKhachHang = tenKhachHang ?? Request.Form["tenKhachHang"];
+            soDienThoai = soDienThoai ?? Request.Form["soDienThoai"];
+            diaChi = diaChi ?? Request.Form["diaChi"] ?? Request.Form["fullAddress"];
+            matKhauHienTai = matKhauHienTai ?? Request.Form["matKhauHienTai"];
+            matKhauMoi = matKhauMoi ?? Request.Form["matKhauMoi"];
+            xacNhanMatKhauMoi = xacNhanMatKhauMoi ?? Request.Form["xacNhanMatKhauMoi"];
+
+            // Debug: Kiểm tra dữ liệu nhận được
+            Debug.WriteLine("=== POST HoSo ===");
+            Debug.WriteLine($"Username: {taikhoan}");
+            Debug.WriteLine($"tenKhachHang: {tenKhachHang}");
+            Debug.WriteLine($"soDienThoai: {soDienThoai}");
+            Debug.WriteLine($"diaChi: {diaChi}");
+            Debug.WriteLine($"matKhauHienTai: {(string.IsNullOrEmpty(matKhauHienTai) ? "null" : "***")}");
+            Debug.WriteLine($"matKhauMoi: {(string.IsNullOrEmpty(matKhauMoi) ? "null" : "***")}");
+
+            // Validation cơ bản
+            if (string.IsNullOrWhiteSpace(tenKhachHang))
+            {
+                ViewBag.ErrorMessage = "Vui lòng nhập họ và tên.";
+                return await HoSo("");
+            }
+
+            if (string.IsNullOrWhiteSpace(soDienThoai))
+            {
+                ViewBag.ErrorMessage = "Vui lòng nhập số điện thoại.";
+                return await HoSo("");
+            }
+
+            if (string.IsNullOrWhiteSpace(diaChi))
+            {
+                ViewBag.ErrorMessage = "Vui lòng nhập địa chỉ.";
+                return await HoSo("");
+            }
+
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(30);
+                    
+                    var updateData = new
+                    {
+                        Username = taikhoan,
+                        HoTen = tenKhachHang.Trim(),
+                        SoDienThoai = soDienThoai.Trim(),
+                        DiaChi = diaChi.Trim(),
+                        MatKhauHienTai = matKhauHienTai,
+                        MatKhauMoi = matKhauMoi,
+                        XacNhanMatKhauMoi = xacNhanMatKhauMoi
+                    };
+
+                    var json = JsonConvert.SerializeObject(updateData);
+                    Debug.WriteLine($"JSON gửi đi: {json}");
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+                    
+                    var response = await client.PostAsync("http://127.0.0.1:5000/api/capnhat-thongtin", content);
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    
+                    Debug.WriteLine($"API Response Status: {response.StatusCode}");
+                    Debug.WriteLine($"API Response Content: {responseContent}");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        dynamic apiData = JsonConvert.DeserializeObject<dynamic>(responseContent);
+
+                        if (apiData != null && apiData.success == true)
+                        {
+                            // Cập nhật session nếu có thay đổi tên
+                            Session["FullName"] = tenKhachHang.Trim();
+                            
+                            TempData["SuccessMessage"] = "Cập nhật thông tin thành công!";
+                            return RedirectToAction("HoSo", "Home");
+                        }
+                        else
+                        {
+                            ViewBag.ErrorMessage = apiData?.message ?? "Có lỗi xảy ra khi cập nhật thông tin.";
+                        }
+                    }
+                    else
+                    {
+                        ViewBag.ErrorMessage = $"Không thể kết nối đến máy chủ. Status: {response.StatusCode}";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Exception in HoSo POST: {ex.Message}");
+                Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
+                ViewBag.ErrorMessage = $"Lỗi: {ex.Message}";
+            }
+
+            // Reload user data
+            return await HoSo("");
         }
 
         public async Task<ActionResult> CuaHang(int id, string search = "", decimal? minPrice = null, decimal? maxPrice = null, int? brand = null, int page = 1, int pageSize = 8)
@@ -687,6 +871,7 @@ namespace TMDTLaptop.Controllers
                     SoDienThoai = user.SoDienThoai,
                     TrangThai = "Đặt hàng thành công",
                     MaVoucher = voucher?.MaVoucher,
+                    HinhThucThanhToan = "COD", // Thanh toán khi nhận hàng
                     ChiTietDonHang = cart.Select(item => new
                     {
                         MaSanPham = item.MaSanPham,
@@ -922,6 +1107,22 @@ namespace TMDTLaptop.Controllers
                     }
                 }
             }
+            else
+            {
+                // Nếu chưa đăng nhập, vẫn lấy voucher để hiển thị
+                using (var httpClient = new HttpClient())
+                {
+                    var voucherResponse = await httpClient.GetAsync("http://127.0.0.1:5000/api/vouchers");
+                    if (voucherResponse.IsSuccessStatusCode)
+                    {
+                        var voucherData = await voucherResponse.Content.ReadAsStringAsync();
+                        vouchers = JsonConvert.DeserializeObject<List<Voucher>>(voucherData);
+                    }
+                }
+            }
+
+            // Set ViewBag.Voucher để View có thể hiển thị
+            ViewBag.Voucher = vouchers;
 
             cart = Session["Cart"] as List<ModelGioHang>;
             if (cart != null)
@@ -1271,29 +1472,102 @@ namespace TMDTLaptop.Controllers
             }
         }
 
-        public ActionResult ChiTietDonHang(int id)
+        [HttpGet]
+        public async Task<ActionResult> ChiTietDonHang(int id)
         {
-            var httpClient = new HttpClient();
-            var jsonData = new { orderId = id };
-
-            var response = httpClient.PostAsJsonAsync("http://127.0.0.1:5000/api/get_order_detail", jsonData).Result;
-
-            if (response.IsSuccessStatusCode)
+            using (var client = new HttpClient())
             {
-                var result = response.Content.ReadAsAsync<dynamic>().Result;
+                try
+                {
+                    // Set timeout to detect connection issues quickly
+                    client.Timeout = TimeSpan.FromSeconds(10);
 
-                var order = result.order;
-                var chiTietDonHang = result.details;
-                var giamGia = result.giamGia;
+                    var postData = new { orderId = id };
+                    var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
 
-                ViewBag.Order = order;
-                ViewBag.ChiTietDonHang = chiTietDonHang;
-                ViewBag.GiamGia = giamGia;
+                    var response = await client.PostAsync("http://127.0.0.1:5000/api/get_order_detail", content);
+                    var result = await response.Content.ReadAsStringAsync();
 
-                return View();
+                    // Log để debug
+                    System.Diagnostics.Debug.WriteLine($"API Response Status: {response.StatusCode}");
+                    System.Diagnostics.Debug.WriteLine($"API Response Content: {result}");
+
+                    // Kiểm tra response có phải JSON không
+                    if (string.IsNullOrWhiteSpace(result) || result.TrimStart().StartsWith("<"))
+                    {
+                        ViewBag.ErrorMessage = "API trả về dữ liệu không hợp lệ. Vui lòng kiểm tra Flask server. Response: " + (result != null && result.Length > 0 ? result.Substring(0, Math.Min(100, result.Length)) : "null");
+                        return View();
+                    }
+
+                    dynamic responseData = JsonConvert.DeserializeObject(result);
+
+                    bool success = responseData.success != null ? Convert.ToBoolean(responseData.success) : false;
+                    if (!success)
+                    {
+                        string message = responseData.message != null ? responseData.message.ToString() : "Không tìm thấy đơn hàng.";
+                        ViewBag.ErrorMessage = message;
+                        return View();
+                    }
+
+                    if (responseData.order == null)
+                    {
+                        ViewBag.ErrorMessage = "Không tìm thấy thông tin đơn hàng trong response.";
+                        return View();
+                    }
+
+                    ViewBag.Order = responseData.order;
+
+                    // Convert details using ExpandoObject for proper dynamic binding in Razor
+                    var detailsList = new List<dynamic>();
+                    if (responseData.details != null)
+                    {
+                        foreach (var detail in responseData.details)
+                        {
+                            try
+                            {
+                                var serialNumbers = new List<string>();
+                                if (detail.SerialNumbers != null)
+                                {
+                                    foreach (var serial in detail.SerialNumbers)
+                                    {
+                                        serialNumbers.Add((string)serial);
+                                    }
+                                }
+
+                                dynamic item = new System.Dynamic.ExpandoObject();
+                                item.MaDonHang = detail.MaDonHang != null ? (int)detail.MaDonHang : 0;
+                                item.MaSanPham = detail.MaSanPham != null ? (int)detail.MaSanPham : 0;
+                                item.TenSanPham = detail.TenSanPham != null ? (string)detail.TenSanPham : "";
+                                item.SoLuong = detail.SoLuong != null ? (int)detail.SoLuong : 0;
+                                item.Gia = detail.Gia != null ? (decimal)detail.Gia : 0m;
+                                item.SerialNumbers = serialNumbers;
+                                detailsList.Add(item);
+                            }
+                            catch (Exception ex)
+                            {
+                                // Log lỗi nhưng vẫn tiếp tục xử lý các item khác
+                                System.Diagnostics.Debug.WriteLine($"Error processing detail: {ex.Message}");
+                            }
+                        }
+                    }
+
+                    ViewBag.ChiTietDonHang = detailsList;
+                    ViewBag.GiamGia = responseData.giamGia != null ? responseData.giamGia : null;
+                    ViewBag.Code = responseData.code != null ? (string)responseData.code : null;
+
+                    return View();
+                }
+                catch (HttpRequestException ex)
+                {
+                    ViewBag.ErrorMessage = "Không thể lấy thông tin đơn hàng từ API. Vui lòng kiểm tra kết nối đến Flask server (http://127.0.0.1:5000).";
+                    return View();
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.ErrorMessage = "Lỗi khi lấy chi tiết đơn hàng: " + ex.Message;
+                    return View();
+                }
             }
-
-            return HttpNotFound("Không thể lấy thông tin đơn hàng từ API.");
         }
 
         // 1. Lấy đơn hàng với thông tin có thể đổi trả/đánh giá
@@ -1311,6 +1585,129 @@ namespace TMDTLaptop.Controllers
             return View();
         }
         
+        // GET: Hiển thị trang đánh giá sản phẩm
+        [HttpGet]
+        public async Task<ActionResult> DanhGiaSanPham(int? orderId, int? productId)
+        {
+            var username = Session["Username"] as string;
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction("DangNhap", "Home");
+            }
+
+            // Validate parameters
+            if (!orderId.HasValue || !productId.HasValue)
+            {
+                ViewBag.Error = "Thiếu thông tin đơn hàng hoặc sản phẩm.";
+                return RedirectToAction("DonHangCuaToi");
+            }
+
+            using (var client = new HttpClient())
+            {
+                // Lấy thông tin user
+                var userResponse = await client.GetAsync($"http://127.0.0.1:5000/api/check_username?username={username}");
+                if (!userResponse.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("DangNhap", "Home");
+                }
+
+                var userData = await userResponse.Content.ReadAsStringAsync();
+                dynamic user = JsonConvert.DeserializeObject(userData);
+                int maTaiKhoan = user.MaTaiKhoan;
+
+                // Lấy thông tin sản phẩm
+                var productResponse = await client.PostAsJsonAsync("http://127.0.0.1:5000/api/get_detail_product", new { productId = productId.Value });
+                if (productResponse.IsSuccessStatusCode)
+                {
+                    var productResult = await productResponse.Content.ReadAsStringAsync();
+                    dynamic productData = JsonConvert.DeserializeObject(productResult);
+                    
+                    if (productData.success == true)
+                    {
+                        ViewBag.Product = productData.product.ToObject<SanPham>();
+                        ViewBag.OrderId = orderId.Value;
+                        ViewBag.MaTaiKhoan = maTaiKhoan;
+                        return View();
+                    }
+                }
+
+                ViewBag.Error = "Không tìm thấy sản phẩm.";
+                return RedirectToAction("DonHangCuaToi");
+            }
+        }
+
+        // POST: Xử lý đánh giá sản phẩm
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DanhGiaSanPham(int orderId, int productId, int diemDanhGia, string binhLuan)
+        {
+            var username = Session["Username"] as string;
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction("DangNhap", "Home");
+            }
+
+            // Validate dữ liệu
+            if (diemDanhGia < 1 || diemDanhGia > 5)
+            {
+                ViewBag.Error = "Điểm đánh giá phải từ 1 đến 5 sao.";
+                return RedirectToAction("DanhGiaSanPham", new { orderId = orderId, productId = productId });
+            }
+
+            if (string.IsNullOrWhiteSpace(binhLuan) || binhLuan.Trim().Length < 10)
+            {
+                ViewBag.Error = "Nhận xét phải có ít nhất 10 ký tự.";
+                return RedirectToAction("DanhGiaSanPham", new { orderId = orderId, productId = productId });
+            }
+
+            using (var client = new HttpClient())
+            {
+                // Lấy thông tin user
+                var userResponse = await client.GetAsync($"http://127.0.0.1:5000/api/check_username?username={username}");
+                if (!userResponse.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("DangNhap", "Home");
+                }
+
+                var userData = await userResponse.Content.ReadAsStringAsync();
+                dynamic user = JsonConvert.DeserializeObject(userData);
+                int maTaiKhoan = user.MaTaiKhoan;
+
+                // Gửi đánh giá đến API
+                var reviewData = new
+                {
+                    MaTaiKhoan = maTaiKhoan,
+                    MaSanPham = productId,
+                    DiemDanhGia = diemDanhGia,
+                    BinhLuan = binhLuan.Trim()
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(reviewData), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://127.0.0.1:5000/api/create_review", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+                    dynamic responseData = JsonConvert.DeserializeObject(result);
+                    
+                    if (responseData.success == true)
+                    {
+                        TempData["SuccessMessage"] = "Đánh giá của bạn đã được gửi thành công!";
+                        return RedirectToAction("DonHangCuaToi");
+                    }
+                    else
+                    {
+                        ViewBag.Error = responseData.message ?? "Có lỗi xảy ra khi gửi đánh giá.";
+                    }
+                }
+                else
+                {
+                    ViewBag.Error = "Không thể kết nối đến server.";
+                }
+            }
+
+            return RedirectToAction("DanhGiaSanPham", new { orderId = orderId, productId = productId });
+        }
 
         // 2. Xác nhận đã nhận hàng
         [HttpPost]
@@ -1641,16 +2038,16 @@ namespace TMDTLaptop.Controllers
             {
                 // Tạo email message
                 MailMessage mail = new MailMessage();
-                mail.From = new MailAddress("project_nhom08@gmail.com"); // Địa chỉ email của bạn
+                mail.From = new MailAddress("projectnhom8@gmail.com"); // Địa chỉ email của bạn
                 mail.To.Add(con_email); // Gửi email tới người dùng
-                mail.Bcc.Add("project_nhom08@gmail.com"); // Email nhận bản sao
+                mail.Bcc.Add("projectnhom8@gmail.com"); // Email nhận bản sao
                 mail.Subject = con_subject;
                 mail.Body = $"Xin chào {con_name},\n\nCảm ơn bạn đã liên hệ với chúng tôi.\nNội dung tin nhắn: {con_message}";
                 mail.IsBodyHtml = false;
 
                 // Cấu hình SMTP
                 SmtpClient smtpClient = new SmtpClient("smtp.gmail.com", 587); // SMTP server, ví dụ Gmail
-                smtpClient.Credentials = new NetworkCredential("project_nhom08@gmail.com", "vlnd erpg soxe jwsr"); // Đăng nhập email
+                smtpClient.Credentials = new NetworkCredential("projectnhom8@gmail.com", "vlnd erpg soxe jwsr"); // Đăng nhập email
                 smtpClient.EnableSsl = true; // Sử dụng SSL
 
                 // Gửi email

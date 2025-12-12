@@ -15,5 +15,9 @@ namespace TMDTLaptop.Models.Class
         public string TenNhaCungCap { get; set; }
         public string SoDienThoaiNCC { get; set; }
         public string EmailNCC { get; set; }
+        public int? NguoiTao { get; set; }
+        public string TrangThai { get; set; }
+        public string SoPhieuNhap { get; set; }
+        public System.DateTime? NgayCapNhat { get; set; }
     }
 }

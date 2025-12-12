@@ -184,7 +184,7 @@
         // Tạo biểu đồ thống kê
         var ctx = document.getElementById('chartKhoHangLoi').getContext('2d');
         var chartData = {
-            labels: [@Html.Raw(string.Join(",", Model.Select(m => $"'{m.TenSanPham}'")))],
+            labels: [@Html.Raw(string.Join(",", Model.Select(m => "'" + m.TenSanPham.ToString().Replace("'", "\\'") + "'")))],
             datasets: [{
                 label: 'Số Lượng Lỗi',
                 data: [@Html.Raw(string.Join(",", Model.Select(m => m.TongSoLuong)))],

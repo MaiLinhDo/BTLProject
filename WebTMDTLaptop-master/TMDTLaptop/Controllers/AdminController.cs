@@ -2328,11 +2328,20 @@ namespace TMDTLaptop.Controllers
 
             using (var client = new HttpClient())
             {
+                try
+                {
                 var postData = new { orderId = id };
                 var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
 
                 var response = await client.PostAsync("http://127.0.0.1:5000/api/get_order_detail", content);
                 var result = await response.Content.ReadAsStringAsync();
+
+                // Kiểm tra response có phải JSON không
+                if (string.IsNullOrWhiteSpace(result) || result.TrimStart().StartsWith("<"))
+                {
+                    ViewBag.ErrorMessage = "API trả về dữ liệu không hợp lệ. Vui lòng kiểm tra Flask server.";
+                    return View();
+                }
 
                 dynamic responseData = JsonConvert.DeserializeObject(result);
 
@@ -2343,11 +2352,44 @@ namespace TMDTLaptop.Controllers
                 }
 
                 ViewBag.Order = responseData.order;
-                ViewBag.Details = responseData.details;
+                
+                // Convert details để đảm bảo SerialNumbers được xử lý đúng
+                var detailsList = new List<dynamic>();
+                if (responseData.details != null)
+                {
+                    foreach (var detail in responseData.details)
+                    {
+                        var serialNumbers = new List<string>();
+                        if (detail.SerialNumbers != null)
+                        {
+                            foreach (var serial in detail.SerialNumbers)
+                            {
+                                serialNumbers.Add((string)serial);
+                            }
+                        }
+                        
+                        dynamic item = new System.Dynamic.ExpandoObject();
+                        item.MaDonHang = (int)detail.MaDonHang;
+                        item.MaSanPham = (int)detail.MaSanPham;
+                        item.TenSanPham = (string)detail.TenSanPham;
+                        item.SoLuong = (int)detail.SoLuong;
+                        item.Gia = (decimal)detail.Gia;
+                        item.SerialNumbers = serialNumbers;
+                        detailsList.Add(item);
+                    }
+                }
+                
+                ViewBag.Details = detailsList;
                 ViewBag.GiamGia = responseData.giamGia;
                 ViewBag.Code = responseData.code;
 
-                return View();
+                    return View();
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.ErrorMessage = "Lỗi khi lấy chi tiết đơn hàng: " + ex.Message;
+                    return View();
+                }
             }
         }
 
@@ -2587,6 +2629,12 @@ namespace TMDTLaptop.Controllers
         // 1. Cập nhật trạng thái đơn hàng theo luồng mới
         public async Task<ActionResult> CapNhatTrangThaiDonHang(int id, string trangThai)
         {
+            // Nếu trạng thái là "Đang chuẩn bị hàng", chuyển đến view chọn serial
+            if (trangThai == "Đang chuẩn bị hàng")
+            {
+                return RedirectToAction("ChonSerialNumbers", new { id = id });
+            }
+
             using (var client = new HttpClient())
             {
                 var postData = new
@@ -2604,6 +2652,131 @@ namespace TMDTLaptop.Controllers
                     return Json(new { success = true, message = "Cập nhật thành công" });
                 else
                     return Json(new { success = false, message = data.message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> ChonSerialNumbers(int id)
+        {
+            // if (!check()) { return RedirectToAction("Loi404", "Admin"); }
+
+            using (var client = new HttpClient())
+            {
+                try
+                {
+                    // Lấy thông tin đơn hàng
+                    var orderPostData = new { orderId = id };
+                    var orderContent = new StringContent(JsonConvert.SerializeObject(orderPostData), Encoding.UTF8, "application/json");
+                    var orderResponse = await client.PostAsync("http://127.0.0.1:5000/api/get_order_detail", orderContent);
+                    
+                    if (!orderResponse.IsSuccessStatusCode)
+                    {
+                        ViewBag.ErrorMessage = "Không thể kết nối đến API. Vui lòng kiểm tra Flask server có đang chạy không.";
+                        return View();
+                    }
+                    
+                    var orderResult = await orderResponse.Content.ReadAsStringAsync();
+                    
+                    // Kiểm tra response có phải JSON không
+                    if (string.IsNullOrWhiteSpace(orderResult) || orderResult.TrimStart().StartsWith("<"))
+                    {
+                        ViewBag.ErrorMessage = "API trả về dữ liệu không hợp lệ. Vui lòng kiểm tra Flask server.";
+                        return View();
+                    }
+                    
+                    dynamic orderData = JsonConvert.DeserializeObject(orderResult);
+
+                    if (!(bool)orderData.success)
+                    {
+                        ViewBag.ErrorMessage = "Không tìm thấy đơn hàng.";
+                        return View();
+                    }
+
+                    ViewBag.Order = orderData.order;
+
+                    // Lấy danh sách serial numbers có sẵn
+                    var serialPostData = new { orderId = id };
+                    var serialContent = new StringContent(JsonConvert.SerializeObject(serialPostData), Encoding.UTF8, "application/json");
+                    var serialResponse = await client.PostAsync("http://127.0.0.1:5000/api/get_available_serials", serialContent);
+                    
+                    if (!serialResponse.IsSuccessStatusCode)
+                    {
+                        ViewBag.ErrorMessage = "Không thể lấy danh sách serial numbers.";
+                        ViewBag.Products = new List<dynamic>();
+                        return View();
+                    }
+                    
+                    var serialResult = await serialResponse.Content.ReadAsStringAsync();
+                    
+                    // Kiểm tra response có phải JSON không
+                    if (string.IsNullOrWhiteSpace(serialResult) || serialResult.TrimStart().StartsWith("<"))
+                    {
+                        ViewBag.ErrorMessage = "API trả về dữ liệu không hợp lệ.";
+                        ViewBag.Products = new List<dynamic>();
+                        return View();
+                    }
+                    
+                    dynamic serialData = JsonConvert.DeserializeObject(serialResult);
+
+                    if ((bool)serialData.success)
+                    {
+                        ViewBag.Products = serialData.products.ToObject<List<dynamic>>();
+                    }
+                    else
+                    {
+                        ViewBag.Products = new List<dynamic>();
+                    }
+
+                    return View();
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.ErrorMessage = "Lỗi: " + ex.Message + ". Vui lòng kiểm tra Flask server có đang chạy không.";
+                    ViewBag.Products = new List<dynamic>();
+                    return View();
+                }
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> XacNhanChonSerial(int orderId, string selectedSerialsJson)
+        {
+            // if (!check()) { return RedirectToAction("Loi404", "Admin"); }
+
+            try
+            {
+                var selectedSerials = JsonConvert.DeserializeObject<Dictionary<string, List<int>>>(selectedSerialsJson);
+
+                using (var client = new HttpClient())
+                {
+                    var postData = new
+                    {
+                        orderId = orderId,
+                        status = "Đã giao cho đơn vị vận chuyển",
+                        selectedSerials = selectedSerials
+                    };
+
+                    var content = new StringContent(JsonConvert.SerializeObject(postData), Encoding.UTF8, "application/json");
+                    var response = await client.PostAsync("http://127.0.0.1:5000/api/update_order_with_serials", content);
+                    var result = await response.Content.ReadAsStringAsync();
+                    dynamic data = JsonConvert.DeserializeObject(result);
+
+                    if ((bool)data.success)
+                    {
+                        return RedirectToAction("QuanLyDonHang");
+                    }
+                    else
+                    {
+                        ViewBag.ErrorMessage = data.message;
+                        return RedirectToAction("ChonSerialNumbers", new { id = orderId });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Lỗi: " + ex.Message;
+                return RedirectToAction("ChonSerialNumbers", new { id = orderId });
             }
         }
 
@@ -2638,18 +2811,65 @@ namespace TMDTLaptop.Controllers
         {
             using (var client = new HttpClient())
             {
-                var response = await client.GetAsync($"http://127.0.0.1:5000/api/get_return_detail/{id}");
-                if (response.IsSuccessStatusCode)
+                try
                 {
+                    client.Timeout = TimeSpan.FromSeconds(10);
+                    var response = await client.GetAsync($"http://127.0.0.1:5000/api/get_return_detail/{id}");
                     var result = await response.Content.ReadAsStringAsync();
-                    dynamic data = JsonConvert.DeserializeObject(result);
-                    if (data.success == true)
+                    
+                    if (response.IsSuccessStatusCode)
                     {
-                        return PartialView("_ReturnDetailPartial", data.returnDetail);
+                        // Return directly as JSON response
+                        return Content(result, "application/json");
                     }
+                    return Json(new { success = false, message = "Không thể lấy thông tin chi tiết từ API." }, JsonRequestBehavior.AllowGet);
                 }
-                return Json(new { success = false, message = "Không thể lấy thông tin chi tiết" });
+                catch (Exception ex)
+                {
+                    return Json(new { success = false, message = $"Lỗi: {ex.Message}" }, JsonRequestBehavior.AllowGet);
+                }
             }
+        }
+
+        private dynamic ConvertJObjectToExpando(dynamic jObject)
+        {
+            if (jObject == null) return null;
+            
+            var expando = new System.Dynamic.ExpandoObject();
+            var dict = (IDictionary<string, object>)expando;
+            
+            foreach (var property in jObject)
+            {
+                string name = property.Name;
+                var value = property.Value;
+                
+                if (value is Newtonsoft.Json.Linq.JArray jArray)
+                {
+                    var list = new List<dynamic>();
+                    foreach (var item in jArray)
+                    {
+                        if (item is Newtonsoft.Json.Linq.JObject)
+                        {
+                            list.Add(ConvertJObjectToExpando(item));
+                        }
+                        else
+                        {
+                            list.Add(item.ToObject<object>());
+                        }
+                    }
+                    dict[name] = list;
+                }
+                else if (value is Newtonsoft.Json.Linq.JObject)
+                {
+                    dict[name] = ConvertJObjectToExpando(value);
+                }
+                else
+                {
+                    dict[name] = value?.ToObject<object>();
+                }
+            }
+            
+            return expando;
         }
         // 3. Cập nhật trạng thái đổi trả
         [HttpPost]

@@ -20,24 +20,25 @@ def get_kho_hang_loi():
     
     offset = (page - 1) * page_size
     
-    # Truy vấn chính với join để lấy tên sản phẩm
+    # Truy vấn từ SanPhamSerial với trạng thái Lỗi
     if search_string:
         query = """
-            SELECT k.MaKhoLoi, k.MaSanPham, s.TenSanPham, k.SoLuong, k.NgayNhap, k.LyDo
-            FROM KhoHangLoi k
-            INNER JOIN SanPham s ON k.MaSanPham = s.MaSanPham
-            WHERE s.TenSanPham LIKE ? OR k.LyDo LIKE ?
-            ORDER BY k.NgayNhap DESC
+            SELECT ss.MaSerial, ss.MaSanPham, s.TenSanPham, ss.SerialNumber, ss.TrangThai, ss.NgayBan
+            FROM SanPhamSerial ss
+            INNER JOIN SanPham s ON ss.MaSanPham = s.MaSanPham
+            WHERE ss.TrangThai = N'Lỗi' AND (s.TenSanPham LIKE ? OR ss.SerialNumber LIKE ?)
+            ORDER BY ss.MaSerial DESC
             OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
         """
         search_param = f"%{search_string}%"
         cursor.execute(query, (search_param, search_param, offset, page_size))
     else:
         query = """
-            SELECT k.MaKhoLoi, k.MaSanPham, s.TenSanPham, k.SoLuong, k.NgayNhap, k.LyDo
-            FROM KhoHangLoi k
-            INNER JOIN SanPham s ON k.MaSanPham = s.MaSanPham
-            ORDER BY k.NgayNhap DESC
+            SELECT ss.MaSerial, ss.MaSanPham, s.TenSanPham, ss.SerialNumber, ss.TrangThai, ss.NgayBan
+            FROM SanPhamSerial ss
+            INNER JOIN SanPham s ON ss.MaSanPham = s.MaSanPham
+            WHERE ss.TrangThai = N'Lỗi'
+            ORDER BY ss.MaSerial DESC
             OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
         """
         cursor.execute(query, (offset, page_size))
@@ -47,12 +48,12 @@ def get_kho_hang_loi():
     # Format dữ liệu trả về
     kho_hang_loi_list = [
         {
-            "MaKhoLoi": row[0],
+            "MaKhoLoi": row[0], # Using MaSerial as ID
             "MaSanPham": row[1],
             "TenSanPham": row[2],
-            "SoLuong": row[3],
-            "NgayNhap": row[4].strftime("%Y-%m-%d %H:%M:%S") if row[4] else None,
-            "LyDo": row[5]
+            "SerialNumber": row[3], # New field
+            "TrangThai": row[4],  # New field
+            "NgayNhap": row[5].strftime("%Y-%m-%d %H:%M:%S") if row[5] else None # Using NgayBan as approx timestamp
         }
         for row in rows
     ]
@@ -61,13 +62,13 @@ def get_kho_hang_loi():
     if search_string:
         count_query = """
             SELECT COUNT(*) 
-            FROM KhoHangLoi k
-            INNER JOIN SanPham s ON k.MaSanPham = s.MaSanPham
-            WHERE s.TenSanPham LIKE ? OR k.LyDo LIKE ?
+            FROM SanPhamSerial ss
+            INNER JOIN SanPham s ON ss.MaSanPham = s.MaSanPham
+            WHERE ss.TrangThai = N'Lỗi' AND (s.TenSanPham LIKE ? OR ss.SerialNumber LIKE ?)
         """
         cursor.execute(count_query, (search_param, search_param))
     else:
-        count_query = "SELECT COUNT(*) FROM KhoHangLoi"
+        count_query = "SELECT COUNT(*) FROM SanPhamSerial WHERE TrangThai = N'Lỗi'"
         cursor.execute(count_query)
     
     total_count = cursor.fetchone()[0]
